@@ -65,4 +65,15 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+
+    // TODO(AGENT_03/AGENT_08): add the following capabilities when their
+    // features land. Each will need a matching string in lang/en/local_azmsi.php.
+    //   - local/azmsi:reviewapplications  Admissions reviewer — gates the AGENT_08
+    //                                     applicant review UI (manager archetype).
+    //   - local/azmsi:ws_readcatalog      WS read cap backing local_azmsi_get_program_catalog.
+    //   - local/azmsi:ws_readoverview     WS read cap backing local_azmsi_get_student_overview.
+    //   - local/azmsi:ws_readresearch     WS read cap backing local_azmsi_get_research_tracker.
+    //   - local/azmsi:ws_readadmin        WS read cap backing local_azmsi_get_admin_kpis.
+    //   (the :ws_* read caps gate the azmsi_ws external functions per AGENT_03;
+    //    finalise the exact set against AGENT_03's WS function list.)
 ];
