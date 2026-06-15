@@ -2,12 +2,14 @@
 // Left brand panel + right column wrapping the REAL Moodle login form. Styling
 // only; the form markup is Moodle's. 02_DESIGN_TOKENS §A.
 //
-// NOTE: the layout wrapper is <div id="page" class="az-login"> and the right
-// column is <main id="region-main" class="az-login-main">. Boost styles #page
-// and #region-main by ID, so these selectors must carry ID specificity to win
-// (a plain `.az-login{display:grid}` loses to `#page{...}` and silently stacks).
+// NOTE: the layout wrapper is <div id="page-wrapper"><div id="page" class="az-login">
+// and the right column is <main id="region-main" class="az-login-main">. Boost/Moove
+// style the container as `#page-wrapper #page { display: flex }` (TWO ids), so a
+// `#page.az-login` rule (1 id + 1 class) silently loses and the columns stack
+// vertically. These selectors must therefore carry the same `#page-wrapper #page`
+// id-weight (plus the class) to win.
 
-#page.az-login {
+#page-wrapper #page.az-login {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
   min-height: 100vh;
@@ -121,8 +123,9 @@
 }
 
 // --- Right sign-in column --------------------------------------------------
-// `#page .az-login-main` (id + class) beats Boost's `#region-main` (id only).
-#page .az-login-main {
+// `#page-wrapper #page .az-login-main` (two ids + class) beats Boost/Moove's
+// `#page-wrapper #page #region-main` (three ids would tie/lose, so keep the class).
+#page-wrapper #page .az-login-main {
   display: flex;
   flex-direction: column;
   padding: 44px 56px 40px;
@@ -142,35 +145,15 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    max-width: 420px;
+    max-width: 520px;
     width: 100%;
     margin: 0 auto;
-    gap: 22px;
+    gap: 24px;
   }
 
   .az-login-card-head { display: flex; flex-direction: column; gap: 8px; }
   .az-login-card-title { font-weight: 900; font-size: 30px; color: $az-text; margin: 0; letter-spacing: -0.01em; }
   .az-login-card-sub { font-size: 13px; color: $az-text-mute; margin: 0; }
-
-  .az-login-roletabs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    .az-login-roletab {
-      border: 1px solid $az-line;
-      color: $az-text-mute;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-      padding: 10px 0;
-    }
-    .az-login-roletab--active {
-      background: rgba(201, 161, 59, 0.14);
-      border-color: $az-gold;
-      color: $az-text;
-      font-weight: 800;
-    }
-  }
 
   .az-login-footer {
     display: flex;

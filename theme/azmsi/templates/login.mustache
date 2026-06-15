@@ -99,13 +99,6 @@
                     <p class="az-login-card-sub">{{#str}}signinsubtitle, theme_azmsi{{/str}}</p>
                 </div>
 
-                {{! Presentational only — Moodle authenticates by credentials/role, never a tab. }}
-                <div class="az-login-roletabs" aria-hidden="true">
-                    <span class="az-login-roletab az-login-roletab--active">Student</span>
-                    <span class="az-login-roletab">Faculty</span>
-                    <span class="az-login-roletab">Admin</span>
-                </div>
-
                 {{! The real Moodle login form (username/password/login/forgot/remember-me/IdP buttons). }}
                 <div class="az-login-form">
                     {{{ output.main_content }}}
