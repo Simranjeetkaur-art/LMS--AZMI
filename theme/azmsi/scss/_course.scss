@@ -111,7 +111,9 @@
 .az-progress {
   height: 5px;
   background: rgba(0, 0, 0, 0.25);
-  .az-progress-fill { height: 5px; background: $az-gold-hi; }
+  // Width is data-bound via the --az-pct custom property (set inline by the
+  // template from the live completion %), keeping cosmetics in SCSS.
+  .az-progress-fill { height: 5px; width: var(--az-pct, 0); background: $az-gold-hi; }
 }
 
 // --- Gold "active" row (lists) --------------------------------------------

@@ -1,0 +1,86 @@
+// AZMSI Bold — student dashboard (block_azmsi_dashboard, S4).
+// Layout + the program-map / due-list patterns. Reuses the shared card/kpi/
+// continue-banner/course-card patterns from _cards.scss and _course.scss.
+
+.az-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  .az-dash-greeting .az-dash-hello {
+    font-weight: 900;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    color: $az-text;
+    margin: 0;
+  }
+
+  .az-dash-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .az-dash-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .az-dash-section-title {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    color: $az-text;
+    margin: 0;
+  }
+
+  // In-progress course cards grid.
+  .az-dash-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .az-course-card-top {
+    padding: 11px 16px;
+    border-bottom: 1px solid $az-line;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .az-course-card-body { padding: 14px 16px; flex: 1; }
+  .az-course-name { font-weight: 800; font-size: 14px; color: $az-text; line-height: 1.3; }
+  .az-course-meta { font-size: 11px; color: $az-text-mute; margin-top: 6px; }
+  .az-course-card-foot { padding: 12px 16px; border-top: 1px solid $az-line; display: flex; flex-direction: column; gap: 7px; }
+  .az-course-progresslabel { font-size: 10px; font-weight: 700; color: $az-text-mute; }
+
+  // Due-this-week checklist links.
+  .az-check-link { color: $az-text-2; flex: 1; &:hover { color: $az-text; } }
+  .az-check-due { color: $az-gold-hi; font-size: 11px; font-weight: 700; }
+
+  // Continue banner body/stats split.
+  .az-continue-body { display: flex; flex-direction: column; gap: 10px; }
+}
+
+// Program map Q1–Q12 — a 12-step rail; state from enrolment + completion.
+.az-progmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(6, 1fr); }
+
+  .az-progmap-q {
+    border: 1px solid $az-line;
+    background: $az-surface-2;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 11px;
+    font-weight: 800;
+    color: $az-text-faint;
+  }
+  .az-progmap-q--done { background: rgba(31, 122, 111, 0.25); border-color: $az-teal; color: $az-text; }
+  .az-progmap-q--in_progress { background: var(--az-grad-gold-active); border-color: $az-gold; color: $az-gold-bright; }
+  .az-progmap-q--current { box-shadow: inset 0 0 0 2px $az-gold; }
+}

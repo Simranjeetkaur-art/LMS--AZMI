@@ -1,0 +1,28 @@
+// AZMSI Bold — gradebook (S7). Themes Moodle's native user grade report
+// (gradereport_user) to the dark system. The report data, statuses and feedback
+// are all native/live; this is styling only. The richer "rubric weighting panel"
+// + recorded-feedback playback are a separate build (see VERIFY_AGENT_05).
+
+.path-grade-report-user,
+.path-grade-report {
+  .user-grade,
+  table.user-grade,
+  .generaltable {
+    background: $az-surface;
+    border-color: $az-line;
+    color: $az-text-2;
+
+    th, td { border-color: $az-line-soft; color: $az-text-2; }
+    th { color: $az-text; background: $az-surface-2; }
+
+    // Category / aggregation rows stand out.
+    .baggt, .category, tr.heading { background: $az-surface-2; color: $az-text; font-weight: 700; }
+
+    // Grade value + feedback emphasis.
+    .gradevalue, .grade { color: $az-gold-bright; font-weight: 700; }
+    .feedback, .feedbacktext { color: $az-text-3; }
+  }
+
+  // Weighting column (gradebook category weights).
+  .weight, .column-weight { color: $az-text-mute; }
+}

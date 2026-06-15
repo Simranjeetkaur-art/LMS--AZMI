@@ -80,9 +80,10 @@ class block_azmsi_dashboard extends block_base {
             return $this->content;
         }
 
-        // TODO (AGENT_05): call local_azmsi_get_student_overview and render via
-        // a renderer + Mustache template using theme_azmsi tokens.
-        $this->content->text = get_string('placeholder', 'block_azmsi_dashboard');
+        global $USER;
+        $renderer = $this->page->get_renderer('block_azmsi_dashboard');
+        $dashboard = new \block_azmsi_dashboard\output\dashboard((int) $USER->id);
+        $this->content->text = $renderer->render($dashboard);
         return $this->content;
     }
 
