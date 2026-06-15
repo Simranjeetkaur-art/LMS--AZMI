@@ -172,6 +172,19 @@
 
 // --- The real Moodle login form, styled to the prototype (markup is core via
 //     the theme_azmsi/core/loginform override; auth + JS stay native) ---------
+// Neutralise Boost's default `.loginform` box. Boost scopes it by body ID
+// (`#page-login-index .loginform{width:40%}` — specificity 1,1,0), so this must
+// carry the layout wrapper id (`#page`) to win: #page + 2 classes = 1,2,0.
+#page .az-login-form .loginform {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 .az-login-form {
   .az-loginform { display: flex; flex-direction: column; gap: 18px; }
   .az-form { display: flex; flex-direction: column; gap: 16px; }
