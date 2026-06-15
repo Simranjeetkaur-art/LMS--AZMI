@@ -14,26 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace format_emd\output\courseformat;
+
+use core_courseformat\output\local\content as content_base;
+
 /**
- * Strings for component 'format_emd'.
+ * Course content output for the eMD format.
+ *
+ * Uses the core reactive content template unchanged (so section/activity
+ * rendering, completion and availability are native); the eMD master-template
+ * header is added separately via format_emd::course_content_header().
  *
  * @package    format_emd
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$string['addsection'] = 'Add week';
-$string['coursecomplete'] = 'Course complete';
-$string['credits'] = 'credits';
-$string['currentgrade'] = 'Current grade';
-$string['deletesection'] = 'Delete week';
-$string['hidefromothers'] = 'Hide week';
-$string['plugin_description'] = 'The AZMSI eMD master template: a Course Introduction section, weekly module sections, and a Final Exam.';
-$string['pluginname'] = 'eMD weekly modules';
-$string['privacy:metadata'] = 'The eMD course format plugin does not store any personal data.';
-$string['section0name'] = 'Course Introduction';
-$string['sectionname'] = 'Week';
-$string['showfromothers'] = 'Show week';
-$string['weekn'] = 'Week {$a}';
+class content extends content_base {
+    /** @var bool eMD does not offer "add section" affordances to keep the master template fixed. */
+    protected $hasaddsection = true;
+}

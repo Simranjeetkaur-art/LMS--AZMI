@@ -53,6 +53,24 @@ class format_emd extends core_courseformat\base {
     }
 
     /**
+     * Use the reactive (component) course editor, like the core numbered formats.
+     *
+     * @return bool
+     */
+    public function supports_components() {
+        return true;
+    }
+
+    /**
+     * Output the eMD master-template header (S5) above the course content.
+     *
+     * @return \renderable|null
+     */
+    public function course_content_header() {
+        return new \format_emd\output\course_header($this->get_course());
+    }
+
+    /**
      * Allow stealth activities like the standard numbered formats.
      *
      * @return bool

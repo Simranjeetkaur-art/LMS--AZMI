@@ -2,6 +2,22 @@
 // Continue banner, course card, progress bar, gold "active" row, checklist,
 // timeline rail. Utility classes for Agents 04/05; no hardcoded content.
 
+// --- Course-home header (format_emd S5) -----------------------------------
+.az-coursehead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  align-items: center;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+
+  .az-coursehead-code { color: $az-gold-bright; margin-bottom: 6px; }
+  .az-coursehead-title { font-weight: 900; font-size: 26px; line-height: 1.15; color: $az-text; margin: 0; }
+  .az-coursehead-meta { font-size: 14px; color: #D6EFE9; margin-top: 8px; }
+
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
 // --- Continue banner (dashboard) ------------------------------------------
 .az-continue-banner {
   background: var(--az-grad-continue);
