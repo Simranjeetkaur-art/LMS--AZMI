@@ -92,6 +92,14 @@ if ($ADMIN->fulltree) {
         PARAM_TEXT
     ));
 
+    // Demo quick-access block (prototype only) — OFF by default per AGENT_02a.
+    $page->add(new admin_setting_configcheckbox(
+        'theme_azmsi/showdemoaccess',
+        get_string('showdemoaccess', 'theme_azmsi'),
+        get_string('showdemoaccess_desc', 'theme_azmsi'),
+        0
+    ));
+
     $settings->add($page);
 
     // Advanced tab: raw SCSS.

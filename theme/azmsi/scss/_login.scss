@@ -187,17 +187,27 @@
   }
 }
 
-// --- Style Moodle's real login form (markup is core; we only theme it) -----
+// --- The real Moodle login form, styled to the prototype (markup is core via
+//     the theme_azmsi/core/loginform override; auth + JS stay native) ---------
 .az-login-form {
-  .login-form,
-  form { display: flex; flex-direction: column; gap: 14px; }
+  .az-loginform { display: flex; flex-direction: column; gap: 18px; }
+  .az-form { display: flex; flex-direction: column; gap: 16px; }
 
-  label { font-size: 10.5px; font-weight: 800; color: $az-text-mute; letter-spacing: 0.1em; text-transform: uppercase; }
+  .az-field { display: flex; flex-direction: column; gap: 7px; }
+  .az-field-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .az-field-label {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: $az-text-mute;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .az-field-forgot { font-size: 11px; color: $az-teal-bright; font-weight: 700; &:hover { color: $az-gold-hi; } }
 
-  input.form-control,
   .form-control {
     background: $az-surface;
     border: 1px solid $az-line;
+    border-radius: 4px;
     color: $az-text;
     padding: 13px 16px;
     font-size: 13.5px;
@@ -205,49 +215,108 @@
     &:focus { border-color: $az-gold; box-shadow: 0 0 0 0.15rem rgba(201, 161, 59, 0.25); }
   }
 
-  // The primary "Log in" button -> gold CTA.
-  .btn-primary,
+  // ToggleSensitive (SHOW/HIDE) wraps the password in an input-group + button.
+  .input-group {
+    .form-control { border-right: 0; }
+    .btn {
+      background: $az-surface;
+      border: 1px solid $az-line;
+      border-left: 0;
+      color: $az-text-mute;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      &:hover { color: $az-text; }
+    }
+  }
+
+  // Gold "SIGN IN" CTA.
+  .az-signin,
   #loginbtn {
+    width: 100%;
     background: $az-gold;
     border-color: $az-gold;
+    border-radius: 4px;
     color: $az-bg;
     font-weight: 900;
     letter-spacing: 0.04em;
     padding: 14px 0;
-    width: 100%;
     &:hover, &:focus { background: $az-gold-bright; color: $az-bg; }
   }
 
-  a { color: $az-teal-bright; font-weight: 700; &:hover { color: $az-gold-hi; } }
-
-  // Identity-provider (SSO) buttons rendered by Moodle only when configured.
-  .login-identityproviders,
-  .potentialidp {
-    .btn { border: 1px solid $az-line; color: $az-text-2; background: transparent; &:hover { border-color: $az-gold; color: $az-text; } }
-  }
-
-  // Error / notification region from the real form.
-  .loginerrors,
-  .alert { border-radius: 0; }
-
-  // Moodle's own form headings ("Log in to <site>", guest section) — demote to
-  // small muted labels so the card stays clean (our card-head is the real title).
-  h1, h2, h3, .h2 {
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
+  // OR divider.
+  .az-or {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: $az-text-ghost;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: $az-text-mute;
-    margin: 6px 0 0;
+    &::before, &::after { content: ""; flex: 1; height: 1px; background: $az-line; }
   }
 
-  // Guest access + cookies + first-time blurbs from core: muted, compact.
-  .login-info,
-  .logininfo,
-  .cookies-notice,
-  p { font-size: 12px; color: $az-text-mute; }
+  // SSO / guest / signup buttons → outlined.
+  .az-sso-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    border: 1px solid $az-line;
+    border-radius: 4px;
+    background: transparent;
+    color: $az-text-2;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 12px 0;
+    &:hover { border-color: rgba(255, 255, 255, 0.4); color: $az-text; }
+    img { border-radius: 2px; }
+  }
 
-  // Secondary buttons (guest, cookies) as outlined, not filled.
-  .btn-secondary,
-  .btn-link { color: $az-text-2; border-color: $az-line; background: transparent; }
+  .az-guest { display: flex; flex-direction: column; gap: 8px; }
+  .az-loginsub { font-size: 12px; color: $az-text-mute; }
+  .az-cookies { margin-top: 2px; }
+  .az-cookies .btn { padding: 0; color: $az-text-faint; font-weight: 600; font-size: 11px; &:hover { color: $az-text-2; } }
+
+  // Error / info region.
+  .alert { border-radius: 4px; font-size: 12.5px; }
+  .alert-danger { background: rgba(232, 154, 154, 0.12); border-color: rgba(232, 154, 154, 0.4); color: $az-danger; }
+}
+
+// --- Demo quick-access (prototype only; rendered behind the showdemoaccess
+//     setting, OFF by default — AGENT_02a) -----------------------------------
+.az-demo {
+  border-top: 1px solid $az-line-soft;
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .az-demo-label {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: $az-text-ghost;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .az-demo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .az-demo-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: $az-surface;
+    border: 1px solid $az-line;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: $az-text-2;
+    &:hover { border-color: $az-gold; color: $az-text; }
+  }
+  .az-demo-dot { width: 7px; height: 7px; border-radius: 50%; background: $az-text-mute; flex: 0 0 auto; }
+  .az-demo-link--student .az-demo-dot { background: $az-gold; }
+  .az-demo-link--faculty .az-demo-dot { background: $az-teal-bright; }
+  .az-demo-link--admin .az-demo-dot { background: $az-gold-bright; }
 }

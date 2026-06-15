@@ -110,6 +110,19 @@
                 <div class="az-login-form">
                     {{{ output.main_content }}}
                 </div>
+
+                {{#showdemoaccess}}
+                <div class="az-demo">
+                    <div class="az-demo-label">{{#str}}demoaccess, theme_azmsi{{/str}}</div>
+                    <div class="az-demo-grid">
+                        {{#demolinks}}
+                            <a class="az-demo-link az-demo-link--{{accent}}" href="{{url}}">
+                                <span class="az-demo-dot"></span>{{label}}
+                            </a>
+                        {{/demolinks}}
+                    </div>
+                </div>
+                {{/showdemoaccess}}
             </div>
 
             <div class="az-login-footer">

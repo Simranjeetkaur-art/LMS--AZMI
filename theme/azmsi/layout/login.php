@@ -51,6 +51,30 @@ $templatecontext = [
     'wwwroot'        => $CFG->wwwroot,
     'sitehost'       => parse_url($CFG->wwwroot, PHP_URL_HOST),
     'year'           => userdate(time(), '%Y'),
+    // Demo quick-access shortcuts (rendered only when the setting is enabled).
+    'showdemoaccess' => !empty($settings->showdemoaccess),
+    'demolinks' => [
+        [
+            'url' => (new moodle_url('/my'))->out(false),
+            'label' => get_string('demostudent', 'theme_azmsi'),
+            'accent' => 'student',
+        ],
+        [
+            'url' => (new moodle_url('/local/azmsi/faculty.php'))->out(false),
+            'label' => get_string('demofaculty', 'theme_azmsi'),
+            'accent' => 'faculty',
+        ],
+        [
+            'url' => (new moodle_url('/local/azmsi/admin.php'))->out(false),
+            'label' => get_string('demoadmin', 'theme_azmsi'),
+            'accent' => 'admin',
+        ],
+        [
+            'url' => (new moodle_url('/course/'))->out(false),
+            'label' => get_string('democatalog', 'theme_azmsi'),
+            'accent' => 'catalog',
+        ],
+    ],
 ];
 
 echo $OUTPUT->render_from_template('theme_azmsi/login', $templatecontext);
