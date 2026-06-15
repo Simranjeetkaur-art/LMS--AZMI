@@ -19,4 +19,26 @@ Thumbs.db
 
 # Local environment
 .env
+.env.*
 *.local
+
+# Secrets / credentials — never publish
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+*.token
+auth.json
+
+# AI / coding-agent tooling — internal, never publish
+.claude/
+.cursor/
+.cursorrules
+.aider*
+.continue/
+.windsurf/
+.github/copilot-instructions.md
+
+# Confidential design handoff / internal docs — keep out of the public repo
+design_handoff_azmsi_platform/
+**/design_handoff_azmsi_platform/
