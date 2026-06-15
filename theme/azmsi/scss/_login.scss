@@ -1,8 +1,13 @@
 // AZMSI Bold — split-screen sign-in (AGENT_02a).
 // Left brand panel + right column wrapping the REAL Moodle login form. Styling
 // only; the form markup is Moodle's. 02_DESIGN_TOKENS §A.
+//
+// NOTE: the layout wrapper is <div id="page" class="az-login"> and the right
+// column is <main id="region-main" class="az-login-main">. Boost styles #page
+// and #region-main by ID, so these selectors must carry ID specificity to win
+// (a plain `.az-login{display:grid}` loses to `#page{...}` and silently stacks).
 
-.az-login {
+#page.az-login {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
   min-height: 100vh;
@@ -116,7 +121,8 @@
 }
 
 // --- Right sign-in column --------------------------------------------------
-.az-login-main {
+// `#page .az-login-main` (id + class) beats Boost's `#region-main` (id only).
+#page .az-login-main {
   display: flex;
   flex-direction: column;
   padding: 44px 56px 40px;
@@ -223,4 +229,25 @@
   // Error / notification region from the real form.
   .loginerrors,
   .alert { border-radius: 0; }
+
+  // Moodle's own form headings ("Log in to <site>", guest section) — demote to
+  // small muted labels so the card stays clean (our card-head is the real title).
+  h1, h2, h3, .h2 {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $az-text-mute;
+    margin: 6px 0 0;
+  }
+
+  // Guest access + cookies + first-time blurbs from core: muted, compact.
+  .login-info,
+  .logininfo,
+  .cookies-notice,
+  p { font-size: 12px; color: $az-text-mute; }
+
+  // Secondary buttons (guest, cookies) as outlined, not filled.
+  .btn-secondary,
+  .btn-link { color: $az-text-2; border-color: $az-line; background: transparent; }
 }

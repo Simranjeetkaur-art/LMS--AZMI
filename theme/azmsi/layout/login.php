@@ -46,6 +46,7 @@ $templatecontext = [
     'loginheadline'  => $headline,
     'loginsubhead'   => $subhead,
     'logourl'        => theme_azmsi_get_logo_url(),
+    'cresturl'       => $OUTPUT->image_url('crest', 'theme_azmsi')->out(false),
     'applyurl'       => 'https://azmsi.unicornfortunes.com',
     'wwwroot'        => $CFG->wwwroot,
     'sitehost'       => parse_url($CFG->wwwroot, PHP_URL_HOST),
