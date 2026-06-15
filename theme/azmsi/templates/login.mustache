@@ -96,6 +96,7 @@
                 <div class="az-login-card-head">
                     <div class="az-login-eyebrow">{{#str}}welcomeback, theme_azmsi{{/str}}</div>
                     <h2 class="az-login-card-title">{{#str}}signintoportal, theme_azmsi{{/str}}</h2>
+                    <p class="az-login-card-sub">{{#str}}signinsubtitle, theme_azmsi{{/str}}</p>
                 </div>
 
                 {{! Presentational only — Moodle authenticates by credentials/role, never a tab. }}
@@ -112,9 +113,11 @@
             </div>
 
             <div class="az-login-footer">
-                <span class="az-login-copy">&copy; {{year}} AZMSI</span>
+                <span class="az-login-copy">&copy; {{year}} AZMSI &middot; {{sitehost}}</span>
                 <span class="az-login-links">
-                    <a href="{{wwwroot}}/admin/tool/dataprivacy/summary.php">{{#str}}privacy, theme_azmsi{{/str}}</a>
+                    <span class="az-login-link">{{#str}}support, theme_azmsi{{/str}}</span>
+                    <span class="az-login-link">{{#str}}systemstatus, theme_azmsi{{/str}}</span>
+                    <a class="az-login-link" href="{{wwwroot}}/admin/tool/dataprivacy/summary.php">{{#str}}privacy, theme_azmsi{{/str}}</a>
                 </span>
             </div>
         </main>

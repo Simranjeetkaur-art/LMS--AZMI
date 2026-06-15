@@ -48,6 +48,7 @@ $templatecontext = [
     'logourl'        => theme_azmsi_get_logo_url(),
     'applyurl'       => 'https://azmsi.unicornfortunes.com',
     'wwwroot'        => $CFG->wwwroot,
+    'sitehost'       => parse_url($CFG->wwwroot, PHP_URL_HOST),
     'year'           => userdate(time(), '%Y'),
 ];
 
