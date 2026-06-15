@@ -31,20 +31,12 @@
 define('CLI_SCRIPT', true);
 
 // This plugin is deployed by symlink, so __DIR__ resolves to the real repo path
-// (outside Moodle) — the conventional relative require would miss config.php.
-// Resolve it robustly: MOODLE_ROOT env, then the in-tree relative path, then the
-// known public/-layout root.
-$azmsiconfigcandidates = [
-    getenv('MOODLE_ROOT') ? rtrim(getenv('MOODLE_ROOT'), '/') . '/config.php' : null,
-    __DIR__ . '/../../../config.php',
-    '/var/www/moodle/config.php',
-];
-foreach ($azmsiconfigcandidates as $azmsiconfig) {
-    if ($azmsiconfig && is_file($azmsiconfig)) {
-        require($azmsiconfig);
-        break;
-    }
-}
+// (outside Moodle) and the conventional relative require would miss config.php.
+// Resolve it as a single inclusion: in-tree relative path when present, else an
+// explicit MOODLE_ROOT, else the known public/-layout root.
+require(is_file(__DIR__ . '/../../../config.php')
+    ? __DIR__ . '/../../../config.php'
+    : (getenv('MOODLE_ROOT') ? rtrim(getenv('MOODLE_ROOT'), '/') . '/config.php' : '/var/www/moodle/config.php'));
 require_once($CFG->libdir . '/clilib.php');
 
 [$options, $unrecognised] = cli_get_params(
