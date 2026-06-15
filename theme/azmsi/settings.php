@@ -64,6 +64,36 @@ if ($ADMIN->fulltree) {
 
     $settings->add($page);
 
+    // Sign-in page tab: editable marketing copy for the login brand panel (AGENT_02a).
+    $page = new admin_settingpage('theme_azmsi_login', get_string('loginsettings', 'theme_azmsi'));
+
+    $page->add(new admin_setting_configtext(
+        'theme_azmsi/logineyebrow',
+        get_string('logineyebrow', 'theme_azmsi'),
+        get_string('logineyebrow_desc', 'theme_azmsi'),
+        'Executive Medical Doctorate · LMS',
+        PARAM_TEXT
+    ));
+
+    $page->add(new admin_setting_configtext(
+        'theme_azmsi/loginheadline',
+        get_string('loginheadline', 'theme_azmsi'),
+        get_string('loginheadline_desc', 'theme_azmsi'),
+        'The campus for the future of medical science.',
+        PARAM_TEXT
+    ));
+
+    $page->add(new admin_setting_configtextarea(
+        'theme_azmsi/loginsubhead',
+        get_string('loginsubhead', 'theme_azmsi'),
+        get_string('loginsubhead_desc', 'theme_azmsi'),
+        'Your courses, assessments, research, and live seminars — one online learning '
+            . 'environment, built for working professionals.',
+        PARAM_TEXT
+    ));
+
+    $settings->add($page);
+
     // Advanced tab: raw SCSS.
     $page = new admin_settingpage('theme_azmsi_advanced', get_string('advancedsettings', 'theme_azmsi'));
 

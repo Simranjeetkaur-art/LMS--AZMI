@@ -1,0 +1,131 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template theme_azmsi/login
+
+    AZMSI branded split-screen sign-in (AGENT_02a). The right column embeds the
+    REAL Moodle login form via {{{ output.main_content }}} (CSRF, lockout, errors,
+    remember-me and configured IdP/SSO buttons are all native). No demo block.
+
+    Context variables required for this template:
+    * output - core renderer
+    * bodyattributes - body tag attributes
+    * logineyebrow / loginheadline / loginsubhead - editable brand copy
+    * logourl - optional crest/logo moodle_url (null = text wordmark only)
+    * applyurl / wwwroot - utility links
+    * year - current year for the footer
+
+    Example context (json):
+    {
+        "sitename": "AZMSI",
+        "output": { "doctype": "<!DOCTYPE html>", "page_title": "Sign in", "favicon": "favicon.ico", "main_content": "<form>…</form>" },
+        "bodyattributes": "",
+        "logineyebrow": "Executive Medical Doctorate · LMS",
+        "loginheadline": "The campus for the future of medical science.",
+        "loginsubhead": "One online learning environment, built for working professionals.",
+        "logourl": null,
+        "applyurl": "https://azmsi.example.com",
+        "wwwroot": "https://lms.azmsi.example.com",
+        "year": "2026"
+    }
+}}
+{{> theme_boost/head }}
+
+<body {{{ bodyattributes }}}>
+{{> core/local/toast/wrapper}}
+
+<div id="page-wrapper">
+
+    {{{ output.standard_top_of_body_html }}}
+
+    <div id="page" class="az-login">
+
+        <aside class="az-login-brand">
+            <div class="az-login-grid" aria-hidden="true"></div>
+
+            <div class="az-login-brandrow">
+                {{#logourl}}<img class="az-brand-logo" src="{{logourl}}" alt="{{sitename}}">{{/logourl}}
+                <div class="az-brand">
+                    <span class="az-brand-word">AZMSI</span>
+                    <span class="az-brand-sub">Student &amp; Faculty Portal</span>
+                </div>
+            </div>
+
+            <div class="az-login-hero">
+                <div class="az-login-eyebrow"><span class="az-login-rule"></span>{{logineyebrow}}</div>
+                <h1 class="az-login-headline">{{loginheadline}}</h1>
+                <p class="az-login-subhead az-serif">{{loginsubhead}}</p>
+
+                <div class="az-login-stats az-kpi-strip">
+                    <div class="az-kpi"><div class="az-kpi-num">12</div><div class="az-kpi-label">Quarters</div></div>
+                    <div class="az-kpi"><div class="az-kpi-num">48</div><div class="az-kpi-label">Courses</div></div>
+                    <div class="az-kpi"><div class="az-kpi-num az-kpi-num--hi">100%</div><div class="az-kpi-label">Online</div></div>
+                </div>
+            </div>
+
+            <div class="az-login-seal">
+                {{#logourl}}<span class="az-login-medallion"><img src="{{logourl}}" alt=""></span>{{/logourl}}
+                <div class="az-login-sealtext">
+                    <span class="az-login-institute">Arizona Medical Sciences Institute</span>
+                    <span class="az-login-tagline">Educate · Innovate · Lead · Transform</span>
+                </div>
+            </div>
+        </aside>
+
+        <main id="region-main" class="az-login-main">
+            <div class="az-login-utility">
+                <a class="az-login-back" href="{{applyurl}}">&larr; Back to azmsi.com</a>
+                <a class="az-login-apply az-cta" href="{{applyurl}}">Apply</a>
+            </div>
+
+            <div class="az-login-card">
+                <div class="az-login-card-head">
+                    <div class="az-login-eyebrow">{{#str}}welcomeback, theme_azmsi{{/str}}</div>
+                    <h2 class="az-login-card-title">{{#str}}signintoportal, theme_azmsi{{/str}}</h2>
+                </div>
+
+                {{! Presentational only — Moodle authenticates by credentials/role, never a tab. }}
+                <div class="az-login-roletabs" aria-hidden="true">
+                    <span class="az-login-roletab az-login-roletab--active">Student</span>
+                    <span class="az-login-roletab">Faculty</span>
+                    <span class="az-login-roletab">Admin</span>
+                </div>
+
+                {{! The real Moodle login form (username/password/login/forgot/remember-me/IdP buttons). }}
+                <div class="az-login-form">
+                    {{{ output.main_content }}}
+                </div>
+            </div>
+
+            <div class="az-login-footer">
+                <span class="az-login-copy">&copy; {{year}} AZMSI</span>
+                <span class="az-login-links">
+                    <a href="{{wwwroot}}/admin/tool/dataprivacy/summary.php">{{#str}}privacy, theme_azmsi{{/str}}</a>
+                </span>
+            </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
+{{#js}}
+M.util.js_pending('theme_boost/loader');
+require(['theme_boost/loader'], function() {
+  M.util.js_complete('theme_boost/loader');
+});
+{{/js}}

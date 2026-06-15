@@ -40,8 +40,15 @@ $THEME->scss = function ($theme) {
 $THEME->prescsscallback = 'theme_azmsi_get_pre_scss';
 $THEME->extrascsscallback = 'theme_azmsi_get_extra_scss';
 
-// Inherit Moove's layouts; override per-layout in AGENT_02 as needed.
-$THEME->layouts = [];
+// Inherit Moove's layouts, overriding only the login layout for the branded
+// split-screen sign-in page (AGENT_02a). The login page always uses the site
+// theme's layout, so this renders when azmsi is the active site theme.
+$THEME->layouts = [
+    'login' => [
+        'file' => 'login.php',
+        'regions' => [],
+    ],
+];
 
 $THEME->enable_dock = false;
 $THEME->usefallback = true;
