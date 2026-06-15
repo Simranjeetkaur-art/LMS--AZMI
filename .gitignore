@@ -1,0 +1,22 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Dependency / build output (added by tooling, not source)
+/vendor/
+/node_modules/
+*.min.css.map
+*.min.js.map
+
+# PHP / Moodle tooling
+.phpunit.result.cache
+/.phpcs-cache
+/moodle-plugin-ci.log
+
+# Local environment
+.env
+*.local

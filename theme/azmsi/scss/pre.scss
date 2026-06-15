@@ -1,0 +1,52 @@
+// AZMSI "Bold" (dark) design tokens — from 02_DESIGN_TOKENS.md §A.
+// Loaded as pre-SCSS so these can override Moove/Bootstrap variables.
+// TODO (AGENT_02): map the relevant ones onto Bootstrap vars ($body-bg, $primary, etc.).
+
+// --- Colour ---
+$az-bg:          #0B131B;   // App background
+$az-bg-sidebar:  #080F15;   // Sidebar / exam chrome
+$az-surface:     #131D28;   // Cards, panels
+$az-surface-2:   #0F1822;   // Inset / locked rows
+$az-line:        rgba(255, 255, 255, 0.10); // Hairline borders
+$az-line-soft:   rgba(255, 255, 255, 0.06); // Row dividers
+$az-gold:        #C9A13B;   // Primary accent, CTAs
+$az-gold-bright: #E5C25E;   // Accent text on dark
+$az-gold-hi:     #FFD97A;   // Highlight numbers, due
+$az-teal:        #1F7A6F;   // Active course, success
+$az-teal-deep:   #14524A;   // Gradient base
+$az-teal-bright: #5FCDBD;   // Faculty accent, ticks
+$az-text:        #FFFFFF;   // Primary text
+$az-text-2:      #C8D2DC;   // Secondary
+$az-text-3:      #9DA8B2;   // Tertiary / serif italic
+$az-text-mute:   #8E9AA6;   // Muted labels
+$az-text-faint:  #66747F;   // Faint meta
+$az-text-ghost:  #4A5662;   // Disabled
+$az-danger:      #E89A9A;   // At-risk
+
+// Expose as CSS custom properties for Mustache/runtime use.
+:root {
+  --az-bg: #{$az-bg};
+  --az-bg-sidebar: #{$az-bg-sidebar};
+  --az-surface: #{$az-surface};
+  --az-surface-2: #{$az-surface-2};
+  --az-line: #{$az-line};
+  --az-line-soft: #{$az-line-soft};
+  --az-gold: #{$az-gold};
+  --az-gold-bright: #{$az-gold-bright};
+  --az-gold-hi: #{$az-gold-hi};
+  --az-teal: #{$az-teal};
+  --az-teal-deep: #{$az-teal-deep};
+  --az-teal-bright: #{$az-teal-bright};
+  --az-text: #{$az-text};
+  --az-text-2: #{$az-text-2};
+  --az-text-3: #{$az-text-3};
+  --az-text-mute: #{$az-text-mute};
+  --az-text-faint: #{$az-text-faint};
+  --az-text-ghost: #{$az-text-ghost};
+  --az-danger: #{$az-danger};
+
+  // Gradients (02_DESIGN_TOKENS.md §A).
+  --az-grad-continue: linear-gradient(110deg, #14524A, #1F7A6F 70%, #2A968A);
+  --az-grad-teal-card: linear-gradient(135deg, #14524A, #0E2B33);
+  --az-grad-gold-active: linear-gradient(110deg, rgba(201, 161, 59, .16), rgba(201, 161, 59, .04));
+}
