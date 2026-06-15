@@ -26,10 +26,30 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        // Recompute admin KPIs + class-health every 15 minutes.
-        'classname' => '\local_azmsi\task\refresh_admin_kpis',
+        // Admin KPI rollup every 10 minutes.
+        'classname' => '\local_azmsi\task\rollup_admin_kpis',
+        'blocking'  => 0,
+        'minute'    => '*/10',
+        'hour'      => '*',
+        'day'       => '*',
+        'dayofweek' => '*',
+        'month'     => '*',
+    ],
+    [
+        // Faculty class-health rollup every 15 minutes.
+        'classname' => '\local_azmsi\task\rollup_class_health',
         'blocking'  => 0,
         'minute'    => '*/15',
+        'hour'      => '*',
+        'day'       => '*',
+        'dayofweek' => '*',
+        'month'     => '*',
+    ],
+    [
+        // Student overview cache safety-net sweep every 5 minutes.
+        'classname' => '\local_azmsi\task\refresh_overview_caches',
+        'blocking'  => 0,
+        'minute'    => '*/5',
         'hour'      => '*',
         'day'       => '*',
         'dayofweek' => '*',

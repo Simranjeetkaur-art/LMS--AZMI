@@ -47,7 +47,7 @@ $capabilities = [
     ],
 
     // Act as a research/dissertation mentor (review milestones & documents).
-    'local/azmsi:mentor' => [
+    'local/azmsi:mentorresearch' => [
         'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
@@ -66,14 +66,51 @@ $capabilities = [
         ],
     ],
 
-    // TODO(AGENT_03/AGENT_08): add the following capabilities when their
-    // features land. Each will need a matching string in lang/en/local_azmsi.php.
-    //   - local/azmsi:reviewapplications  Admissions reviewer — gates the AGENT_08
-    //                                     applicant review UI (manager archetype).
-    //   - local/azmsi:ws_readcatalog      WS read cap backing local_azmsi_get_program_catalog.
-    //   - local/azmsi:ws_readoverview     WS read cap backing local_azmsi_get_student_overview.
-    //   - local/azmsi:ws_readresearch     WS read cap backing local_azmsi_get_research_tracker.
-    //   - local/azmsi:ws_readadmin        WS read cap backing local_azmsi_get_admin_kpis.
-    //   (the :ws_* read caps gate the azmsi_ws external functions per AGENT_03;
-    //    finalise the exact set against AGENT_03's WS function list.)
+    // Review admissions applications + AQE (admissions reviewer, AGENT_08).
+    'local/azmsi:reviewapplications' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
+    // Web service read capabilities. Granted only to the ws_consumer role /
+    // service accounts (AGENT_01), never to ordinary roles; each backs the
+    // matching azmsi_ws external function.
+
+    // Read the program catalog (website + applicant portal token).
+    'local/azmsi:ws_catalog' => [
+        'captype'      => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [],
+    ],
+
+    // Read a student's dashboard overview.
+    'local/azmsi:ws_student' => [
+        'captype'      => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [],
+    ],
+
+    // Read faculty overview rollups.
+    'local/azmsi:ws_faculty' => [
+        'captype'      => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [],
+    ],
+
+    // Read admin KPIs / pipeline rollups.
+    'local/azmsi:ws_admin' => [
+        'captype'      => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [],
+    ],
+
+    // Read/write the applicant portal (apply token).
+    'local/azmsi:ws_apply' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [],
+    ],
 ];

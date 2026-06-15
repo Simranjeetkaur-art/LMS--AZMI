@@ -16,11 +16,16 @@
 
 namespace local_azmsi;
 
+use core\task\manager;
+use local_azmsi\task\recompute_course_progress;
+use local_azmsi\task\notify_grade_released;
+use local_azmsi\task\revalidate_website;
+
 /**
- * Event observers — keep them cheap; queue heavy work as adhoc tasks.
+ * Event observers — the write/react path (01_ARCHITECTURE.md §4).
  *
- * The event -> action contract is in 01_ARCHITECTURE.md §4. Each method is a
- * no-op stub for now; implement per AGENT_03.
+ * Observers stay cheap: they only queue adhoc tasks (deduplicated) that do the
+ * aggregation / notification / website revalidation. No heavy work inline.
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
@@ -28,47 +33,81 @@ namespace local_azmsi;
  */
 class observer {
     /**
-     * Seed research-tracker row (if Q10+) and warm the dashboard cache.
+     * Queue a course-progress recompute for one user (deduplicated).
+     *
+     * @param int $courseid
+     * @param int $userid
+     */
+    protected static function queue_progress(int $courseid, int $userid): void {
+        if (!$courseid || !$userid) {
+            return;
+        }
+        $task = new recompute_course_progress();
+        $task->set_custom_data(['courseid' => $courseid, 'userid' => $userid]);
+        manager::queue_adhoc_task($task, true);
+    }
+
+    /**
+     * Enrolment created: invalidate the student's overview cache so it rebuilds.
      *
      * @param \core\event\user_enrolment_created $event
      */
     public static function on_enrolment_created(\core\event\user_enrolment_created $event): void {
-        // TODO (AGENT_03/09): seed local_azmsi_research, invalidate rollups cache.
+        $userid = (int) $event->relateduserid;
+        if ($userid) {
+            \cache::make('local_azmsi', 'rollups')->delete('overview_' . $userid);
+        }
+        // AGENT_09 seeds local_azmsi_research when the course is Q10+.
     }
 
     /**
-     * Recompute course % + week checklist cache.
+     * Activity completion updated: recompute course % for the affected user.
      *
      * @param \core\event\course_module_completion_updated $event
      */
     public static function on_activity_completion(\core\event\course_module_completion_updated $event): void {
-        // TODO (AGENT_03/05): invalidate course/week progress in cache_azmsi.
+        self::queue_progress((int) $event->courseid, (int) $event->relateduserid);
     }
 
     /**
-     * Recompute grade rollup; if the quiz is the AQE, advance application stage.
+     * Quiz attempt submitted: recompute progress (AQE branch handled in AGENT_08).
      *
      * @param \mod_quiz\event\attempt_submitted $event
      */
     public static function on_quiz_submitted(\mod_quiz\event\attempt_submitted $event): void {
-        // TODO (AGENT_03/08): queue grade rollup adhoc task; handle AQE branch.
+        $userid = (int) ($event->relateduserid ?: $event->userid);
+        self::queue_progress((int) $event->courseid, $userid);
+        // AGENT_08 advances the application stage when the quiz is the AQE.
     }
 
     /**
-     * Update gradebook rollup, mark faculty queue item, notify student.
+     * Assignment graded: recompute progress and queue a (thin) grade notification.
      *
      * @param \mod_assign\event\submission_graded $event
      */
     public static function on_assignment_graded(\mod_assign\event\submission_graded $event): void {
-        // TODO (AGENT_03/06): update rollup + faculty queue; queue notification.
+        $userid = (int) $event->relateduserid;
+        self::queue_progress((int) $event->courseid, $userid);
+
+        $notify = new notify_grade_released();
+        $notify->set_custom_data([
+            'courseid' => (int) $event->courseid,
+            'userid'   => $userid,
+            'cmid'     => (int) $event->contextinstanceid,
+        ]);
+        manager::queue_adhoc_task($notify, true);
     }
 
     /**
-     * Advance the program/quarter map; set graduation flag on final course.
+     * Course completed: trigger website on-demand revalidation.
      *
      * @param \core\event\course_completed $event
      */
     public static function on_course_completed(\core\event\course_completed $event): void {
-        // TODO (AGENT_03/07): advance quarter map; trigger website revalidation task.
+        $userid = (int) $event->relateduserid;
+        if ($userid) {
+            \cache::make('local_azmsi', 'rollups')->delete('overview_' . $userid);
+        }
+        manager::queue_adhoc_task(new revalidate_website(), true);
     }
 }

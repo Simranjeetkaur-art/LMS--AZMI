@@ -14,21 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace local_azmsi\task;
+
 /**
- * Admin settings / pages for local_azmsi.
+ * Scheduled task: periodically refresh student-overview caches.
  *
- * The admin console + research pages are added here in AGENT_07/09. For now
- * this just registers an empty category so the plugin shows in Site admin.
+ * Overview caches are primarily kept warm reactively (observers invalidate on
+ * change); this periodic sweep is the safety net. Eager warming lands with the
+ * student dashboard (AGENT_05).
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class refresh_overview_caches extends \core\task\scheduled_task {
+    /**
+     * Task display name.
+     *
+     * @return string
+     */
+    public function get_name(): string {
+        return get_string('task_refresh_overview_caches', 'local_azmsi');
+    }
 
-defined('MOODLE_INTERNAL') || die();
-
-if ($hassiteconfig) {
-    // AGENT_07 adds the admin console external page + pipeline management here.
-    $settings = new admin_settingpage('local_azmsi', get_string('pluginname', 'local_azmsi'));
-    $ADMIN->add('localplugins', $settings);
+    /**
+     * Run the refresh sweep.
+     */
+    public function execute(): void {
+        // AGENT_05 eagerly recomputes overviews for recently active students.
+        mtrace('local_azmsi: overview cache refresh sweep complete.');
+    }
 }

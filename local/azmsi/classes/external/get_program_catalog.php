@@ -51,13 +51,9 @@ class get_program_catalog extends external_api {
     public static function execute(): array {
         $context = \context_system::instance();
         self::validate_context($context);
+        require_capability('local/azmsi:ws_catalog', $context);
 
-        // TODO (AGENT_03): read course custom fields (year/quarter/credits/status)
-        // and build the tree. Return empty structure for now — nothing hardcoded.
-        return [
-            'program' => 'eMD',
-            'years'   => [],
-        ];
+        return \local_azmsi\local\program::get_catalog_tree();
     }
 
     /**
@@ -71,9 +67,11 @@ class get_program_catalog extends external_api {
             'years'   => new external_multiple_structure(
                 new external_single_structure([
                     'name'     => new external_value(PARAM_TEXT, 'Year title'),
+                    'number'   => new external_value(PARAM_INT, 'Year number (1-3)'),
                     'quarters' => new external_multiple_structure(
                         new external_single_structure([
                             'name'    => new external_value(PARAM_TEXT, 'Quarter title'),
+                            'number'  => new external_value(PARAM_INT, 'Quarter number (1-12)'),
                             'status'  => new external_value(PARAM_ALPHAEXT, 'in_progress|planned'),
                             'courses' => new external_multiple_structure(
                                 new external_single_structure([

@@ -32,17 +32,45 @@ function xmldb_local_azmsi_upgrade($oldversion) {
     global $DB;
     $dbman = $DB->get_manager();
 
-    // TODO(AGENT_08): create table local_azmsi_application as an upgrade step
-    // (applicant + AQE stage; fields mirrored from the TODO in db/install.xml).
-    // Guard with a version bump, e.g.:
-    //   if ($oldversion < 20260801XX) {
-    //       $table = new xmldb_table('local_azmsi_application');
-    //       // ... add fields/keys ... then:
-    //       if (!$dbman->table_exists($table)) {
-    //           $dbman->create_table($table);
-    //       }
-    //       upgrade_plugin_savepoint(true, 20260801XX, 'local', 'azmsi');
-    //   }
+    if ($oldversion < 2026061500) {
+        // Add research.track.
+        $table = new xmldb_table('local_azmsi_research');
+        $field = new xmldb_field('track', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'title');
+        if ($dbman->table_exists($table) && !$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add pipeline.updatedby.
+        $table = new xmldb_table('local_azmsi_pipeline');
+        $field = new xmldb_field('updatedby', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'stage_launch');
+        if ($dbman->table_exists($table) && !$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Create local_azmsi_application (mirrors db/install.xml).
+        $table = new xmldb_table('local_azmsi_application');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('program', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, 'eMD');
+            $table->add_field('stage', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, 'applied');
+            $table->add_field('status', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, 'open');
+            $table->add_field('aqe_quizid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('aqe_slot', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('decision', XMLDB_TYPE_CHAR, '32', null, null, null, null);
+            $table->add_field('decisioneta', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('submittedon', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $table->add_key('aqe_quizid', XMLDB_KEY_FOREIGN, ['aqe_quizid'], 'quiz', ['id']);
+            $table->add_index('stage', XMLDB_INDEX_NOTUNIQUE, ['stage']);
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2026061500, 'local', 'azmsi');
+    }
 
     return true;
 }

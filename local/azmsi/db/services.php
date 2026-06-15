@@ -33,35 +33,49 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Only functions whose classes exist are declared (AGENT_03 §5). Remaining
+// functions are added as each class lands: get_course_home, get_week_module,
+// get_faculty_overview, get_research_tracker, get_application_status,
+// submit_application, schedule_aqe, update_pipeline_stage.
 $functions = [
     'local_azmsi_get_program_catalog' => [
-        'classname'   => 'local_azmsi\external\get_program_catalog',
-        'description' => 'Full Year -> Quarter -> Course tree with live/planned status and credits.',
-        'type'        => 'read',
-        'ajax'        => true,
-        'capabilities' => '',
-        'services'    => ['azmsi_ws'],
+        'classname'    => 'local_azmsi\external\get_program_catalog',
+        'description'  => 'Full Year -> Quarter -> Course tree with live/planned status and credits.',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/azmsi:ws_catalog',
+        'services'     => ['azmsi_ws'],
     ],
     'local_azmsi_get_student_overview' => [
-        'classname'   => 'local_azmsi\external\get_student_overview',
-        'description' => 'Student dashboard rollup: continue-card, per-course %, due-this-week, program map.',
-        'type'        => 'read',
-        'ajax'        => true,
-        'capabilities' => '',
-        'services'    => ['azmsi_ws'],
+        'classname'    => 'local_azmsi\external\get_student_overview',
+        'description'  => 'Student dashboard rollup: per-course %, average, course list.',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/azmsi:ws_student',
+        'services'     => ['azmsi_ws'],
+    ],
+    'local_azmsi_get_admin_kpis' => [
+        'classname'    => 'local_azmsi\external\get_admin_kpis',
+        'description'  => 'Admin console KPI rollup (active students, applications, faculty, courses built).',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/azmsi:ws_admin',
+        'services'     => ['azmsi_ws'],
     ],
 ];
 
 // Pre-built external service consumed by the website + applicant portal
 // (server-side, dedicated token per consumer — see AGENT_01 / 01_ARCHITECTURE.md §3).
+// Shipped DISABLED; AGENT_01 enables it + mints scoped tokens on staging.
 $services = [
     'azmsi_ws' => [
         'functions'       => [
             'local_azmsi_get_program_catalog',
             'local_azmsi_get_student_overview',
+            'local_azmsi_get_admin_kpis',
         ],
         'restrictedusers' => 1,
-        'enabled'         => 0, // Enable + mint tokens in AGENT_01, not on install.
+        'enabled'         => 0,
         'shortname'       => 'azmsi_ws',
         'downloadfiles'   => 0,
         'uploadfiles'     => 0,

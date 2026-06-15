@@ -56,18 +56,43 @@ class get_student_overview extends external_api {
         $params = self::validate_parameters(self::execute_parameters(), ['userid' => $userid]);
         $context = \context_system::instance();
         self::validate_context($context);
+        require_capability('local/azmsi:ws_student', $context);
 
         $targetid = $params['userid'] ?: $USER->id;
-        if ($targetid != $USER->id) {
-            require_capability('local/azmsi:viewfacultyportal', $context);
+
+        // Serve from the rollups cache when warm (invalidated by observers/tasks).
+        $cache = \cache::make('local_azmsi', 'rollups');
+        $cachekey = 'overview_' . $targetid;
+        if (($cached = $cache->get($cachekey)) !== false) {
+            return $cached;
         }
 
-        // TODO (AGENT_05): compose courses + grades + completion + calendar.
-        return [
-            'fullname' => '',
-            'average'  => 0,
-            'courses'  => [],
+        $user = \core_user::get_user($targetid, '*', MUST_EXIST);
+        $courses = enrol_get_all_users_courses($targetid, true);
+
+        $courseout = [];
+        $sum = 0;
+        $count = 0;
+        foreach ($courses as $course) {
+            $percentage = \core_completion\progress::get_course_progress_percentage($course, $targetid);
+            $progress = is_null($percentage) ? 0 : (int) round($percentage);
+            $courseout[] = [
+                'id'       => (int) $course->id,
+                'name'     => format_string($course->fullname),
+                'progress' => $progress,
+            ];
+            $sum += $progress;
+            $count++;
+        }
+
+        $result = [
+            'fullname' => fullname($user),
+            'average'  => $count ? round($sum / $count, 1) : 0.0,
+            'courses'  => $courseout,
         ];
+
+        $cache->set($cachekey, $result);
+        return $result;
     }
 
     /**

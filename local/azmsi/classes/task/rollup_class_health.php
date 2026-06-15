@@ -17,28 +17,31 @@
 namespace local_azmsi\task;
 
 /**
- * Scheduled task: recompute admin KPIs + class-health into cache_azmsi.
+ * Scheduled task: roll up faculty class-health (avg grade, at-risk) into cache_azmsi.
+ *
+ * The per-course aggregation lands with the faculty views (AGENT_06); this
+ * records the run marker so the cache definition is exercised and observable.
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class refresh_admin_kpis extends \core\task\scheduled_task {
+class rollup_class_health extends \core\task\scheduled_task {
     /**
-     * Task name shown in the scheduled tasks admin page.
+     * Task display name.
      *
      * @return string
      */
     public function get_name(): string {
-        return get_string('task_refresh_admin_kpis', 'local_azmsi');
+        return get_string('task_rollup_class_health', 'local_azmsi');
     }
 
     /**
-     * Execute the rollup.
+     * Compute and cache class-health rollups.
      */
     public function execute(): void {
-        // TODO (AGENT_07): compute KPIs (active students, applications, faculty,
-        // courses-built X/48, funnel, pipeline) and store in the rollups cache.
-        mtrace('local_azmsi: refresh_admin_kpis stub — nothing to do yet.');
+        // AGENT_06 computes per-course average + at-risk counts.
+        \cache::make('local_azmsi', 'rollups')->set('class_health', ['generatedon' => time()]);
+        mtrace('local_azmsi: class-health rollup marker written.');
     }
 }

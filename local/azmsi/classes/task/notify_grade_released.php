@@ -14,21 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace local_azmsi\task;
+
 /**
- * Admin settings / pages for local_azmsi.
+ * Adhoc task: notify a student that a grade/feedback was released.
  *
- * The admin console + research pages are added here in AGENT_07/09. For now
- * this just registers an empty category so the plugin shows in Site admin.
+ * Queued by the assignment-graded observer. The message composition lands with
+ * the faculty views (AGENT_06); for now it invalidates the student's overview
+ * cache so the dashboard feedback card refreshes.
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-if ($hassiteconfig) {
-    // AGENT_07 adds the admin console external page + pipeline management here.
-    $settings = new admin_settingpage('local_azmsi', get_string('pluginname', 'local_azmsi'));
-    $ADMIN->add('localplugins', $settings);
+class notify_grade_released extends \core\task\adhoc_task {
+    /**
+     * Run the notification.
+     */
+    public function execute(): void {
+        $data = (array) $this->get_custom_data();
+        $userid = (int) ($data['userid'] ?? 0);
+        if ($userid) {
+            \cache::make('local_azmsi', 'rollups')->delete('overview_' . $userid);
+        }
+        // AGENT_06 sends the message_send() feedback-released notification.
+    }
 }
