@@ -1,0 +1,26 @@
+// AZMSI Bold — footer. Dark base with a gold top hairline accent. §A tokens.
+
+#page-footer,
+.footer-content-popover,
+footer.footer {
+  background: $az-bg-sidebar;
+  border-top: 2px solid $az-gold;
+  color: $az-text-mute;
+
+  a { color: $az-text-2; &:hover { color: $az-gold-bright; } }
+
+  .logininfo,
+  .tool_dataprivacy,
+  .homelink a { color: $az-text-mute; }
+}
+
+// Reusable gold footer partial for plugin pages.
+.az-footer {
+  background: $az-bg-sidebar;
+  border-top: 2px solid $az-gold;
+  color: $az-text-mute;
+  padding: 28px 40px;
+  font-size: 12px;
+
+  .az-footer-word { color: $az-text; font-weight: 900; letter-spacing: 0.02em; }
+}

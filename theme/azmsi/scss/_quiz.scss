@@ -1,0 +1,79 @@
+// AZMSI Bold — quiz / AQE exam chrome.
+// Restyles the native mod_quiz attempt page: dark chrome, timer, and the
+// question navigator coloured BY REAL STATE (Moodle emits the state classes on
+// .qnbutton — we only colour them, never fabricate progress). 03_SCREEN_SPECS S8.
+
+body.path-mod-quiz {
+  background: $az-bg;
+
+  // Question cards.
+  .que {
+    background: $az-surface;
+    border: 1px solid $az-line;
+    color: $az-text-2;
+    .qtext { color: $az-text; }
+    .info { background: $az-surface-2; color: $az-text-mute; border-right: 1px solid $az-line; }
+  }
+
+  // Timer.
+  #quiz-timer-wrapper,
+  #quiz-timer {
+    background: $az-bg-sidebar;
+    border: 1px solid $az-line;
+    color: $az-gold-hi;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+}
+
+// --- Question navigator ----------------------------------------------------
+#mod_quiz_navblock,
+.questionflagsaveform {
+  .qn_buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .qnbutton {
+    width: 34px;
+    height: 34px;
+    border: 1px solid $az-line;
+    background: $az-surface-2;
+    color: $az-text-2;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+
+    // State colours (class names emitted by the quiz renderer).
+    &.notyetanswered { background: $az-surface-2; color: $az-text-mute; }
+    &.answersaved,
+    &.complete { background: rgba(31, 122, 111, 0.25); border-color: $az-teal; color: $az-text; }
+    &.correct { background: $az-teal; border-color: $az-teal; color: $az-text; }
+    &.partiallycorrect { background: rgba(201, 161, 59, 0.25); border-color: $az-gold; color: $az-gold-hi; }
+    &.incorrect,
+    &.invalidanswer { background: rgba(232, 154, 154, 0.18); border-color: $az-danger; color: $az-danger; }
+    &.blocked { background: $az-surface-2; color: $az-text-ghost; }
+
+    // Flagged (overlay) + current page.
+    &.flagged { box-shadow: inset 0 0 0 2px $az-gold; }
+    &.thispage { outline: 2px solid $az-gold; outline-offset: 1px; color: $az-text; }
+
+    .trafficlight { display: none; } // colour conveyed by the button itself.
+  }
+}
+
+// Submit / finish panel.
+.submitbtns,
+#mod_quiz_navblock .othernav {
+  .btn-primary { background: $az-gold; border-color: $az-gold; color: $az-bg; }
+}
+
+// --- Exam chrome utility (optional wrapper for AQE secure layout) ----------
+.az-exam-chrome {
+  background: $az-bg-sidebar;
+  border-bottom: 1px solid $az-line;
+  color: $az-text;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+}

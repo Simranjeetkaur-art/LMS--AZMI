@@ -1,20 +1,27 @@
 // AZMSI "Bold" (dark) design tokens — from 02_DESIGN_TOKENS.md §A.
-// Loaded as pre-SCSS so these can override Moove/Bootstrap variables.
-// TODO (AGENT_02): map the relevant ones onto Bootstrap vars ($body-bg, $primary, etc.).
+// Loaded as PRE-SCSS (before Moove/Boost/Bootstrap) so these values win over
+// Bootstrap's `!default` variables and recolour standard Moodle pages.
+//
+// Fonts: Google Fonts in dev; self-host in Agent 11 (02_DESIGN_TOKENS §C).
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap');
 
-// --- Colour ---
+// ---------------------------------------------------------------------------
+// Brand accents — `!default` so theme settings (prepended in lib.php) win.
+// ---------------------------------------------------------------------------
+$az-gold:        #C9A13B !default;   // Primary accent, CTAs (settings: brandaccent).
+$az-teal-bright: #5FCDBD !default;   // Faculty accent, ticks (settings: facultyaccent).
+
+// --- Colour (fixed tokens) ---
 $az-bg:          #0B131B;   // App background
 $az-bg-sidebar:  #080F15;   // Sidebar / exam chrome
 $az-surface:     #131D28;   // Cards, panels
 $az-surface-2:   #0F1822;   // Inset / locked rows
 $az-line:        rgba(255, 255, 255, 0.10); // Hairline borders
 $az-line-soft:   rgba(255, 255, 255, 0.06); // Row dividers
-$az-gold:        #C9A13B;   // Primary accent, CTAs
 $az-gold-bright: #E5C25E;   // Accent text on dark
 $az-gold-hi:     #FFD97A;   // Highlight numbers, due
 $az-teal:        #1F7A6F;   // Active course, success
 $az-teal-deep:   #14524A;   // Gradient base
-$az-teal-bright: #5FCDBD;   // Faculty accent, ticks
 $az-text:        #FFFFFF;   // Primary text
 $az-text-2:      #C8D2DC;   // Secondary
 $az-text-3:      #9DA8B2;   // Tertiary / serif italic
@@ -23,7 +30,99 @@ $az-text-faint:  #66747F;   // Faint meta
 $az-text-ghost:  #4A5662;   // Disabled
 $az-danger:      #E89A9A;   // At-risk
 
-// Expose as CSS custom properties for Mustache/runtime use.
+// --- Type tokens ---
+$az-font-ui:     'Archivo', system-ui, -apple-system, "Segoe UI", sans-serif;
+$az-font-serif:  'Source Serif 4', Georgia, "Times New Roman", serif;
+
+// ---------------------------------------------------------------------------
+// Map tokens onto Bootstrap 5 / Boost variables. Because this file is prepended
+// before Bootstrap, these (non-`!default`) assignments override Bootstrap's
+// `!default` values, so core Moodle components inherit the Bold dark system.
+// ---------------------------------------------------------------------------
+
+// Surfaces & text.
+$body-bg:                 $az-bg;
+$body-color:              $az-text-2;
+$text-muted:              $az-text-mute;
+$border-color:            $az-line;
+$hr-color:                $az-line;
+$hr-opacity:              1;
+
+// Brand colours.
+$primary:                 $az-gold;
+$secondary:               $az-teal;
+$success:                 $az-teal;
+$info:                    $az-teal-bright;
+$warning:                 $az-gold-hi;
+$danger:                  $az-danger;
+$dark:                    $az-bg-sidebar;
+$light:                   $az-surface;
+
+// Links.
+$link-color:              $az-gold-bright;
+$link-hover-color:        $az-gold-hi;
+
+// Square corners by default; pills handled per-component (02_DESIGN_TOKENS §A).
+$border-radius:           0;
+$border-radius-sm:        0;
+$border-radius-lg:        0;
+$border-radius-xl:        0;
+$border-radius-pill:      999px;
+
+// Typography.
+$font-family-sans-serif:  $az-font-ui;
+$headings-font-weight:    800;
+$headings-color:          $az-text;
+$font-weight-bold:        700;
+
+// Cards / surfaces.
+$card-bg:                 $az-surface;
+$card-border-color:       $az-line;
+$card-cap-bg:             $az-surface;
+$card-color:              $az-text-2;
+
+// Forms / inputs.
+$input-bg:                $az-surface-2;
+$input-disabled-bg:       $az-surface-2;
+$input-color:             $az-text;
+$input-border-color:      $az-line;
+$input-placeholder-color: $az-text-faint;
+$input-focus-bg:          $az-surface-2;
+$input-focus-border-color: $az-gold;
+$input-group-addon-bg:    $az-surface;
+
+// Dropdowns / menus.
+$dropdown-bg:             $az-surface;
+$dropdown-color:          $az-text-2;
+$dropdown-border-color:   $az-line;
+$dropdown-link-color:     $az-text-2;
+$dropdown-link-hover-color: $az-text;
+$dropdown-link-hover-bg:  rgba(255, 255, 255, 0.05);
+$dropdown-divider-bg:     $az-line;
+
+// Tables.
+$table-color:             $az-text-2;
+$table-border-color:      $az-line;
+$table-striped-color:     $az-text-2;
+$table-hover-color:       $az-text;
+
+// Modals / popovers.
+$modal-content-bg:        $az-surface;
+$modal-content-border-color: $az-line;
+$modal-header-border-color: $az-line;
+$modal-footer-border-color: $az-line;
+$popover-bg:              $az-surface;
+$popover-border-color:    $az-line;
+
+// Navbar (top bar) — dark.
+$navbar-dark-color:       $az-text-2;
+$navbar-dark-hover-color: $az-text;
+$navbar-dark-active-color: $az-text;
+
+// ---------------------------------------------------------------------------
+// Expose tokens as :root CSS custom properties so plugin Mustache templates
+// (Agents 04/05) can use var(--az-*) at runtime.
+// ---------------------------------------------------------------------------
 :root {
   --az-bg: #{$az-bg};
   --az-bg-sidebar: #{$az-bg-sidebar};
@@ -45,8 +144,11 @@ $az-danger:      #E89A9A;   // At-risk
   --az-text-ghost: #{$az-text-ghost};
   --az-danger: #{$az-danger};
 
+  --az-font-ui: #{$az-font-ui};
+  --az-font-serif: #{$az-font-serif};
+
   // Gradients (02_DESIGN_TOKENS.md §A).
-  --az-grad-continue: linear-gradient(110deg, #14524A, #1F7A6F 70%, #2A968A);
-  --az-grad-teal-card: linear-gradient(135deg, #14524A, #0E2B33);
+  --az-grad-continue: linear-gradient(110deg, #{$az-teal-deep}, #{$az-teal} 70%, #2A968A);
+  --az-grad-teal-card: linear-gradient(135deg, #{$az-teal-deep}, #0E2B33);
   --az-grad-gold-active: linear-gradient(110deg, rgba(201, 161, 59, .16), rgba(201, 161, 59, .04));
 }

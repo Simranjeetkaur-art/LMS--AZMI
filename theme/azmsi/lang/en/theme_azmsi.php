@@ -24,11 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['adminconsole'] = 'Admin console';
+$string['advancedsettings'] = 'Advanced';
+$string['brandaccent'] = 'Primary accent (gold)';
+$string['brandaccent_desc'] = 'Primary brand accent used for CTAs, active states and highlights. Overrides the gold design token.';
 $string['choosereadme'] = 'AZMSI is the "Bold" dark LMS theme for the Arizona Medical Sciences Institute, built as a child of Moove.';
 $string['configtitle'] = 'AZMSI settings';
+$string['faculty'] = 'Faculty view';
+$string['facultyaccent'] = 'Faculty accent (teal)';
+$string['facultyaccent_desc'] = 'Secondary accent used on faculty surfaces and success ticks. Overrides the bright-teal design token.';
 $string['generalsettings'] = 'General';
+$string['logo'] = 'Brand logo';
+$string['logo_desc'] = 'Optional logo shown in the dark sidebar. When empty, the text wordmark is used instead.';
 $string['pluginname'] = 'AZMSI';
 $string['privacy:metadata'] = 'The AZMSI theme does not store any personal data.';
 $string['rawscss'] = 'Raw SCSS';
 $string['rawscss_desc'] = 'Use this field to provide SCSS code which will be injected at the end of the style sheet.';
 $string['region-side-pre'] = 'Right';
+$string['switchportal'] = 'Switch portal';

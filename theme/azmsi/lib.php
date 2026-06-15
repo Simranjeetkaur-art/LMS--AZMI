@@ -50,12 +50,35 @@ function theme_azmsi_get_main_scss_content($theme) {
  * Pre-SCSS: AZMSI design tokens injected before everything so they can
  * override Moove/Bootstrap variables (colours, fonts, radii). See 02_DESIGN_TOKENS.md.
  *
+ * Theme-settings-derived overrides (brand/faculty accent) are prepended first so
+ * they win over the `!default` accent tokens declared in pre.scss.
+ *
  * @param theme_config $theme The theme config object.
  * @return string
  */
 function theme_azmsi_get_pre_scss($theme) {
+    $scss = '';
+
+    // Map admin settings -> SCSS variables. Each accent token is `!default` in
+    // pre.scss, so a non-default assignment here takes precedence.
+    $configurable = [
+        // Setting key => SCSS variable name.
+        'brandaccent'   => 'az-gold',
+        'facultyaccent' => 'az-teal-bright',
+    ];
+    foreach ($configurable as $key => $var) {
+        $value = isset($theme->settings->{$key}) ? $theme->settings->{$key} : null;
+        if (!empty($value)) {
+            $scss .= '$' . $var . ': ' . $value . ";\n";
+        }
+    }
+
     $pre = __DIR__ . '/scss/pre.scss';
-    return is_readable($pre) ? file_get_contents($pre) : '';
+    if (is_readable($pre)) {
+        $scss .= file_get_contents($pre);
+    }
+
+    return $scss;
 }
 
 /**
@@ -78,4 +101,38 @@ function theme_azmsi_get_extra_scss($theme) {
         $scss .= "\n" . $theme->settings->scss;
     }
     return $scss;
+}
+
+/**
+ * Serve the theme's files (currently just the uploaded brand logo).
+ *
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param context $context context object
+ * @param string $filearea file area
+ * @param array $args extra arguments
+ * @param bool $forcedownload whether to force download
+ * @param array $options additional options affecting the file serving
+ * @return bool false if the file was not found, just send the file otherwise and do not return anything
+ */
+function theme_azmsi_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
+    if ($context->contextlevel == CONTEXT_SYSTEM && $filearea === 'logo') {
+        $theme = theme_config::load('azmsi');
+        return $theme->setting_file_serve('logo', $args, $forcedownload, $options);
+    }
+    send_file_not_found();
+}
+
+/**
+ * Resolve the configured brand logo URL, or null when none is uploaded.
+ *
+ * Used by the dark sidebar to show the brand mark; templates fall back to the
+ * text wordmark when this returns null. Never hardcodes an image path.
+ *
+ * @return moodle_url|null
+ */
+function theme_azmsi_get_logo_url() {
+    $theme = theme_config::load('azmsi');
+    $url = $theme->setting_file_url('logo', 'logo');
+    return $url ? new moodle_url($url) : null;
 }

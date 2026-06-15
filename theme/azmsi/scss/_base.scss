@@ -1,0 +1,156 @@
+// AZMSI Bold — global base layer.
+// Dark surfaces, typography and the handful of Moodle/Boost components that the
+// Bootstrap variable mapping (pre.scss) does not fully recolour. Token-only —
+// no hardcoded content. Compiled after Moove so these win.
+
+// --- Document & typography -------------------------------------------------
+body {
+  background: $az-bg;
+  color: $az-text-2;
+  font-family: $az-font-ui;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  color: $az-text;
+  font-family: $az-font-ui;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+// Source Serif 4 italic accent — for subheads/blurbs (02_DESIGN_TOKENS §A).
+.az-serif {
+  font-family: $az-font-serif;
+  font-style: italic;
+  font-weight: 400;
+  color: $az-text-3;
+}
+
+// Eyebrow / uppercase label motif.
+.az-eyebrow {
+  font-family: $az-font-ui;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  color: $az-text-mute;
+}
+
+a {
+  color: $az-gold-bright;
+  &:hover { color: $az-gold-hi; }
+}
+
+// --- Common Moodle surfaces ------------------------------------------------
+#page,
+#page-content,
+.main-inner {
+  background: transparent;
+  color: $az-text-2;
+}
+
+// Cards / boxes that core renders frequently.
+.card,
+.block,
+.box,
+.generalbox,
+.secondary-navigation .navigation {
+  background-color: $az-surface;
+  border-color: $az-line;
+  color: $az-text-2;
+}
+
+.card .card-header,
+.block .card-title,
+.block h5 {
+  color: $az-text;
+  border-color: $az-line;
+}
+
+// Activity cards / course content.
+.activity-item,
+.course-content .section,
+.coursebox {
+  background-color: $az-surface;
+  border-color: $az-line !important;
+  color: $az-text-2;
+}
+
+// Tables.
+.table,
+table.generaltable {
+  color: $az-text-2;
+  border-color: $az-line;
+  th { color: $az-text; }
+  td, th { border-color: $az-line-soft; }
+}
+
+// Breadcrumbs & secondary nav text.
+.breadcrumb,
+.breadcrumb-item,
+.breadcrumb-item a {
+  color: $az-text-mute;
+}
+
+// Muted helper text.
+.text-muted,
+small,
+.small {
+  color: $az-text-mute !important;
+}
+
+// Form controls beyond the Bootstrap var coverage.
+.form-control,
+.custom-select,
+select,
+textarea {
+  background-color: $az-surface-2;
+  border-color: $az-line;
+  color: $az-text;
+  &::placeholder { color: $az-text-faint; }
+  &:focus {
+    background-color: $az-surface-2;
+    border-color: $az-gold;
+    color: $az-text;
+    box-shadow: 0 0 0 0.15rem rgba(201, 161, 59, 0.25);
+  }
+}
+
+// Custom thin scrollbar to match the dark chrome.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+// Focus visibility (WCAG 2.1 AA — keyboard nav).
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid $az-gold;
+  outline-offset: 2px;
+}
+
+// --- Buttons ---------------------------------------------------------------
+.btn-primary {
+  background-color: $az-gold;
+  border-color: $az-gold;
+  color: $az-bg;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  &:hover, &:focus { background-color: $az-gold-bright; border-color: $az-gold-bright; color: $az-bg; }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border-color: $az-line;
+  color: $az-text-2;
+  &:hover, &:focus { border-color: $az-gold; color: $az-text; }
+}

@@ -1,0 +1,69 @@
+// AZMSI Bold — top bar (restyles Boost's fixed navbar).
+// Dark chrome, pill search, term label, avatar/user menu. 02_DESIGN_TOKENS §A.
+
+.navbar.fixed-top,
+nav.navbar {
+  background: $az-bg !important;
+  border-bottom: 1px solid $az-line;
+  color: $az-text-2;
+
+  .navbar-brand { color: $az-text; font-weight: 900; }
+
+  // Icons / links in the bar.
+  .nav-link,
+  .btn.nav-link,
+  a {
+    color: $az-text-2;
+    &:hover { color: $az-text; }
+  }
+}
+
+// Global search → rounded pill input (prototype top bar).
+.navbar form[role="search"] .form-control,
+.navbar .search-input-wrapper input,
+.navbar input[type="search"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid $az-line;
+  border-radius: 999px;
+  color: $az-text-2;
+  padding: 9px 18px;
+  &::placeholder { color: $az-text-faint; }
+}
+
+// Term / context label motif (e.g. "QUARTER 1 · WINTER 2026"); rendered by
+// downstream surfaces using this class — never hardcoded here.
+.az-termlabel {
+  font-size: 11px;
+  color: $az-text-mute;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+// User avatar (Moodle outputs .userpicture / .avatar).
+.navbar .userpicture,
+.navbar .avatar,
+.az-avatar {
+  border-radius: 50%;
+  background: $az-teal;
+  color: $az-text;
+  font-weight: 800;
+  object-fit: cover;
+}
+
+// User menu dropdown.
+.usermenu .dropdown-menu,
+.navbar .dropdown-menu {
+  background: $az-surface;
+  border: 1px solid $az-line;
+  .dropdown-item { color: $az-text-2; &:hover { background: rgba(255, 255, 255, 0.05); color: $az-text; } }
+  .dropdown-divider { border-color: $az-line; }
+}
+
+// Page heading row.
+#page-header .page-context-header h1,
+.page-header-headings h1 {
+  color: $az-text;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}

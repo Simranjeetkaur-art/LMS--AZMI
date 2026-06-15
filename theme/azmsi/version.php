@@ -28,11 +28,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'theme_azmsi';
-$plugin->version   = 2026061400;
+$plugin->version   = 2026061500;
 $plugin->requires  = 2025100600;      // Moodle 5.1 (verified against public/version.php $version=2025100605.00).
 $plugin->supported = [501, 501];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.1.0-skeleton';
+$plugin->release   = '0.2.0';
 $plugin->dependencies = [
     'theme_moove' => 2025093001, // Parent theme — Moove 5.1.2.
 ];

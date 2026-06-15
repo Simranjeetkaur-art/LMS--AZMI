@@ -1,0 +1,81 @@
+// AZMSI Bold — reusable card / surface / pill / KPI patterns.
+// Utility classes consumed by plugin Mustache templates (Agents 04/05). They
+// carry NO content — data is bound by the templates. 02_DESIGN_TOKENS §A.
+
+// --- Surfaces --------------------------------------------------------------
+.az-card {
+  background: $az-surface;
+  border: 1px solid $az-line;
+  color: $az-text-2;
+  display: flex;
+  flex-direction: column;
+
+  .az-card-head {
+    padding: 11px 16px;
+    border-bottom: 1px solid $az-line;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: $az-text;
+    font-weight: 800;
+  }
+  .az-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .az-card-foot { padding: 12px 16px; border-top: 1px solid $az-line; }
+
+  &.az-card--inset { background: $az-surface-2; }
+  &:hover.az-card--hover { border-color: rgba(255, 255, 255, 0.25); }
+}
+
+// Teal gradient feature card.
+.az-card--teal {
+  background: var(--az-grad-teal-card);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: $az-text;
+}
+
+// --- Status pills ----------------------------------------------------------
+.az-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.az-pill--gold   { background: $az-gold; color: $az-bg; }
+.az-pill--teal   { background: $az-teal; color: $az-text; }
+.az-pill--mute   { background: transparent; color: $az-text-mute; border-color: $az-line; }
+.az-pill--danger { background: transparent; color: $az-danger; border-color: rgba(232, 154, 154, 0.4); }
+
+// --- KPI stat strip --------------------------------------------------------
+.az-kpi-strip {
+  display: flex;
+  gap: 0;
+
+  .az-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 28px;
+    & + .az-kpi { border-left: 1px solid rgba(255, 255, 255, 0.18); }
+
+    .az-kpi-num {
+      font-weight: 900;
+      font-size: 30px;
+      line-height: 1;
+      color: $az-text;
+      &.az-kpi-num--hi { color: $az-gold-hi; }
+    }
+    .az-kpi-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: $az-text-mute;
+    }
+  }
+}

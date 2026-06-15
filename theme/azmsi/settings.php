@@ -27,7 +27,45 @@ defined('MOODLE_INTERNAL') || die();
 if ($ADMIN->fulltree) {
     $settings = new theme_boost_admin_settingspage_tabs('themesettingazmsi', get_string('configtitle', 'theme_azmsi'));
 
+    // General tab: brand identity.
     $page = new admin_settingpage('theme_azmsi_general', get_string('generalsettings', 'theme_azmsi'));
+
+    // Logo upload (brand wordmark in the dark sidebar; served by theme_azmsi_pluginfile()).
+    $setting = new admin_setting_configstoredfile(
+        'theme_azmsi/logo',
+        get_string('logo', 'theme_azmsi'),
+        get_string('logo_desc', 'theme_azmsi'),
+        'logo',
+        0,
+        ['maxfiles' => 1, 'accepted_types' => ['.png', '.jpg', '.svg', '.webp']]
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Primary accent (gold) — overrides $az-gold token (02_DESIGN_TOKENS §A).
+    $setting = new admin_setting_configcolourpicker(
+        'theme_azmsi/brandaccent',
+        get_string('brandaccent', 'theme_azmsi'),
+        get_string('brandaccent_desc', 'theme_azmsi'),
+        '#C9A13B'
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    // Faculty accent (teal) — overrides $az-teal-bright token (03_SCREEN_SPECS S10).
+    $setting = new admin_setting_configcolourpicker(
+        'theme_azmsi/facultyaccent',
+        get_string('facultyaccent', 'theme_azmsi'),
+        get_string('facultyaccent_desc', 'theme_azmsi'),
+        '#5FCDBD'
+    );
+    $setting->set_updatedcallback('theme_reset_all_caches');
+    $page->add($setting);
+
+    $settings->add($page);
+
+    // Advanced tab: raw SCSS.
+    $page = new admin_settingpage('theme_azmsi_advanced', get_string('advancedsettings', 'theme_azmsi'));
 
     // Raw SCSS appended last (consumed by theme_azmsi_get_extra_scss()).
     $setting = new admin_setting_configtextarea(
