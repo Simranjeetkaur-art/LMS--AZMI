@@ -21,23 +21,42 @@ See the design handoff (`AGENT_00` + `AGENT_00a`) for conventions.
 ## Deploy (symlink) step
 
 The plugins live here and are symlinked into the Moodle tree, so the core repo
-working tree stays clean and a core update never touches them. From the Moodle
-root (`/var/www/moodle`):
+working tree stays clean and a core update never touches them. **Do not create
+the links by hand** — use the idempotent, re-runnable deploy script, which is the
+single source of truth for both the symlinks *and* the core `.git/info/exclude`
+entries:
 
 ```bash
-ln -s /var/www/azmsi-plugins/theme/azmsi            public/theme/azmsi
-ln -s /var/www/azmsi-plugins/local/azmsi            public/local/azmsi
-ln -s /var/www/azmsi-plugins/course/format/emd      public/course/format/emd
-ln -s /var/www/azmsi-plugins/blocks/azmsi_dashboard public/blocks/azmsi_dashboard
+# defaults to MOODLE_ROOT=/var/www/moodle (pass a different root as $1)
+/var/www/azmsi-plugins/infra/deploy-symlinks.sh     # (re)create links + excludes
+/var/www/azmsi-plugins/infra/verify-deploy.sh       # read-only health check
 ```
 
-The symlinks themselves are added to `.git/info/exclude` in the Moodle repo so
-they show as neither tracked nor untracked, and `git clean -fd` will not remove
-them. Re-run the commands above if the links are ever lost.
+`deploy-symlinks.sh` is safe to run any number of times: it creates each of the
+four symlinks (relinking if a target moved), refuses to clobber a real
+non-symlink path, and re-adds the four paths to the Moodle repo's
+`.git/info/exclude`. Because `info/exclude` is **local-only** (not versioned, and
+lost on a fresh `git clone` of Moodle core), re-running this script is exactly how
+you restore a correct, conflict-free deployment after a core re-clone. Neither
+script ever mutates the running site (no DB, no `upgrade.php`, no web services).
 
 The web server (`www-data`) must be allowed to follow symlinks (Apache
 `FollowSymLinks`, the default) and read this directory (owned `ubuntu:www-data`,
 group-readable; it is intentionally outside any web docroot).
+
+## `infra/`
+
+Deployment & ops tooling that travels with the plugins (versioned here, not in
+the Moodle core repo, so it survives core updates):
+
+| File | Purpose |
+|---|---|
+| `infra/deploy-symlinks.sh` | Idempotent deploy: symlinks + core `.git/info/exclude`. |
+| `infra/verify-deploy.sh` | Read-only health check of the deployment. |
+| `infra/MOOVE_NOTES.md` | Inventory of installed Moove 5.1.2 (parents, layouts, SCSS callbacks) — Agent 02's reference for overriding Moove cleanly. |
+
+CI lives in `.github/workflows/ci.yml` (moodle-plugin-ci matrix: four plugins ×
+Moodle branch 501 × PHP 8.4/8.5).
 
 ## Install
 
