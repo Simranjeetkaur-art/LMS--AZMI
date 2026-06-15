@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/azmsi/db" VERSION="20260615" COMMENT="AZMSI custom tables: research tracker, production pipeline, admissions application (AGENT_03)."
+<XMLDB PATH="local/azmsi/db" VERSION="20260616" COMMENT="AZMSI custom tables: research tracker, production pipeline, admissions application (AGENT_03)."
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -25,15 +25,16 @@
         <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="local_azmsi_milestones" COMMENT="Ordered milestones belonging to a research record.">
+    <TABLE NAME="local_azmsi_research_milestone" COMMENT="Ordered milestones belonging to a research record (AGENT_03 §3).">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="researchid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="seq" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Display order."/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="descr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Milestone description."/>
         <FIELD NAME="status" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="pending" SEQUENCE="false" COMMENT="pending|active|submitted|approved"/>
-        <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="completeddate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="sortorder" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="due" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Due date (timestamp)."/>
+        <FIELD NAME="completedon" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Completion date (timestamp)."/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -41,13 +42,14 @@
         <KEY NAME="researchid" TYPE="foreign" FIELDS="researchid" REFTABLE="local_azmsi_research" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="local_azmsi_documents" COMMENT="Documents attached to a research record (with Turnitin status).">
+    <TABLE NAME="local_azmsi_research_doc" COMMENT="Documents attached to a research record, with Turnitin status (AGENT_03 §3).">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="researchid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" COMMENT="Document type, e.g. proposal|chapter|dissertation."/>
         <FIELD NAME="status" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="draft" SEQUENCE="false" COMMENT="draft|submitted|reviewed"/>
-        <FIELD NAME="turnitinstatus" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="turnitin_status" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

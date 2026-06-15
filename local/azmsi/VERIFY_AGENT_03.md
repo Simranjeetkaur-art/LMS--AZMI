@@ -21,9 +21,14 @@ phpunit + WS-token + seeding need a configured DB, so they run on staging / CI
 
 ## What this delivers
 
-- **5 tables** (`db/install.xml` + `db/upgrade.php`): `local_azmsi_research`,
-  `local_azmsi_milestones`, `local_azmsi_documents`, `local_azmsi_pipeline`,
-  `local_azmsi_application` (the 5th, required now per spec).
+- **5 tables** (`db/install.xml` + `db/upgrade.php`) — all spec names (AGENT_03 §3):
+  `local_azmsi_research`, `local_azmsi_research_milestone`, `local_azmsi_research_doc`,
+  `local_azmsi_pipeline`, `local_azmsi_application`.
+  > Reconciliation (2026-06-16): the milestone/doc tables were previously named
+  > `local_azmsi_milestones` / `local_azmsi_documents`. They are renamed to the spec
+  > names + fields. An `upgrade.php` step (v2026061600) drops the old empty tables
+  > and creates the spec-named ones (the research tracker has no data yet — AGENT_09),
+  > so it is a no-op-safe migration. Applying it on prod runs `upgrade.php` (approval).
 - **Full capability set** (`db/access.php`): `viewfacultyportal`,
   `viewadminconsole`, `mentorresearch`, `managepipeline`, `reviewapplications`
   + WS read caps `ws_catalog`, `ws_student`, `ws_faculty`, `ws_admin`, `ws_apply`.

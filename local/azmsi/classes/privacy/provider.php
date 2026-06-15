@@ -51,21 +51,25 @@ class provider implements
             'track'  => 'privacy:metadata:local_azmsi_research:track',
         ], 'privacy:metadata:local_azmsi_research');
 
-        $collection->add_database_table('local_azmsi_milestones', [
-            'name'   => 'privacy:metadata:local_azmsi_milestones:name',
-            'status' => 'privacy:metadata:local_azmsi_milestones:status',
-        ], 'privacy:metadata:local_azmsi_milestones');
+        $collection->add_database_table('local_azmsi_research_milestone', [
+            'title'  => 'privacy:metadata:local_azmsi_research_milestone:title',
+            'status' => 'privacy:metadata:local_azmsi_research_milestone:status',
+        ], 'privacy:metadata:local_azmsi_research_milestone');
 
-        $collection->add_database_table('local_azmsi_documents', [
-            'title'          => 'privacy:metadata:local_azmsi_documents:title',
-            'turnitinstatus' => 'privacy:metadata:local_azmsi_documents:turnitinstatus',
-        ], 'privacy:metadata:local_azmsi_documents');
+        $collection->add_database_table('local_azmsi_research_doc', [
+            'filename'        => 'privacy:metadata:local_azmsi_research_doc:filename',
+            'turnitin_status' => 'privacy:metadata:local_azmsi_research_doc:turnitin_status',
+        ], 'privacy:metadata:local_azmsi_research_doc');
 
         $collection->add_database_table('local_azmsi_application', [
             'userid'  => 'privacy:metadata:local_azmsi_application:userid',
             'program' => 'privacy:metadata:local_azmsi_application:program',
             'stage'   => 'privacy:metadata:local_azmsi_application:stage',
         ], 'privacy:metadata:local_azmsi_application');
+
+        $collection->add_database_table('local_azmsi_pipeline', [
+            'updatedby' => 'privacy:metadata:local_azmsi_pipeline:updatedby',
+        ], 'privacy:metadata:local_azmsi_pipeline');
 
         return $collection;
     }
@@ -83,7 +87,8 @@ class provider implements
         $contextlist = new contextlist();
 
         $hasdata = $DB->record_exists('local_azmsi_research', ['userid' => $userid])
-            || $DB->record_exists('local_azmsi_application', ['userid' => $userid]);
+            || $DB->record_exists('local_azmsi_application', ['userid' => $userid])
+            || $DB->record_exists('local_azmsi_pipeline', ['updatedby' => $userid]);
         if ($hasdata) {
             $contextlist->add_system_context();
         }
@@ -102,6 +107,7 @@ class provider implements
         }
         $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_research}', []);
         $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_application}', []);
+        $userlist->add_from_sql('updatedby', 'SELECT updatedby FROM {local_azmsi_pipeline} WHERE updatedby IS NOT NULL', []);
     }
 
     /**
@@ -122,8 +128,8 @@ class provider implements
         $records = $DB->get_records('local_azmsi_research', ['userid' => $userid]);
         $researchout = [];
         foreach ($records as $r) {
-            $milestones = $DB->get_records('local_azmsi_milestones', ['researchid' => $r->id]);
-            $documents = $DB->get_records('local_azmsi_documents', ['researchid' => $r->id]);
+            $milestones = $DB->get_records('local_azmsi_research_milestone', ['researchid' => $r->id], 'seq ASC');
+            $documents = $DB->get_records('local_azmsi_research_doc', ['researchid' => $r->id]);
             $researchout[] = [
                 'title'        => $r->title,
                 'track'        => $r->track,
@@ -131,16 +137,16 @@ class provider implements
                 'progress'     => $r->progress,
                 'timecreated'  => $r->timecreated ? \core_privacy\local\request\transform::datetime($r->timecreated) : null,
                 'milestones'   => array_values(array_map(static fn($m) => [
-                    'name'          => $m->name,
-                    'status'        => $m->status,
-                    'duedate'       => $m->duedate ? \core_privacy\local\request\transform::datetime($m->duedate) : null,
-                    'completeddate' => $m->completeddate
-                        ? \core_privacy\local\request\transform::datetime($m->completeddate) : null,
+                    'title'       => $m->title,
+                    'status'      => $m->status,
+                    'due'         => $m->due ? \core_privacy\local\request\transform::datetime($m->due) : null,
+                    'completedon' => $m->completedon
+                        ? \core_privacy\local\request\transform::datetime($m->completedon) : null,
                 ], $milestones)),
                 'documents'    => array_values(array_map(static fn($d) => [
-                    'title'          => $d->title,
-                    'status'         => $d->status,
-                    'turnitinstatus' => $d->turnitinstatus,
+                    'filename'        => $d->filename,
+                    'status'          => $d->status,
+                    'turnitin_status' => $d->turnitin_status,
                 ], $documents)),
             ];
         }
@@ -166,6 +172,19 @@ class provider implements
                 (object) ['records' => $appout]
             );
         }
+
+        // Production-pipeline rows this user last updated (audit reference).
+        $pipeline = $DB->get_records('local_azmsi_pipeline', ['updatedby' => $userid]);
+        if ($pipeline) {
+            $pipeout = array_values(array_map(static fn($p) => [
+                'courseid'     => $p->courseid,
+                'timemodified' => $p->timemodified ? \core_privacy\local\request\transform::datetime($p->timemodified) : null,
+            ], $pipeline));
+            writer::with_context($context)->export_data(
+                [get_string('pluginname', 'local_azmsi'), 'pipeline'],
+                (object) ['records' => $pipeout]
+            );
+        }
     }
 
     /**
@@ -178,10 +197,12 @@ class provider implements
         if (!$context instanceof \core\context\system) {
             return;
         }
-        $DB->delete_records('local_azmsi_milestones', []);
-        $DB->delete_records('local_azmsi_documents', []);
+        $DB->delete_records('local_azmsi_research_milestone', []);
+        $DB->delete_records('local_azmsi_research_doc', []);
         $DB->delete_records('local_azmsi_research', []);
         $DB->delete_records('local_azmsi_application', []);
+        // Pipeline rows are course data, not personal — only drop the user audit link.
+        $DB->set_field_select('local_azmsi_pipeline', 'updatedby', null, 'updatedby IS NOT NULL');
     }
 
     /**
@@ -224,11 +245,13 @@ class provider implements
         $researchids = $DB->get_fieldset_select('local_azmsi_research', 'id', "userid $insql", $inparams);
         if ($researchids) {
             [$rsql, $rparams] = $DB->get_in_or_equal($researchids, SQL_PARAMS_NAMED);
-            $DB->delete_records_select('local_azmsi_milestones', "researchid $rsql", $rparams);
-            $DB->delete_records_select('local_azmsi_documents', "researchid $rsql", $rparams);
+            $DB->delete_records_select('local_azmsi_research_milestone', "researchid $rsql", $rparams);
+            $DB->delete_records_select('local_azmsi_research_doc', "researchid $rsql", $rparams);
         }
         $DB->delete_records_select('local_azmsi_research', "userid $insql", $inparams);
         $DB->delete_records_select('local_azmsi_application', "userid $insql", $inparams);
+        // Drop the user audit link on pipeline rows (course data stays).
+        $DB->set_field_select('local_azmsi_pipeline', 'updatedby', null, "updatedby $insql", $inparams);
     }
 
     /**

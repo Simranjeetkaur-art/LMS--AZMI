@@ -42,12 +42,13 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             'userid' => $userid, 'title' => 'My dissertation', 'track' => 'AI',
             'status' => 'active', 'progress' => 10, 'timecreated' => time(), 'timemodified' => time(),
         ]);
-        $DB->insert_record('local_azmsi_milestones', (object) [
-            'researchid' => $researchid, 'name' => 'Proposal', 'status' => 'active',
-            'sortorder' => 0, 'timemodified' => time(),
+        $DB->insert_record('local_azmsi_research_milestone', (object) [
+            'researchid' => $researchid, 'seq' => 0, 'title' => 'Proposal', 'status' => 'active',
+            'timemodified' => time(),
         ]);
-        $DB->insert_record('local_azmsi_documents', (object) [
-            'researchid' => $researchid, 'title' => 'Draft.pdf', 'status' => 'draft', 'timemodified' => time(),
+        $DB->insert_record('local_azmsi_research_doc', (object) [
+            'researchid' => $researchid, 'filename' => 'Draft.pdf', 'type' => 'proposal',
+            'status' => 'draft', 'timemodified' => time(),
         ]);
         $DB->insert_record('local_azmsi_application', (object) [
             'userid' => $userid, 'program' => 'eMD', 'stage' => 'applied', 'status' => 'open',
@@ -97,8 +98,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         provider::delete_data_for_all_users_in_context(context_system::instance());
         $this->assertSame(0, $DB->count_records('local_azmsi_research'));
-        $this->assertSame(0, $DB->count_records('local_azmsi_milestones'));
-        $this->assertSame(0, $DB->count_records('local_azmsi_documents'));
+        $this->assertSame(0, $DB->count_records('local_azmsi_research_milestone'));
+        $this->assertSame(0, $DB->count_records('local_azmsi_research_doc'));
         $this->assertSame(0, $DB->count_records('local_azmsi_application'));
     }
 }
