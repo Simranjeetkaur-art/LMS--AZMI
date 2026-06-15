@@ -55,7 +55,7 @@ class program {
             'quarter'           => ['name' => 'Quarter', 'type' => 'text'],
             'course_code'       => ['name' => 'Course code', 'type' => 'text'],
             'credits'           => ['name' => 'Credits', 'type' => 'text'],
-            'status'            => ['name' => 'Status', 'type' => 'select'],
+            'status'            => ['name' => 'Status', 'type' => 'text'],
             'faculty_name'      => ['name' => 'Faculty name', 'type' => 'text'],
             'welcome_video_url' => ['name' => 'Welcome video URL', 'type' => 'text'],
         ];
@@ -177,7 +177,7 @@ class program {
         if (!$categoryid) {
             $categoryid = $handler->create_category(self::CF_CATEGORY);
         }
-        $category = category_controller::load($categoryid);
+        $category = category_controller::create($categoryid);
 
         // Existing field shortnames in this category.
         $existing = [];
@@ -344,7 +344,7 @@ class program {
             $status = ($values['status'] ?? 'planned') === 'in_progress' ? 'in_progress' : 'planned';
             $byyear[$year][$quarter][] = [
                 'code'    => (string) ($values['course_code'] ?? $course->idnumber),
-                'name'    => format_string($course->fullname),
+                'name'    => format_string($course->fullname, true, ['escape' => false]),
                 'credits' => (int) ($values['credits'] ?? self::CREDITS),
                 'status'  => $status,
             ];

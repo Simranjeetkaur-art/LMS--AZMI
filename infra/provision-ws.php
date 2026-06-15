@@ -156,6 +156,31 @@ foreach ($accounts as $username => $a) {
 }
 cli_writeln("");
 
+// --- 2b. Authorise the accounts on the (restricted) service ---------------
+// With restrictedusers=1 a token alone is insufficient; the user must also be
+// in the service's authorised-users list.
+if ((int) $service->restrictedusers === 1) {
+    foreach (array_keys($accounts) as $username) {
+        $uid = $userids[$username] ?? null;
+        if (!$uid) {
+            continue;
+        }
+        if ($DB->record_exists('external_services_users', ['externalserviceid' => $service->id, 'userid' => $uid])) {
+            cli_writeln("• authorised user {$username}: ok");
+        } else {
+            cli_writeln("• authorised user {$username}: add");
+            if ($commit) {
+                $DB->insert_record('external_services_users', (object) [
+                    'externalserviceid' => $service->id,
+                    'userid'            => $uid,
+                    'timecreated'       => time(),
+                ]);
+            }
+        }
+    }
+    cli_writeln("");
+}
+
 // --- 3. Tokens (one each, permanent, scoped to azmsi_ws) ------------------
 $tokens = [];
 foreach (array_keys($accounts) as $username) {
