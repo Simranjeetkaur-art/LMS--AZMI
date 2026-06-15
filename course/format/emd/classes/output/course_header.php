@@ -85,15 +85,90 @@ class course_header implements named_templatable, renderable {
             }
         }
 
+        // Right rail: objectives (course summary), grading & rubric (gradebook
+        // category weights), latest faculty feedback. All read live + guarded so
+        // an empty/new course never errors.
+        $objectives = '';
+        if (!empty($this->course->summary)) {
+            $objectives = format_text(
+                $this->course->summary,
+                $this->course->summaryformat ?? FORMAT_HTML,
+                ['context' => \context_course::instance($this->course->id)]
+            );
+        }
+        $weights = $this->grading_weights();
+
         return [
-            'title'       => format_string($this->course->fullname, true, ['escape' => false]),
-            'code'        => (string) ($fields['course_code'] ?? $this->course->idnumber),
-            'credits'     => isset($fields['credits']) ? (int) $fields['credits'] : null,
-            'faculty'     => (string) ($fields['faculty_name'] ?? ''),
-            'hasprogress' => $hasprogress,
-            'progress'    => $progress,
-            'hasgrade'    => !is_null($gradedisplay),
-            'grade'       => $gradedisplay,
+            'title'        => format_string($this->course->fullname, true, ['escape' => false]),
+            'code'         => (string) ($fields['course_code'] ?? $this->course->idnumber),
+            'credits'      => isset($fields['credits']) ? (int) $fields['credits'] : null,
+            'faculty'      => (string) ($fields['faculty_name'] ?? ''),
+            'hasprogress'  => $hasprogress,
+            'progress'     => $progress,
+            'hasgrade'     => !is_null($gradedisplay),
+            'grade'        => $gradedisplay,
+            // Right rail.
+            'hasobjectives' => $objectives !== '',
+            'objectives'    => $objectives,
+            'weights'       => $weights,
+            'hasweights'    => !empty($weights),
+            'feedback'      => $this->latest_feedback(),
         ];
+    }
+
+    /**
+     * Gradebook top-level category weights ("grading & rubric"), read live.
+     *
+     * @return array list of ['name' => string, 'hasweight' => bool, 'weight' => string]
+     */
+    protected function grading_weights(): array {
+        $out = [];
+        try {
+            $cats = \grade_category::fetch_all(['courseid' => $this->course->id]) ?: [];
+            foreach ($cats as $cat) {
+                if ($cat->is_course_category()) {
+                    continue;
+                }
+                $coef = (float) ($cat->load_grade_item()->aggregationcoef2 ?? 0);
+                $out[] = [
+                    'name'      => format_string($cat->get_name()),
+                    'hasweight' => $coef > 0,
+                    'weight'    => $coef > 0 ? round($coef * 100) . '%' : '',
+                ];
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+        return $out;
+    }
+
+    /**
+     * Latest graded item with feedback for the viewing user (faculty-feedback card).
+     *
+     * @return array ['has' => bool, 'item' => string, 'text' => string]
+     */
+    protected function latest_feedback(): array {
+        global $DB, $USER;
+        $none = ['has' => false, 'item' => '', 'text' => ''];
+        try {
+            $sql = "SELECT gg.id, gg.feedback, gg.feedbackformat, gi.itemname, gi.itemmodule
+                      FROM {grade_grades} gg
+                      JOIN {grade_items} gi ON gi.id = gg.itemid
+                     WHERE gg.userid = :uid AND gi.courseid = :cid
+                           AND gg.feedback IS NOT NULL AND " . $DB->sql_compare_text('gg.feedback') . " <> :empty
+                  ORDER BY gg.timemodified DESC";
+            $rows = $DB->get_records_sql($sql, ['uid' => $USER->id, 'cid' => $this->course->id, 'empty' => ''], 0, 1);
+            if (!$rows) {
+                return $none;
+            }
+            $r = reset($rows);
+            return [
+                'has'  => true,
+                'item' => $r->itemname !== null && $r->itemname !== '' ? format_string($r->itemname) : (string) $r->itemmodule,
+                'text' => format_text($r->feedback, $r->feedbackformat ?? FORMAT_HTML),
+            ];
+        } catch (\Throwable $e) {
+            return $none;
+        }
     }
 }

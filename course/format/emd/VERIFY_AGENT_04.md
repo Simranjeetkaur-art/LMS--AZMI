@@ -48,3 +48,41 @@ fidelity + the live numbers and the lock:
   changed (e.g. by the production pipeline / a bulk update).
 - The format intentionally stores **no content** — every item is a real Moodle
   activity.
+
+---
+
+## Reconciliation pass (2026-06-16) — S5 right rail + S6 status
+
+**Added (live data, guarded, offline-validated):** the S5 right rail on the
+course-home header (`course_header` renderable + `course_header.mustache` +
+theme `.az-course-rail`):
+- **Instructor** — `faculty_name` custom field.
+- **Grading & rubric** — gradebook top-level **category weights**
+  (`grade_category::fetch_all` → `aggregationcoef2`), read live.
+- **Objectives** — the course **summary** (`format_text`).
+- **Latest feedback card** — the most recent graded item with feedback for the
+  viewing user (`grade_grades.feedback`), read live.
+
+Each card renders **only when it has data**; all gradebook/feedback reads are
+`try/catch`-guarded, so an empty/new course (e.g. EMD-101) renders cleanly —
+verified by a read-only render on EMD-101 (export ok, no error, rail present).
+
+**S6 weekly module — division of labour (no reactive-template fork):**
+- The numbered **activity sequence with real state** (watched/complete/due/locked)
+  is rendered **natively** by core's reactive course format (cmlist) — completion
+  badges, availability lock info and due dates all come from the completion +
+  availability APIs. The format keeps this native (AC2/AC3 work with no custom
+  logic) and `theme_azmsi/_course.scss` styles it to the Bold look.
+- The **faculty-feedback card** appears via the shared header rail (it renders on
+  the section/week page too).
+- The grouped-by-type pixel layout is a **styling layer** over the native cmlist;
+  it can only be tuned/verified against a **populated** course (activities present).
+
+## Commands that need your approval (mutate live production)
+1. `php /var/www/moodle/admin/cli/purge_caches.php` — to serve the new rail
+   template + SCSS. (No `upgrade.php`; no version bump.)
+2. **Create/convert a course to `format_emd` with the master activities** on
+   staging (video, readings, H5P lab, discussion, quiz, assignment, reflection),
+   add an **availability** rule (quiz restricted until the H5P lab is complete) —
+   so S5/S6 render with live numbers and the lock can be confirmed. Do this on a
+   staging clone (or with explicit go-ahead), not bare production.

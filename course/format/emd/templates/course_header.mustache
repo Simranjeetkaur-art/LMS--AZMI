@@ -65,3 +65,42 @@
         {{/hasgrade}}
     </div>
 </section>
+
+{{! S5 right rail — instructor, grading & rubric (gradebook weights), objectives,
+    latest faculty feedback. Each card renders only when it has live data. }}
+<aside class="az-course-rail">
+    {{#faculty}}
+        <div class="az-card az-rail-card">
+            <div class="az-card-head">{{#str}}instructor, format_emd{{/str}}</div>
+            <div class="az-card-body"><span class="az-rail-instructor">{{faculty}}</span></div>
+        </div>
+    {{/faculty}}
+    {{#hasweights}}
+        <div class="az-card az-rail-card">
+            <div class="az-card-head">{{#str}}gradingrubric, format_emd{{/str}}</div>
+            <div class="az-card-body">
+                {{#weights}}
+                    <div class="az-rail-weight">
+                        <span class="az-rail-weight-name">{{name}}</span>
+                        {{#hasweight}}<span class="az-rail-weight-val">{{weight}}</span>{{/hasweight}}
+                    </div>
+                {{/weights}}
+            </div>
+        </div>
+    {{/hasweights}}
+    {{#feedback.has}}
+        <div class="az-card az-rail-card">
+            <div class="az-card-head">{{#str}}latestfeedback, format_emd{{/str}}</div>
+            <div class="az-card-body">
+                <div class="az-rail-feedback-item">{{feedback.item}}</div>
+                <div class="az-rail-feedback-text az-serif">{{{feedback.text}}}</div>
+            </div>
+        </div>
+    {{/feedback.has}}
+    {{#hasobjectives}}
+        <div class="az-card az-rail-card">
+            <div class="az-card-head">{{#str}}objectives, format_emd{{/str}}</div>
+            <div class="az-card-body az-rail-objectives">{{{objectives}}}</div>
+        </div>
+    {{/hasobjectives}}
+</aside>

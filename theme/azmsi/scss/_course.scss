@@ -18,6 +18,34 @@
   @media (max-width: 700px) { grid-template-columns: 1fr; }
 }
 
+// S5 right rail (format_emd course_header) — instructor / grading / objectives /
+// feedback cards. Rendered above the week list; lays out as a responsive grid.
+.az-course-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+
+  .az-rail-card { background: $az-surface; border: 1px solid $az-line; }
+  .az-rail-card .az-card-head {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $az-text-mute;
+  }
+  .az-rail-instructor { color: $az-teal-bright; font-weight: 700; }
+
+  .az-rail-weight { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid $az-line-soft; }
+  .az-rail-weight:last-child { border-bottom: 0; }
+  .az-rail-weight-name { color: $az-text-2; }
+  .az-rail-weight-val { color: $az-gold-bright; font-weight: 800; }
+
+  .az-rail-feedback-item { color: $az-gold-bright; font-weight: 700; font-size: 12px; margin-bottom: 4px; }
+  .az-rail-feedback-text { color: $az-text-3; font-size: 13px; }
+  .az-rail-objectives { color: $az-text-2; font-size: 13px; line-height: 1.55; }
+}
+
 // --- Continue banner (dashboard) ------------------------------------------
 .az-continue-banner {
   background: var(--az-grad-continue);
