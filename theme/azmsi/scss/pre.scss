@@ -2,8 +2,10 @@
 // Loaded as PRE-SCSS (before Moove/Boost/Bootstrap) so these values win over
 // Bootstrap's `!default` variables and recolour standard Moodle pages.
 //
-// Fonts: Google Fonts in dev; self-host in Agent 11 (02_DESIGN_TOKENS §C).
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap');
+// NOTE: web fonts (Archivo + Source Serif 4) are loaded via a <link> injected by
+// the before_standard_head_html_generation hook (classes/hook/output_callbacks.php),
+// NOT via an SCSS `@import url(...)` — the bundled scssphp tries to resolve a remote
+// @import as a local file and fails the whole compile. Self-hosting = Agent 11.
 
 // ---------------------------------------------------------------------------
 // Brand accents — `!default` so theme settings (prepended in lib.php) win.

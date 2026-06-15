@@ -37,7 +37,19 @@ function theme_azmsi_get_main_scss_content($theme) {
     $moove = theme_config::load('moove');
     $scss = theme_moove_get_main_scss_content($moove);
 
-    // AZMSI "Bold" component layer (cards, sidebar, KPI blocks, etc.).
+    // AZMSI "Bold" component layer. We concatenate the partial files directly
+    // (like Moove does) rather than using SCSS `@import "base"` etc.: the runtime
+    // scssphp does not resolve those imports reliably across the azmsi/moove/boost
+    // include-path chain, which silently dropped the whole component layer.
+    $partials = ['_base', '_sidebar', '_topbar', '_cards', '_course', '_quiz', '_footer', '_login'];
+    foreach ($partials as $partial) {
+        $file = __DIR__ . '/scss/' . $partial . '.scss';
+        if (is_readable($file)) {
+            $scss .= "\n" . file_get_contents($file);
+        }
+    }
+
+    // Final overrides last (post.scss no longer @imports the partials above).
     $post = __DIR__ . '/scss/post.scss';
     if (is_readable($post)) {
         $scss .= "\n" . file_get_contents($post);
