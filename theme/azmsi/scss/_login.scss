@@ -201,6 +201,11 @@
   .az-field-forgot { font-size: 11px; color: $az-teal-bright; font-weight: 700; &:hover { color: $az-gold-hi; } }
 
   .form-control {
+    // Explicit full width — do not rely on the cascade beating the legacy YUI
+    // base rule `input[type=text]{width:38.25em}` (yui_combo cssbase).
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background: $az-surface;
     border: 1px solid $az-line;
     border-radius: 4px;
