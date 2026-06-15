@@ -1,0 +1,51 @@
+// AZMSI Bold — calendar (dashboard calendar_month block + calendar views).
+// Moove/core render the month grid + event chips with light backgrounds that
+// look like white boxes on the dark theme; recolour them to the tokens.
+
+.calendarmonth,
+.calendartable {
+  background: transparent;
+  border-color: $az-line;
+
+  th { color: $az-text-mute; border-color: $az-line; background: $az-surface-2; }
+  td {
+    background: transparent;
+    border-color: $az-line;
+    color: $az-text-2;
+    vertical-align: top;
+
+    &.clickable:hover { background: rgba(255, 255, 255, 0.04); }
+    &.today { background: var(--az-grad-gold-active); }
+    &.weekend { color: $az-text-mute; }
+  }
+
+  // The day-of-month number + the "today" pill.
+  .day-number { color: $az-text-2; }
+  td.today .day-number { color: $az-gold-bright; font-weight: 800; }
+
+  // Event chips/blocks inside a day cell (these were the white rectangles).
+  .event,
+  .calendar_event_course,
+  .calendar_event_category,
+  .calendar_event_group,
+  .calendar_event_user,
+  .calendar_event_site,
+  [data-region="event-item"] {
+    background-color: $az-surface-2;
+    border: 1px solid $az-line;
+    border-left-width: 3px;
+    color: $az-text-2;
+  }
+  // Accent the chip's left border by event type.
+  .calendar_event_course { border-left-color: $az-gold; }
+  .calendar_event_user { border-left-color: $az-teal-bright; }
+  .calendar_event_group { border-left-color: $az-teal; }
+  .calendar_event_site { border-left-color: $az-text-mute; }
+}
+
+// Calendar block + filters chrome.
+.block_calendar_month {
+  .calendar_filters,
+  .filters { color: $az-text-mute; }
+  a { color: $az-gold-bright; &:hover { color: $az-gold-hi; } }
+}

@@ -42,7 +42,7 @@ function theme_azmsi_get_main_scss_content($theme) {
     // scssphp does not resolve those imports reliably across the azmsi/moove/boost
     // include-path chain, which silently dropped the whole component layer.
     $partials = ['_base', '_sidebar', '_topbar', '_cards', '_course', '_quiz', '_footer', '_login',
-        '_dashboard', '_gradebook'];
+        '_dashboard', '_gradebook', '_calendar'];
     foreach ($partials as $partial) {
         $file = __DIR__ . '/scss/' . $partial . '.scss';
         if (is_readable($file)) {
