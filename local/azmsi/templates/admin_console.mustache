@@ -17,20 +17,13 @@
 {{!
     @template local_azmsi/admin_console
 
-    Admin console (S12). Every widget is read from the cron/event-driven rollup in
-    cache_azmsi (admin_rollup) except the production pipeline (live, so a stage
-    advance shows at once) and the viewer-gated portal links. Nothing is hardcoded.
+    Admin console (S12) — institution overview. Layout mirrors the AZMSI admin
+    prototype: a 3-up widget row (courses-by-status / admissions funnel / system
+    health), the course-operations table, then a 3-up row (faculty load / users by
+    role / announcements). The production pipeline (with the cap+sesskey write) sits
+    below. Every value is read from the cron/event-driven rollup; nothing hardcoded.
 }}
 <div class="az-admin">
-
-    {{! ---- KPI strip ---- }}
-    <section class="az-admin-kpis az-kpi-strip">
-        <div class="az-kpi"><div class="az-kpi-num">{{kpis.activestudents}}</div><div class="az-kpi-label">{{#str}}kpistudents, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num">{{kpis.applications}}</div><div class="az-kpi-label">{{#str}}kpiapplications, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num">{{kpis.faculty}}</div><div class="az-kpi-label">{{#str}}kpifaculty, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num az-kpi-num--hi">{{kpis.coursesbuilt}}/{{kpis.coursestotal}}</div><div class="az-kpi-label">{{#str}}kpicoursesbuilt, local_azmsi{{/str}}</div></div>
-    </section>
-    {{#stale}}<p class="az-loginsub az-admin-stale">{{#str}}kpisstale, local_azmsi{{/str}}</p>{{/stale}}
 
     {{! ---- Top widgets: courses-by-status / funnel / system health ---- }}
     <div class="az-admin-grid az-admin-grid--3">
@@ -72,7 +65,11 @@
         </section>
 
         <section class="az-card az-widget">
-            <div class="az-card-head">{{#str}}systemhealth, local_azmsi{{/str}}</div>
+            <div class="az-card-head az-card-head--split">
+                <span>{{#str}}systemhealth, local_azmsi{{/str}}</span>
+                {{#operational}}<span class="az-badge-op">&#9679; {{#str}}operational, local_azmsi{{/str}}</span>{{/operational}}
+                {{^operational}}<span class="az-badge-op az-badge-op--warn">&#9679; {{#str}}degraded, local_azmsi{{/str}}</span>{{/operational}}
+            </div>
             <div class="az-card-body">
                 <ul class="az-health">
                     {{#systemhealth}}
@@ -124,16 +121,24 @@
         </table>
     </section>
 
-    {{! ---- Faculty load + Users by role ---- }}
-    <div class="az-admin-grid az-admin-grid--2">
+    {{! ---- Faculty load / Users by role / Announcements ---- }}
+    <div class="az-admin-grid az-admin-grid--3">
         <section class="az-card az-widget">
-            <div class="az-card-head">{{#str}}facultyload, local_azmsi{{/str}}</div>
+            <div class="az-card-head az-card-head--split">
+                <span>{{#str}}facultyload, local_azmsi{{/str}}</span>
+                <span class="az-card-head-meta">{{facultyactive}} {{#str}}activelower, local_azmsi{{/str}}</span>
+            </div>
             <div class="az-card-body">
                 <ul class="az-loadlist">
                     {{#facultyload}}
                     <li class="az-load-row">
-                        <span class="az-load-name">{{name}}</span>
-                        <span class="az-load-meta">{{courses}} {{#str}}coursesword, local_azmsi{{/str}} &middot; {{students}} {{#str}}students, local_azmsi{{/str}}</span>
+                        <span class="az-avatar">{{initials}}</span>
+                        <span class="az-load-id">
+                            <span class="az-load-name">{{name}}</span>
+                            {{#dept}}<span class="az-load-dept">{{dept}}</span>{{/dept}}
+                        </span>
+                        <span class="az-load-stat"><b>{{courses}}</b>{{#str}}coursesword, local_azmsi{{/str}}</span>
+                        <span class="az-load-stat az-load-stat--hi"><b>{{students}}</b>{{#str}}students, local_azmsi{{/str}}</span>
                     </li>
                     {{/facultyload}}
                     {{^facultyload}}<li class="az-load-row az-text-mute">{{#str}}nodata, local_azmsi{{/str}}</li>{{/facultyload}}
@@ -153,6 +158,24 @@
                     </div>
                     {{/usersbyrole}}
                 </div>
+            </div>
+        </section>
+
+        <section class="az-card az-widget">
+            <div class="az-card-head az-card-head--split">
+                <span>{{#str}}announcementsonhome, local_azmsi{{/str}}</span>
+                {{#canannounce}}<a class="az-mini-btn" href="{{announceurl}}">+ {{#str}}new, local_azmsi{{/str}}</a>{{/canannounce}}
+            </div>
+            <div class="az-card-body">
+                <ul class="az-ann-list">
+                    {{#announcements}}
+                    <li class="az-ann-item">
+                        <div class="az-ann-meta"><span class="az-ann-tag">{{audience}}</span><span class="az-ann-time">{{time}}</span></div>
+                        <div class="az-ann-title">{{subject}}</div>
+                    </li>
+                    {{/announcements}}
+                    {{^hasannounce}}<li class="az-ann-item az-text-mute">{{#str}}noannouncements, local_azmsi{{/str}}</li>{{/hasannounce}}
+                </ul>
             </div>
         </section>
     </div>
@@ -200,5 +223,5 @@
         </div>
     </section>
 
-    {{#generatedonstr}}<p class="az-admin-foot">{{#str}}lastrolledup, local_azmsi{{/str}} {{generatedonstr}}</p>{{/generatedonstr}}
+    {{#generatedonstr}}<p class="az-admin-foot">{{#str}}lastrolledup, local_azmsi{{/str}} {{generatedonstr}}{{#stale}} &middot; {{#str}}kpisstale, local_azmsi{{/str}}{{/stale}}</p>{{/generatedonstr}}
 </div>

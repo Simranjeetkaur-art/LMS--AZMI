@@ -86,13 +86,14 @@ class admin_rollup {
             $activities = count($modinfo->get_cms());
             $sections = $modinfo->get_section_info_all();
             $modules = max(0, count($sections) - 1); // Exclude section 0 (intro).
-            $lead = self::lead_faculty($context);
+            $leaduser = self::lead_faculty_user($context);
+            $leadname = $leaduser ? fullname($leaduser) : '';
             $avg = self::course_completion_avg($course->id, $context);
 
             $courseops[] = [
                 'code'        => (string) $course->idnumber,
                 'name'        => format_string($course->fullname, true, ['escape' => false]),
-                'lead'        => $lead ?: '—',
+                'lead'        => $leadname ?: '—',
                 'students'    => $students,
                 'modules'     => $modules,
                 'activities'  => $activities,
@@ -101,30 +102,60 @@ class admin_rollup {
                 'avg'         => $avg,
             ];
 
-            if ($lead) {
-                $facultyload[$lead]['courses'] = ($facultyload[$lead]['courses'] ?? 0) + 1;
-                $facultyload[$lead]['students'] = ($facultyload[$lead]['students'] ?? 0) + $students;
+            if ($leaduser) {
+                $fid = (int) $leaduser->id;
+                if (!isset($facultyload[$fid])) {
+                    $facultyload[$fid] = [
+                        'name'     => $leadname,
+                        'dept'     => (string) ($leaduser->department ?? ''),
+                        'initials' => self::initials($leaduser),
+                        'courses'  => 0,
+                        'students' => 0,
+                    ];
+                }
+                $facultyload[$fid]['courses']++;
+                $facultyload[$fid]['students'] += $students;
             }
         }
 
+        // Course operations: running first, then by students desc (most relevant top).
+        $order = ['running' => 0, 'scheduled' => 1, 'draft' => 2, 'archived' => 3];
+        usort($courseops, static function ($a, $b) use ($order) {
+            return [$order[$a['status']], -$a['students']] <=> [$order[$b['status']], -$b['students']];
+        });
+
         // Faculty-load list (sorted by students desc).
-        $faculty = [];
-        foreach ($facultyload as $name => $l) {
-            $faculty[] = ['name' => $name, 'courses' => $l['courses'], 'students' => $l['students']];
-        }
+        $faculty = array_values($facultyload);
         usort($faculty, static fn($a, $b) => $b['students'] <=> $a['students']);
 
+        $health = self::system_health();
+
         return [
-            'generatedon'    => $now,
-            'kpis'           => self::kpis($status, $studenttotal),
+            'generatedon'     => $now,
+            'kpis'            => self::kpis($status, $studenttotal),
             'coursesbystatus' => self::status_chart($status),
-            'funnel'         => self::funnel(),
-            'systemhealth'   => self::system_health(),
-            'courseops'      => $courseops,
-            'courseopstotal' => count($courseops),
-            'facultyload'    => array_slice($faculty, 0, 8),
-            'usersbyrole'    => self::users_by_role(),
+            'funnel'          => self::funnel(),
+            'systemhealth'    => $health['rows'],
+            'operational'     => $health['operational'],
+            'courseops'       => $courseops,
+            'courseopstotal'  => count($courseops),
+            'facultyload'     => array_slice($faculty, 0, 8),
+            'facultyactive'   => count($faculty),
+            'usersbyrole'     => self::users_by_role(),
+            'announcements'   => self::announcements(),
         ];
+    }
+
+    /**
+     * Two-letter initials for an avatar chip.
+     *
+     * @param \stdClass $u
+     * @return string
+     */
+    protected static function initials(\stdClass $u): string {
+        $a = \core_text::strtoupper(\core_text::substr(trim((string) $u->firstname), 0, 1));
+        $b = \core_text::strtoupper(\core_text::substr(trim((string) $u->lastname), 0, 1));
+        return ($a . $b) !== '' ? $a . $b : '–';
     }
 
     /**
@@ -183,12 +214,12 @@ class admin_rollup {
     }
 
     /**
-     * The first editing teacher's name in a course, or '' if unassigned.
+     * The first editing teacher (user record) in a course, or null if unassigned.
      *
      * @param \context $context
-     * @return string
+     * @return \stdClass|null
      */
-    protected static function lead_faculty(\context $context): string {
+    protected static function lead_faculty_user(\context $context): ?\stdClass {
         try {
             $teachers = get_enrolled_users(
                 $context,
@@ -201,9 +232,9 @@ class admin_rollup {
                 true
             );
             $t = reset($teachers);
-            return $t ? fullname($t) : '';
+            return $t ?: null;
         } catch (\Throwable $e) {
-            return '';
+            return null;
         }
     }
 
@@ -336,32 +367,90 @@ class admin_rollup {
     }
 
     /**
-     * System health from real sources: cron freshness + dataroot storage.
+     * System health from real sources: cron freshness, dataroot storage, and
+     * users online now. Returns the rows plus an overall "operational" flag.
+     * Sources with no data on this site (live conferencing, ticketing) are omitted.
      *
-     * @return array
+     * @return array{rows:array,operational:bool}
      */
     protected static function system_health(): array {
         global $DB, $CFG;
-        $out = [];
+        $rows = [];
+        $operational = true;
 
         $lastcron = (int) $DB->get_field_sql('SELECT MAX(lastruntime) FROM {task_scheduled}');
-        $out[] = [
+        $cronok = $lastcron && ($lastcron > time() - (2 * HOURSECS));
+        $rows[] = [
             'label' => get_string('healthcron', 'local_azmsi'),
             'value' => $lastcron ? userdate($lastcron, get_string('strftimedatetimeshort', 'langconfig')) : '—',
-            'ok'    => $lastcron && ($lastcron > time() - (2 * HOURSECS)),
+            'ok'    => $cronok,
         ];
+        $operational = $operational && $cronok;
 
         $total = @disk_total_space($CFG->dataroot);
         $free = @disk_free_space($CFG->dataroot);
         if ($total && $free !== false) {
             $usedpct = (int) round(($total - $free) / $total * 100);
-            $out[] = [
+            $storageok = $usedpct < 90;
+            $rows[] = [
                 'label' => get_string('healthstorage', 'local_azmsi'),
-                'value' => $usedpct . '%',
-                'ok'    => $usedpct < 90,
+                'value' => display_size($total - $free) . ' / ' . display_size($total) . ' (' . $usedpct . '%)',
+                'ok'    => $storageok,
             ];
+            $operational = $operational && $storageok;
         }
-        return $out;
+
+        $online = (int) $DB->count_records_select(
+            'user',
+            'lastaccess > :since AND deleted = 0',
+            ['since' => time() - (5 * MINSECS)]
+        );
+        $rows[] = [
+            'label' => get_string('healthonline', 'local_azmsi'),
+            'value' => (string) $online,
+            'ok'    => true,
+        ];
+
+        return ['rows' => $rows, 'operational' => $operational];
+    }
+
+    /**
+     * Latest site Announcements (the SITEID news forum) — live, never hardcoded.
+     * Audience = the discussion's group name, or "All users" when ungrouped.
+     *
+     * @return array{items:array,forumid:int}
+     */
+    protected static function announcements(): array {
+        global $DB;
+        try {
+            $forum = $DB->get_record('forum', ['course' => SITEID, 'type' => 'news'], 'id', IGNORE_MULTIPLE);
+            if (!$forum) {
+                return ['items' => [], 'forumid' => 0];
+            }
+            $discussions = $DB->get_records(
+                'forum_discussions',
+                ['forum' => $forum->id],
+                'timemodified DESC',
+                'id, name, timemodified, groupid',
+                0,
+                5
+            );
+            $items = [];
+            foreach ($discussions as $d) {
+                $audience = get_string('audienceall', 'local_azmsi');
+                if ($d->groupid > 0 && ($g = $DB->get_record('groups', ['id' => $d->groupid], 'name'))) {
+                    $audience = format_string($g->name);
+                }
+                $items[] = [
+                    'audience' => $audience,
+                    'time'     => userdate($d->timemodified, get_string('strftimerecent', 'langconfig')),
+                    'subject'  => format_string($d->name),
+                ];
+            }
+            return ['items' => $items, 'forumid' => (int) $forum->id];
+        } catch (\Throwable $e) {
+            return ['items' => [], 'forumid' => 0];
+        }
     }
 
     /**

@@ -58,7 +58,24 @@ lang cache is purged; the strings are in the file.)
    KPI, courses-by-status, faculty-load and users-by-role widgets reflect it with
    no page edit.
 
+## Prototype reconcile (matches the admin design reference)
+- **Removed** the redundant KPI strip — the page now opens on the 3-up widget row
+  exactly like the prototype (courses-by-status donut / admissions funnel / system
+  health with an **OPERATIONAL / DEGRADED** badge derived from cron + storage).
+- **System health** now shows cron freshness, human-readable storage
+  (`5.2 GB / 47.3 GB (11%)`) and **users online now** (real; live sessions /
+  tickets omitted — no source on this site).
+- **Course operations** shows the most relevant slice (running-first, top 8) with a
+  live "Showing 8 of 48" header.
+- Bottom row is now **3-up**: **Faculty load** (avatar initials + department + per
+  -faculty course/student counts), **Users by role**, and a new **Announcements on
+  Home** widget (live from the site news forum; `+ New` gated on
+  `mod/forum:addnews`). Empty states are real, not placeholders.
+- The **production pipeline** (with the cap+sesskey write) moved below the overview
+  so the top matches the prototype while keeping the build workflow.
+
 ## Commands needing your approval (mutate live production)
-- `php /var/www/moodle/admin/cli/upgrade.php` (register the adhoc task).
+- `php /var/www/moodle/admin/cli/upgrade.php` (register the adhoc task; versions
+  local_azmsi 0.5.2 / theme_azmsi 0.2.2).
 - `php /var/www/moodle/admin/cli/purge_caches.php` (class/task/template/SCSS/lang).
 - `php /var/www/moodle/admin/cli/cron.php` (drives the rollup + drains adhoc refreshes).

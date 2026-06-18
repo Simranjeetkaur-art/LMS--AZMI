@@ -90,12 +90,58 @@
   .az-meter-fill { display: block; height: 100%; width: var(--az-pct, 0); background: $az-teal; }
   .az-meter-num { font-weight: 800; color: $az-text-2; font-size: 12px; }
 
-  // Faculty load.
+  // Split card header (title + badge / meta / action).
+  .az-card-head--split { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .az-card-head-meta { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: $az-text-mute; font-weight: 700; }
+  .az-badge-op {
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: $az-teal-bright; padding: 2px 8px; border-radius: 999px;
+    background: rgba(31, 122, 111, 0.20); border: 1px solid $az-teal;
+  }
+  .az-badge-op--warn { color: $az-gold-bright; background: rgba(201, 161, 59, 0.16); border-color: $az-gold; }
+  .az-mini-btn {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: $az-gold-bright; padding: 3px 10px; border: 1px solid $az-line; border-radius: 999px;
+    &:hover { border-color: $az-gold; color: $az-gold-hi; }
+  }
+
+  // Faculty load (avatar · name/dept · per-faculty stats).
   .az-loadlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-  .az-load-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid $az-line-soft; }
+  .az-load-row {
+    display: grid;
+    grid-template-columns: 34px 1fr auto auto;
+    align-items: center; gap: 12px; padding: 9px 0;
+    border-bottom: 1px solid $az-line-soft;
+  }
   .az-load-row:last-child { border-bottom: 0; }
+  .az-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+    color: $az-bg; background: $az-teal-bright;
+  }
+  .az-load-row:nth-child(3n + 2) .az-avatar { background: $az-gold; }
+  .az-load-row:nth-child(3n) .az-avatar { background: #8C7BE6; }
+  .az-load-id { display: flex; flex-direction: column; min-width: 0; }
   .az-load-name { color: $az-text; font-weight: 700; font-size: 13px; }
-  .az-load-meta { color: $az-text-mute; font-size: 12px; }
+  .az-load-dept { color: $az-text-mute; font-size: 11px; }
+  .az-load-stat {
+    text-align: right; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: $az-text-mute;
+    b { display: block; font-size: 15px; font-weight: 800; color: $az-text; letter-spacing: 0; }
+  }
+  .az-load-stat--hi b { color: $az-teal-bright; }
+
+  // Announcements on Home.
+  .az-ann-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .az-ann-item { padding-bottom: 11px; border-bottom: 1px solid $az-line-soft; &:last-child { border-bottom: 0; padding-bottom: 0; } }
+  .az-ann-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .az-ann-tag {
+    font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: $az-gold-bright; background: var(--az-grad-gold-active); border: 1px solid $az-line;
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .az-ann-time { font-size: 11px; color: $az-text-faint; }
+  .az-ann-title { color: $az-text; font-size: 13px; font-weight: 600; line-height: 1.35; }
 
   // Production pipeline grid.
   .az-pipeline-course { white-space: nowrap; }

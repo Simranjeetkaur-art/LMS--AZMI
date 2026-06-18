@@ -44,22 +44,33 @@ class admin {
         $kpis['coursestotal'] = (int) ($kpis['coursestotal'] ?? 48);
         $kpis['stale'] = empty($data['generatedon']);
 
+        // Show the most relevant slice of the course-operations table (the rollup
+        // already sorts running-first); the header reports the live total.
+        $allops = $data['courseops'] ?? [];
+        $shownops = array_slice($allops, 0, self::COURSEOPS_SHOWN);
+
         return [
             'kpis'            => $kpis,
             'coursesbystatus' => $data['coursesbystatus'] ?? ['rows' => [], 'running' => 0, 'total' => 0],
             'funnel'          => $data['funnel'] ?? [],
             'systemhealth'    => $data['systemhealth'] ?? [],
-            'courseops'       => $data['courseops'] ?? [],
-            'courseopstotal'  => (int) ($data['courseopstotal'] ?? 0),
-            'courseopsshown'  => count($data['courseops'] ?? []),
+            'operational'     => !empty($data['operational']),
+            'courseops'       => $shownops,
+            'courseopstotal'  => (int) ($data['courseopstotal'] ?? count($allops)),
+            'courseopsshown'  => count($shownops),
             'facultyload'     => $data['facultyload'] ?? [],
+            'facultyactive'   => (int) ($data['facultyactive'] ?? 0),
             'usersbyrole'     => $data['usersbyrole'] ?? [],
+            'announcements'   => $data['announcements'] ?? ['items' => [], 'forumid' => 0],
             'pipeline'        => pipeline::get_all(),
             'portals'         => self::portals(),
             'generatedon'     => (int) ($data['generatedon'] ?? 0),
             'stale'           => empty($data['generatedon']),
         ];
     }
+
+    /** @var int Course-operations rows shown in the table (header reports the total). */
+    private const COURSEOPS_SHOWN = 8;
 
     /**
      * The cached rollup dataset. Bootstrap-computes ONCE if the cache is cold

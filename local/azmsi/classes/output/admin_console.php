@@ -82,15 +82,37 @@ class admin_console implements named_templatable, renderable {
         $generatedonstr = $data['generatedon']
             ? userdate($data['generatedon'], get_string('strftimedatetimeshort', 'langconfig')) : '';
 
+        // Announcements: items from the rollup; the "+ New" link is gated on the
+        // viewer's capability to start a discussion in the site news forum.
+        $announce = $data['announcements'];
+        $canannounce = false;
+        $announceurl = '';
+        if (!empty($announce['forumid'])) {
+            $announceurl = (new \moodle_url('/mod/forum/view.php', ['f' => $announce['forumid']]))->out(false);
+            try {
+                $cm = get_coursemodule_from_instance('forum', $announce['forumid'], SITEID);
+                if ($cm) {
+                    $canannounce = has_capability('mod/forum:addnews', \context_module::instance($cm->id));
+                }
+            } catch (\Throwable $e) {
+                $canannounce = false;
+            }
+        }
+
         return [
-            'kpis'            => $data['kpis'],
             'coursesbystatus' => $data['coursesbystatus'],
             'funnel'          => $data['funnel'],
             'systemhealth'    => $data['systemhealth'],
+            'operational'     => $data['operational'],
             'courseops'       => $data['courseops'],
             'courseopslabel'  => $opslabel,
             'facultyload'     => $data['facultyload'],
+            'facultyactive'   => $data['facultyactive'],
             'usersbyrole'     => $data['usersbyrole'],
+            'announcements'   => $announce['items'],
+            'hasannounce'     => !empty($announce['items']),
+            'announceurl'     => $announceurl,
+            'canannounce'     => $canannounce,
             'pipeline'        => $pipeline,
             'portals'         => $data['portals'],
             'generatedonstr'  => $generatedonstr,
