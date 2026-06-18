@@ -1,0 +1,80 @@
+// AZMSI Bold — faculty / instructor surfaces (S10, S11).
+// Teal accent variant (body.azmsi-faculty) + the faculty dashboard, instructor
+// queue/roster tables and rubric panel. 02_DESIGN_TOKENS §A (faculty teal).
+
+// Faculty teal accent: shift the highlight accent from gold to teal on faculty
+// surfaces (the "faculty accent" variant). Gold CTAs stay for primary actions.
+body.azmsi-faculty {
+  .az-kpi-num--hi { color: $az-teal-bright; }
+  .az-dash-section-title { border-left: 3px solid $az-teal; padding-left: 10px; }
+}
+
+// --- Faculty dashboard (S10) ----------------------------------------------
+.az-faculty {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  .az-faculty-kpis { border: 1px solid $az-line; align-self: flex-start; }
+  .az-faculty-kpis .az-kpi { padding: 16px 26px; }
+
+  .az-faculty-courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .az-faculty-course .az-card-head { display: flex; justify-content: space-between; align-items: center; }
+  .az-faculty-coursemeta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: $az-text-mute;
+  }
+  .az-faculty-avg { color: $az-teal-bright; font-weight: 700; }
+  .az-faculty-manage { width: auto; padding: 9px 16px; }
+}
+
+// --- Instructor course (S11) ----------------------------------------------
+.az-instructor {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  .az-instructor-time { color: $az-text-mute; font-size: 12px; white-space: nowrap; }
+  .az-instructor-reason { color: $az-danger; font-size: 12px; flex: 1; }
+  .az-check-mark--risk { background: rgba(232, 154, 154, 0.18); border-color: $az-danger; color: $az-danger; }
+
+  .az-rubric .az-rubric-criteria {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    li {
+      padding: 8px 0;
+      border-bottom: 1px solid $az-line-soft;
+      color: $az-text-2;
+      &::before { content: "\25B8"; color: $az-teal; margin-right: 8px; }
+    }
+  }
+}
+
+// Shared dark table (faculty/instructor lists).
+.az-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: $az-surface;
+  border: 1px solid $az-line;
+
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid $az-line-soft; }
+  th {
+    color: $az-text-mute;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: $az-surface-2;
+  }
+  td { color: $az-text-2; font-size: 13px; }
+  tr:last-child td { border-bottom: 0; }
+}

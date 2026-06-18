@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace local_azmsi\output;
+
+use plugin_renderer_base;
+
 /**
- * AZMSI core plugin — Web Services, event observers, DB schema, tasks.
- *
- * Skeleton from the AZMSI handoff (AGENT_03) adapted to Moodle 5.1 + public/
- * layout per AGENT_00a. External functions use the core_external\* namespace.
+ * Renderer for local_azmsi portal pages (faculty / instructor).
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_azmsi';
-$plugin->version   = 2026061700;
-$plugin->requires  = 2025100600;      // Moodle 5.1.
-$plugin->supported = [501, 501];
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.4.0';
+class renderer extends plugin_renderer_base {
+}

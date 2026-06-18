@@ -1,0 +1,100 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_azmsi/instructor_course
+
+    Instructor course (S11). Submissions deep-link to the native grader; at-risk +
+    roster + rubric criteria are live. Context: coursename, coursecode,
+    submissions[{student,assign,time,gradeurl}], atrisk[{student,reason,messageurl}],
+    roster[{name,lastaccess}], rubric{has,name,criteria[{description}],gradeurl}.
+}}
+<div class="az-instructor">
+
+    <section class="az-dash-section">
+        <div class="az-dash-section-head">
+            <h2 class="az-dash-section-title">{{#str}}submissionstograde, local_azmsi{{/str}}</h2>
+            <span class="az-eyebrow">{{submissioncount}}</span>
+        </div>
+        {{#hassubmissions}}
+        <table class="az-table az-instructor-queue">
+            <thead><tr>
+                <th>{{#str}}student, local_azmsi{{/str}}</th>
+                <th>{{#str}}assignment, local_azmsi{{/str}}</th>
+                <th>{{#str}}submitted, local_azmsi{{/str}}</th>
+                <th></th>
+            </tr></thead>
+            <tbody>
+            {{#submissions}}
+                <tr>
+                    <td>{{student}}</td>
+                    <td>{{assign}}</td>
+                    <td class="az-instructor-time">{{time}}</td>
+                    <td><a class="az-pill az-pill--teal" href="{{gradeurl}}">{{#str}}grade, local_azmsi{{/str}} &rarr;</a></td>
+                </tr>
+            {{/submissions}}
+            </tbody>
+        </table>
+        {{/hassubmissions}}
+        {{^hassubmissions}}<p class="az-loginsub">{{#str}}nosubmissions, local_azmsi{{/str}}</p>{{/hassubmissions}}
+    </section>
+
+    {{#rubric.has}}
+    <section class="az-dash-section">
+        <h2 class="az-dash-section-title">{{#str}}rubricpanel, local_azmsi{{/str}}</h2>
+        <div class="az-card az-rubric">
+            <div class="az-card-head">{{rubric.name}}</div>
+            <div class="az-card-body">
+                <ul class="az-rubric-criteria">
+                    {{#rubric.criteria}}<li>{{description}}</li>{{/rubric.criteria}}
+                </ul>
+                <a class="az-sso-btn" href="{{rubric.gradeurl}}">{{#str}}gradewithrubric, local_azmsi{{/str}} &rarr;</a>
+            </div>
+        </div>
+    </section>
+    {{/rubric.has}}
+
+    {{#hasatrisk}}
+    <section class="az-dash-section">
+        <h2 class="az-dash-section-title">{{#str}}atrisk, local_azmsi{{/str}}</h2>
+        <ul class="az-checklist">
+            {{#atrisk}}
+            <li class="az-check az-check--due">
+                <span class="az-check-mark az-check-mark--risk">!</span>
+                <span class="az-check-link">{{student}}</span>
+                <span class="az-instructor-reason">{{reason}}</span>
+                <a class="az-pill az-pill--mute" href="{{messageurl}}">{{#str}}message, local_azmsi{{/str}}</a>
+            </li>
+            {{/atrisk}}
+        </ul>
+    </section>
+    {{/hasatrisk}}
+
+    {{#hasroster}}
+    <section class="az-dash-section">
+        <div class="az-dash-section-head">
+            <h2 class="az-dash-section-title">{{#str}}roster, local_azmsi{{/str}}</h2>
+            <span class="az-eyebrow">{{rostercount}} {{#str}}students, local_azmsi{{/str}}</span>
+        </div>
+        <table class="az-table">
+            <thead><tr><th>{{#str}}student, local_azmsi{{/str}}</th><th>{{#str}}lastaccess, local_azmsi{{/str}}</th></tr></thead>
+            <tbody>
+            {{#roster}}<tr><td>{{name}}</td><td class="az-instructor-time">{{lastaccess}}</td></tr>{{/roster}}
+            </tbody>
+        </table>
+    </section>
+    {{/hasroster}}
+</div>
