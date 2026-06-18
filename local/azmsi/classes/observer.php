@@ -20,6 +20,7 @@ use core\task\manager;
 use local_azmsi\task\recompute_course_progress;
 use local_azmsi\task\notify_grade_released;
 use local_azmsi\task\revalidate_website;
+use local_azmsi\task\refresh_admin_console;
 
 /**
  * Event observers — the write/react path (01_ARCHITECTURE.md §4).
@@ -48,6 +49,70 @@ class observer {
     }
 
     /**
+     * Queue a rebuild of the admin-console dataset (deduplicated).
+     *
+     * Cheap by design: the heavy aggregation runs later in the adhoc task, and
+     * dedup collapses a burst of events into a single pending rebuild.
+     */
+    protected static function queue_admin_refresh(): void {
+        manager::queue_adhoc_task(new refresh_admin_console(), true);
+    }
+
+    /**
+     * Course created: catalog/status counts changed — refresh the console.
+     *
+     * @param \core\event\course_created $event
+     */
+    public static function on_course_created(\core\event\course_created $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
+     * Course updated (status flip, visibility, dates): refresh the console.
+     *
+     * @param \core\event\course_updated $event
+     */
+    public static function on_course_updated(\core\event\course_updated $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
+     * Course deleted: refresh the console so totals drop.
+     *
+     * @param \core\event\course_deleted $event
+     */
+    public static function on_course_deleted(\core\event\course_deleted $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
+     * Role assigned: users-by-role + faculty-load counts changed.
+     *
+     * @param \core\event\role_assigned $event
+     */
+    public static function on_role_assigned(\core\event\role_assigned $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
+     * Role unassigned: users-by-role + faculty-load counts changed.
+     *
+     * @param \core\event\role_unassigned $event
+     */
+    public static function on_role_unassigned(\core\event\role_unassigned $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
+     * Enrolment deleted: active-student + per-course counts changed.
+     *
+     * @param \core\event\user_enrolment_deleted $event
+     */
+    public static function on_enrolment_deleted(\core\event\user_enrolment_deleted $event): void {
+        self::queue_admin_refresh();
+    }
+
+    /**
      * Enrolment created: invalidate the student's overview cache so it rebuilds.
      *
      * @param \core\event\user_enrolment_created $event
@@ -57,6 +122,7 @@ class observer {
         if ($userid) {
             \cache::make('local_azmsi', 'rollups')->delete('overview_' . $userid);
         }
+        self::queue_admin_refresh();
         // AGENT_09 seeds local_azmsi_research when the course is Q10+.
     }
 
@@ -108,6 +174,7 @@ class observer {
         if ($userid) {
             \cache::make('local_azmsi', 'rollups')->delete('overview_' . $userid);
         }
+        self::queue_admin_refresh();
         manager::queue_adhoc_task(new revalidate_website(), true);
     }
 }

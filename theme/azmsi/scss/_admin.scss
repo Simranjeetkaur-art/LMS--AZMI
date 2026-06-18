@@ -1,21 +1,101 @@
-// AZMSI Bold — admin console (S12). Gold accent (the default theme accent), so
-// no accent override — just the funnel, pipeline grid and role cards.
+// AZMSI Bold — admin console (S12). Gold accent (the default theme accent).
+// Layout matches the admin prototype: KPI strip, a 3-up widget row
+// (courses-by-status donut / admissions funnel / system health), the course
+// operations table, a 2-up row (faculty load / users-by-role), the production
+// pipeline grid and the portal switcher. All values are data-bound (--az-pct).
 
 .az-admin {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 
   .az-admin-kpis { border: 1px solid $az-line; align-self: flex-start; }
   .az-admin-kpis .az-kpi { padding: 16px 26px; }
+  .az-admin-stale { margin: -16px 0 0; color: $az-gold-bright; font-size: 12px; }
+  .az-text-mute { color: $az-text-mute; }
 
-  // Admissions funnel — bars scale to the live counts (--az-pct).
-  .az-funnel { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
-  .az-funnel-row { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 12px; }
+  // Widget grids.
+  .az-admin-grid { display: grid; gap: 18px; }
+  .az-admin-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .az-admin-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 1100px) {
+    .az-admin-grid--3, .az-admin-grid--2 { grid-template-columns: 1fr; }
+  }
+  .az-widget .az-card-head {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.02em; color: $az-text;
+  }
+
+  // Courses-by-status: conic donut (running share) + legend.
+  .az-status-body { flex-direction: row; align-items: center; gap: 18px; }
+  .az-donut {
+    flex: 0 0 auto;
+    width: 116px; height: 116px; border-radius: 50%;
+    background: conic-gradient($az-gold var(--az-pct, 0), $az-surface-2 0);
+    display: grid; place-items: center; position: relative;
+  }
+  .az-donut::before {
+    content: ""; position: absolute; inset: 13px; border-radius: 50%; background: $az-surface;
+  }
+  .az-donut-mid { position: relative; z-index: 1; text-align: center; }
+  .az-donut-num { display: block; font-size: 28px; font-weight: 800; color: $az-text; line-height: 1; }
+  .az-donut-cap { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: $az-text-mute; }
+
+  .az-legend { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .az-legend-row { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 8px; font-size: 12px; }
+  .az-legend-dot { width: 10px; height: 10px; border-radius: 2px; background: $az-text-mute; }
+  .az-legend-label { color: $az-text-2; }
+  .az-legend-count { font-weight: 800; color: $az-text; }
+  .az-dot--running { background: $az-teal-bright; }
+  .az-dot--scheduled { background: $az-gold; }
+  .az-dot--draft { background: $az-text-mute; }
+  .az-dot--archived { background: $az-text-faint; }
+
+  // Admissions funnel + users-by-role — bars scale to live counts (--az-pct).
+  .az-funnel { display: flex; flex-direction: column; gap: 10px; }
+  .az-funnel-row { display: grid; grid-template-columns: 116px 1fr 44px; align-items: center; gap: 12px; }
   .az-funnel-label { font-size: 12px; color: $az-text-2; }
-  .az-funnel-bar { height: 10px; background: $az-surface-2; border: 1px solid $az-line; }
+  .az-funnel-bar { height: 10px; background: $az-surface-2; border: 1px solid $az-line; border-radius: 3px; overflow: hidden; }
   .az-funnel-fill { display: block; height: 100%; width: var(--az-pct, 0); background: $az-gold; }
+  .az-funnel-fill--teal { background: $az-teal; }
   .az-funnel-count { font-weight: 800; color: $az-gold-bright; text-align: right; }
+
+  // System health.
+  .az-health { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .az-health-row { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 10px; font-size: 13px; }
+  .az-health-dot { width: 9px; height: 9px; border-radius: 50%; background: $az-text-mute; }
+  .az-health-dot--ok { background: $az-teal-bright; }
+  .az-health-dot--warn { background: $az-gold-hi; }
+  .az-health-label { color: $az-text-2; }
+  .az-health-value { font-weight: 800; color: $az-text; }
+
+  // Course operations table.
+  .az-dash-section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .az-dash-section-meta { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: $az-text-mute; }
+  .az-courseops { .az-num { text-align: right; } }
+  .az-ops-name { display: block; color: $az-text; font-weight: 700; }
+  .az-ops-code { display: block; font-size: 10.5px; letter-spacing: 0.06em; color: $az-text-mute; text-transform: uppercase; }
+  .az-pill {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    background: $az-surface-2; color: $az-text-mute; border: 1px solid $az-line;
+  }
+  .az-pill--running { background: rgba(31, 122, 111, 0.22); color: $az-teal-bright; border-color: $az-teal; }
+  .az-pill--scheduled { background: var(--az-grad-gold-active); color: $az-gold-bright; border-color: $az-gold; }
+  .az-pill--draft { color: $az-text-mute; }
+  .az-pill--archived { color: $az-text-faint; }
+  .az-meter {
+    display: inline-block; vertical-align: middle; width: 110px; height: 8px; margin-right: 8px;
+    background: $az-surface-2; border: 1px solid $az-line; border-radius: 3px; overflow: hidden;
+  }
+  .az-meter-fill { display: block; height: 100%; width: var(--az-pct, 0); background: $az-teal; }
+  .az-meter-num { font-weight: 800; color: $az-text-2; font-size: 12px; }
+
+  // Faculty load.
+  .az-loadlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .az-load-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid $az-line-soft; }
+  .az-load-row:last-child { border-bottom: 0; }
+  .az-load-name { color: $az-text; font-weight: 700; font-size: 13px; }
+  .az-load-meta { color: $az-text-mute; font-size: 12px; }
 
   // Production pipeline grid.
   .az-pipeline-course { white-space: nowrap; }
@@ -39,8 +119,9 @@
   .az-pipeline-cell--done .az-pipeline-dot { background: rgba(31, 122, 111, 0.25); border-color: $az-teal; color: $az-teal-bright; }
   .az-pipeline form { display: inline; margin: 0; }
 
-  // Roles & access cards.
-  .az-admin-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-  .az-role-card .az-card-body { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-  .az-role-card .az-sso-btn { width: auto; padding: 8px 16px; margin-top: 6px; }
+  // Portal switcher.
+  .az-portals { display: flex; flex-wrap: wrap; gap: 12px; }
+  .az-portals .az-sso-btn { width: auto; padding: 8px 18px; }
+
+  .az-admin-foot { color: $az-text-faint; font-size: 11px; margin: 0; }
 }

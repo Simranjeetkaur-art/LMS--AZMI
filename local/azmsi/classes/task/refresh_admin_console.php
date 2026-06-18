@@ -19,33 +19,25 @@ namespace local_azmsi\task;
 use local_azmsi\local\admin_rollup;
 
 /**
- * Scheduled task: roll up the whole admin console dataset into cache_azmsi.
+ * Adhoc task: rebuild the admin console dataset on demand.
  *
- * The heavy aggregation lives in {@see admin_rollup::compute()} so it is shared
- * with the event-driven adhoc refresh ({@see refresh_admin_console}); this task is
- * the periodic heartbeat that guarantees freshness even with no events.
+ * Queued (deduplicated) by {@see \local_azmsi\observer} whenever an event changes
+ * something the dashboard shows — a course is created/updated/deleted, an
+ * enrolment or role assignment changes, or a course is completed. Dedup means at
+ * most one rebuild is ever pending no matter how many events fire, so the console
+ * tracks live activity without per-event cost. The scheduled rollup is the safety
+ * net if cron is idle between events.
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class rollup_admin_kpis extends \core\task\scheduled_task {
+class refresh_admin_console extends \core\task\adhoc_task {
     /**
-     * Task display name.
-     *
-     * @return string
-     */
-    public function get_name(): string {
-        return get_string('task_rollup_admin_kpis', 'local_azmsi');
-    }
-
-    /**
-     * Compute and cache the full admin dataset (KPIs + every dashboard widget).
+     * Rebuild and cache the admin dataset.
      */
     public function execute(): void {
-        $data = admin_rollup::rebuild();
-        mtrace('local_azmsi: admin console rolled up (' .
-            $data['kpis']['coursesbuilt'] . '/' . $data['kpis']['coursestotal'] . ' courses running, ' .
-            $data['courseopstotal'] . ' courses scanned).');
+        admin_rollup::rebuild();
+        mtrace('local_azmsi: admin console refreshed (event-driven).');
     }
 }

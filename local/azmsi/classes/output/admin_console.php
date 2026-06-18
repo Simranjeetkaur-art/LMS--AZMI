@@ -74,13 +74,29 @@ class admin_console implements named_templatable, renderable {
             return $course;
         }, $data['pipeline']);
 
+        $opslabel = get_string(
+            'showingxofy',
+            'local_azmsi',
+            ['shown' => $data['courseopsshown'], 'total' => $data['courseopstotal']]
+        );
+        $generatedonstr = $data['generatedon']
+            ? userdate($data['generatedon'], get_string('strftimedatetimeshort', 'langconfig')) : '';
+
         return [
-            'kpis'      => $data['kpis'],
-            'funnel'    => $data['funnel'],
-            'pipeline'  => $pipeline,
-            'roles'     => $data['roles'],
-            'canmanage' => $this->canmanage,
-            'sesskey'   => sesskey(),
+            'kpis'            => $data['kpis'],
+            'coursesbystatus' => $data['coursesbystatus'],
+            'funnel'          => $data['funnel'],
+            'systemhealth'    => $data['systemhealth'],
+            'courseops'       => $data['courseops'],
+            'courseopslabel'  => $opslabel,
+            'facultyload'     => $data['facultyload'],
+            'usersbyrole'     => $data['usersbyrole'],
+            'pipeline'        => $pipeline,
+            'portals'         => $data['portals'],
+            'generatedonstr'  => $generatedonstr,
+            'stale'           => $data['stale'],
+            'canmanage'       => $this->canmanage,
+            'sesskey'         => sesskey(),
         ];
     }
 }

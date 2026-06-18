@@ -19,9 +19,13 @@ namespace local_azmsi\local;
 use moodle_url;
 
 /**
- * Composes the admin console (S12): KPIs (from the cache_azmsi rollup, never
- * computed inline), admissions funnel (live from local_azmsi_application), the
- * production pipeline, and per-role counts. Read-only aggregation.
+ * Reads the composed admin console (S12) for the page.
+ *
+ * Every heavy widget — KPIs, courses-by-status, admissions funnel, system health,
+ * course operations, faculty load, users-by-role — is produced by the CRON /
+ * event-driven rollup ({@see admin_rollup}) and read straight from cache_azmsi
+ * here, never recomputed inline. The only live reads are the production pipeline
+ * (so a stage advance shows immediately) and the viewer-specific portal links.
  *
  * @package    local_azmsi
  * @copyright  2026 AZMSI
@@ -34,102 +38,65 @@ class admin {
      * @return array
      */
     public static function console(): array {
+        $data = self::dataset();
+
+        $kpis = $data['kpis'] ?? [];
+        $kpis['coursestotal'] = (int) ($kpis['coursestotal'] ?? 48);
+        $kpis['stale'] = empty($data['generatedon']);
+
         return [
-            'kpis'     => self::kpis(),
-            'funnel'   => self::funnel(),
-            'pipeline' => pipeline::get_all(),
-            'roles'    => self::roles(),
+            'kpis'            => $kpis,
+            'coursesbystatus' => $data['coursesbystatus'] ?? ['rows' => [], 'running' => 0, 'total' => 0],
+            'funnel'          => $data['funnel'] ?? [],
+            'systemhealth'    => $data['systemhealth'] ?? [],
+            'courseops'       => $data['courseops'] ?? [],
+            'courseopstotal'  => (int) ($data['courseopstotal'] ?? 0),
+            'courseopsshown'  => count($data['courseops'] ?? []),
+            'facultyload'     => $data['facultyload'] ?? [],
+            'usersbyrole'     => $data['usersbyrole'] ?? [],
+            'pipeline'        => pipeline::get_all(),
+            'portals'         => self::portals(),
+            'generatedon'     => (int) ($data['generatedon'] ?? 0),
+            'stale'           => empty($data['generatedon']),
         ];
     }
 
     /**
-     * KPIs read from the scheduled-task rollup in cache_azmsi (NOT computed here).
+     * The cached rollup dataset. Bootstrap-computes ONCE if the cache is cold
+     * (e.g. first load after a purge, before cron has run); thereafter the page
+     * is a pure cache read and cron/events keep it fresh.
      *
      * @return array
      */
-    protected static function kpis(): array {
-        $kpis = \cache::make('local_azmsi', 'rollups')->get('admin_kpis') ?: [];
-        return [
-            'activestudents' => (int) ($kpis['activestudents'] ?? 0),
-            'applications'   => (int) ($kpis['applications'] ?? 0),
-            'faculty'        => (int) ($kpis['faculty'] ?? 0),
-            'coursesbuilt'   => (int) ($kpis['coursesbuilt'] ?? 0),
-            'coursestotal'   => (int) ($kpis['coursestotal'] ?? 48),
-            'generatedon'    => (int) ($kpis['generatedon'] ?? 0),
-            'stale'          => empty($kpis['generatedon']),
-        ];
+    protected static function dataset(): array {
+        $data = \cache::make('local_azmsi', 'rollups')->get(admin_rollup::KEY);
+        if (empty($data) || empty($data['generatedon'])) {
+            $data = admin_rollup::rebuild();
+        }
+        return $data;
     }
 
     /**
-     * Admissions funnel counts, live from local_azmsi_application.stage + status.
+     * "Switch portal" links, gated by the viewer's capabilities (cheap, live).
      *
-     * @return array list of ['label','count','pct'] scaled to the largest stage
+     * @return array list of ['label','url','canview']
      */
-    protected static function funnel(): array {
-        global $DB;
-        try {
-            $applications = (int) $DB->count_records('local_azmsi_application', []);
-            $aqe = (int) $DB->count_records_select(
-                'local_azmsi_application',
-                'stage = :a OR stage = :b',
-                ['a' => 'aqe_scheduled', 'b' => 'aqe_completed']
-            );
-            $review = (int) $DB->count_records('local_azmsi_application', ['stage' => 'review']);
-            $offers = (int) $DB->count_records('local_azmsi_application', ['stage' => 'decision']);
-            $enrolled = (int) $DB->count_records('local_azmsi_application', ['status' => 'accepted']);
-        } catch (\Throwable $e) {
-            $applications = $aqe = $review = $offers = $enrolled = 0;
-        }
-
-        $rows = [
-            ['label' => get_string('funnelapplications', 'local_azmsi'), 'count' => $applications],
-            ['label' => get_string('funnelaqe', 'local_azmsi'), 'count' => $aqe],
-            ['label' => get_string('funnelreview', 'local_azmsi'), 'count' => $review],
-            ['label' => get_string('funneloffers', 'local_azmsi'), 'count' => $offers],
-            ['label' => get_string('funnelenrolled', 'local_azmsi'), 'count' => $enrolled],
+    protected static function portals(): array {
+        $syscontext = \core\context\system::instance();
+        $defs = [
+            ['label' => get_string('rolefaculty', 'local_azmsi'),
+                'url' => (new moodle_url('/local/azmsi/faculty.php'))->out(false),
+                'cap' => 'local/azmsi:viewfacultyportal'],
+            ['label' => get_string('rolestudents', 'local_azmsi'),
+                'url' => (new moodle_url('/my'))->out(false), 'cap' => null],
         ];
-        $max = max(1, ...array_column($rows, 'count'));
-        foreach ($rows as &$r) {
-            $r['pct'] = (int) round($r['count'] / $max * 100);
-        }
-        return $rows;
-    }
-
-    /**
-     * Per-role user counts with capability-gated portal deep-links.
-     *
-     * @return array
-     */
-    protected static function roles(): array {
-        global $DB;
         $out = [];
-        try {
-            $defs = [
-                ['archetypes' => ['student'], 'label' => get_string('rolestudents', 'local_azmsi'),
-                    'url' => (new moodle_url('/my'))->out(false), 'cap' => null],
-                ['archetypes' => ['editingteacher', 'teacher'], 'label' => get_string('rolefaculty', 'local_azmsi'),
-                    'url' => (new moodle_url('/local/azmsi/faculty.php'))->out(false), 'cap' => 'local/azmsi:viewfacultyportal'],
-                ['archetypes' => ['manager'], 'label' => get_string('rolemanagers', 'local_azmsi'),
-                    'url' => (new moodle_url('/local/azmsi/admin.php'))->out(false), 'cap' => 'local/azmsi:viewadminconsole'],
+        foreach ($defs as $d) {
+            $out[] = [
+                'label'   => $d['label'],
+                'url'     => $d['url'],
+                'canview' => is_null($d['cap']) || has_capability($d['cap'], $syscontext),
             ];
-            $syscontext = \core\context\system::instance();
-            foreach ($defs as $d) {
-                [$insql, $params] = $DB->get_in_or_equal($d['archetypes'], SQL_PARAMS_NAMED);
-                $count = (int) $DB->count_records_sql(
-                    "SELECT COUNT(DISTINCT ra.userid)
-                       FROM {role_assignments} ra JOIN {role} r ON r.id = ra.roleid
-                      WHERE r.archetype $insql",
-                    $params
-                );
-                $out[] = [
-                    'label'   => $d['label'],
-                    'count'   => $count,
-                    'url'     => $d['url'],
-                    'canview' => is_null($d['cap']) || has_capability($d['cap'], $syscontext),
-                ];
-            }
-        } catch (\Throwable $e) {
-            return [];
         }
         return $out;
     }

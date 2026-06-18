@@ -48,4 +48,31 @@ $observers = [
         'eventname' => '\core\event\course_completed',
         'callback'  => '\local_azmsi\observer::on_course_completed',
     ],
+
+    // Admin-console refresh: events that change something the console shows.
+    // Each observer just queues a deduplicated rebuild (see observer::queue_admin_refresh).
+    [
+        'eventname' => '\core\event\course_created',
+        'callback'  => '\local_azmsi\observer::on_course_created',
+    ],
+    [
+        'eventname' => '\core\event\course_updated',
+        'callback'  => '\local_azmsi\observer::on_course_updated',
+    ],
+    [
+        'eventname' => '\core\event\course_deleted',
+        'callback'  => '\local_azmsi\observer::on_course_deleted',
+    ],
+    [
+        'eventname' => '\core\event\role_assigned',
+        'callback'  => '\local_azmsi\observer::on_role_assigned',
+    ],
+    [
+        'eventname' => '\core\event\role_unassigned',
+        'callback'  => '\local_azmsi\observer::on_role_unassigned',
+    ],
+    [
+        'eventname' => '\core\event\user_enrolment_deleted',
+        'callback'  => '\local_azmsi\observer::on_enrolment_deleted',
+    ],
 ];
