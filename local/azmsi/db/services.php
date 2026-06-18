@@ -35,8 +35,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Only functions whose classes exist are declared (AGENT_03 §5). Remaining
 // functions are added as each class lands: get_course_home, get_week_module,
-// get_research_tracker, get_application_status, submit_application, schedule_aqe,
-// update_pipeline_stage.
+// get_research_tracker, get_application_status, submit_application, schedule_aqe.
 $functions = [
     'local_azmsi_get_program_catalog' => [
         'classname'    => 'local_azmsi\external\get_program_catalog',
@@ -70,6 +69,14 @@ $functions = [
         'capabilities' => 'local/azmsi:ws_faculty',
         'services'     => ['azmsi_ws'],
     ],
+    'local_azmsi_update_pipeline_stage' => [
+        'classname'    => 'local_azmsi\external\update_pipeline_stage',
+        'description'  => 'Advance a course production-pipeline stage (audited); launch flips status + revalidates.',
+        'type'         => 'write',
+        'ajax'         => true,
+        'capabilities' => 'local/azmsi:managepipeline',
+        'services'     => ['azmsi_ws'],
+    ],
 ];
 
 // Pre-built external service consumed by the website + applicant portal
@@ -82,6 +89,7 @@ $services = [
             'local_azmsi_get_student_overview',
             'local_azmsi_get_admin_kpis',
             'local_azmsi_get_faculty_overview',
+            'local_azmsi_update_pipeline_stage',
         ],
         'restrictedusers' => 1,
         'enabled'         => 0,

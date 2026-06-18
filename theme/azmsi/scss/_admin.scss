@@ -1,0 +1,46 @@
+// AZMSI Bold — admin console (S12). Gold accent (the default theme accent), so
+// no accent override — just the funnel, pipeline grid and role cards.
+
+.az-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  .az-admin-kpis { border: 1px solid $az-line; align-self: flex-start; }
+  .az-admin-kpis .az-kpi { padding: 16px 26px; }
+
+  // Admissions funnel — bars scale to the live counts (--az-pct).
+  .az-funnel { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+  .az-funnel-row { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 12px; }
+  .az-funnel-label { font-size: 12px; color: $az-text-2; }
+  .az-funnel-bar { height: 10px; background: $az-surface-2; border: 1px solid $az-line; }
+  .az-funnel-fill { display: block; height: 100%; width: var(--az-pct, 0); background: $az-gold; }
+  .az-funnel-count { font-weight: 800; color: $az-gold-bright; text-align: right; }
+
+  // Production pipeline grid.
+  .az-pipeline-course { white-space: nowrap; }
+  .az-pipeline-cell { text-align: center; }
+  .az-pipeline-dot {
+    display: inline-block;
+    min-width: 60px;
+    padding: 5px 8px;
+    border: 1px solid $az-line;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: $az-surface-2;
+    color: $az-text-mute;
+    cursor: default;
+  }
+  button.az-pipeline-dot { cursor: pointer; &:hover { border-color: $az-gold; color: $az-text; } }
+  .az-pipeline-cell--active .az-pipeline-dot { background: var(--az-grad-gold-active); border-color: $az-gold; color: $az-gold-bright; }
+  .az-pipeline-cell--done .az-pipeline-dot { background: rgba(31, 122, 111, 0.25); border-color: $az-teal; color: $az-teal-bright; }
+  .az-pipeline form { display: inline; margin: 0; }
+
+  // Roles & access cards.
+  .az-admin-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .az-role-card .az-card-body { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .az-role-card .az-sso-btn { width: auto; padding: 8px 16px; margin-top: 6px; }
+}

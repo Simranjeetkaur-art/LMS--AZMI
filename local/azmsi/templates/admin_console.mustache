@@ -1,0 +1,91 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_azmsi/admin_console
+
+    Admin console (S12). Gold-accented. KPIs from cache_azmsi; funnel + pipeline +
+    roles all live. Pipeline advance posts to admin.php with sesskey (cap-checked).
+}}
+<div class="az-admin">
+    <section class="az-admin-kpis az-kpi-strip">
+        <div class="az-kpi"><div class="az-kpi-num">{{kpis.activestudents}}</div><div class="az-kpi-label">{{#str}}kpistudents, local_azmsi{{/str}}</div></div>
+        <div class="az-kpi"><div class="az-kpi-num">{{kpis.applications}}</div><div class="az-kpi-label">{{#str}}kpiapplications, local_azmsi{{/str}}</div></div>
+        <div class="az-kpi"><div class="az-kpi-num">{{kpis.faculty}}</div><div class="az-kpi-label">{{#str}}kpifaculty, local_azmsi{{/str}}</div></div>
+        <div class="az-kpi"><div class="az-kpi-num az-kpi-num--hi">{{kpis.coursesbuilt}}/{{kpis.coursestotal}}</div><div class="az-kpi-label">{{#str}}kpicoursesbuilt, local_azmsi{{/str}}</div></div>
+    </section>
+    {{#kpis.stale}}<p class="az-loginsub">{{#str}}kpisstale, local_azmsi{{/str}}</p>{{/kpis.stale}}
+
+    <section class="az-dash-section">
+        <h2 class="az-dash-section-title">{{#str}}admissionsfunnel, local_azmsi{{/str}}</h2>
+        <div class="az-funnel">
+            {{#funnel}}
+            <div class="az-funnel-row">
+                <span class="az-funnel-label">{{label}}</span>
+                <span class="az-funnel-bar"><span class="az-funnel-fill" style="--az-pct:{{pct}}%"></span></span>
+                <span class="az-funnel-count">{{count}}</span>
+            </div>
+            {{/funnel}}
+        </div>
+    </section>
+
+    <section class="az-dash-section">
+        <h2 class="az-dash-section-title">{{#str}}productionpipeline, local_azmsi{{/str}}</h2>
+        <table class="az-table az-pipeline">
+            <thead><tr>
+                <th>{{#str}}course, local_azmsi{{/str}}</th>
+                {{#pipeline.0.stages}}<th>{{label}}</th>{{/pipeline.0.stages}}
+            </tr></thead>
+            <tbody>
+            {{#pipeline}}
+                <tr>
+                    <td class="az-pipeline-course"><span class="az-course-code">&#9656; {{code}}</span></td>
+                    {{#stages}}
+                    <td class="az-pipeline-cell az-pipeline-cell--{{value}}">
+                        {{#cannext}}
+                        <form method="post" action="{{config.wwwroot}}/local/azmsi/admin.php">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="advance">
+                            <input type="hidden" name="courseid" value="{{courseid}}">
+                            <input type="hidden" name="stage" value="{{key}}">
+                            <input type="hidden" name="value" value="{{nextvalue}}">
+                            <button type="submit" class="az-pipeline-dot" title="{{value}} &rarr; {{nextvalue}}">{{value}}</button>
+                        </form>
+                        {{/cannext}}
+                        {{^cannext}}<span class="az-pipeline-dot">{{value}}</span>{{/cannext}}
+                    </td>
+                    {{/stages}}
+                </tr>
+            {{/pipeline}}
+            </tbody>
+        </table>
+    </section>
+
+    <section class="az-dash-section">
+        <h2 class="az-dash-section-title">{{#str}}rolesaccess, local_azmsi{{/str}}</h2>
+        <div class="az-admin-roles">
+            {{#roles}}
+            <div class="az-card az-role-card">
+                <div class="az-card-body">
+                    <div class="az-kpi-num">{{count}}</div>
+                    <div class="az-kpi-label">{{label}}</div>
+                    {{#canview}}<a class="az-sso-btn" href="{{url}}">{{#str}}open, local_azmsi{{/str}} &rarr;</a>{{/canview}}
+                </div>
+            </div>
+            {{/roles}}
+        </div>
+    </section>
+</div>
