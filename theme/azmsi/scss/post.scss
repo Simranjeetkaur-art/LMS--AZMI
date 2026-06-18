@@ -4,3 +4,125 @@
 //
 // The $az-* tokens (pre.scss) and all component partials are already in scope by
 // this point. Styling only — no hardcoded course/user data.
+
+// ===========================================================================
+// Core surface consistency (dark) — the global contrast fix.
+//
+// Moove binds its surface custom properties to LIGHT values on :root and
+// [data-bs-theme="light"] (its dark values only apply in opt-in dark mode). This
+// is a permanently-dark theme running in light mode, so every standard Moodle /
+// Moove container (region-main, navbar, drawers, generalbox, popups, the admin
+// environment/notification tables) was rendering on a white background while our
+// text colour stayed light → near-invisible text everywhere outside the custom
+// .az-* screens. We rebind those custom properties (and the matching Bootstrap
+// ones) to the Bold palette here, after Moove, so the whole application inherits
+// readable dark surfaces. Selectors mirror Moove's so we win by source order.
+// ===========================================================================
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  // Moove surface tokens.
+  --moove-bg-white: #{$az-surface};
+  --moove-gray-bg: #{$az-surface-2};
+  --moove-navbar-bg-color: #{$az-bg-sidebar};
+  --moove-secondary-navigation-bg-color: #{$az-bg-sidebar};
+  --moove-link-color: #{$az-gold-bright};
+
+  // Bootstrap surface tokens read directly by some core components.
+  --bs-body-bg: #{$az-bg};
+  --bs-body-color: #{$az-text-2};
+  --bs-emphasis-color: #{$az-text};
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  --bs-secondary-bg: #{$az-surface-2};
+  --bs-tertiary-bg: #{$az-surface-2};
+  --bs-secondary-color: #{$az-text-mute};
+  --bs-tertiary-color: #{$az-text-mute};
+  --bs-border-color: #{$az-line};
+  --bs-link-color: #{$az-gold-bright};
+  --bs-link-color-rgb: 229, 194, 94;
+  --bs-link-hover-color: #{$az-gold-hi};
+}
+
+// Background utilities that hardcode light surfaces (used across admin pages).
+.bg-white,
+.bg-body,
+.bg-body-tertiary,
+.card.bg-white {
+  background-color: $az-surface !important;
+  color: $az-text-2;
+}
+.bg-light,
+.bg-body-secondary {
+  background-color: $az-surface-2 !important;
+  color: $az-text-2;
+}
+
+// Text utilities that assume a light background → flip to readable on dark.
+.text-dark,
+.text-body,
+.text-black,
+.text-body-emphasis,
+.text-body-secondary {
+  color: $az-text-2 !important;
+}
+
+// Standard Moodle data tables (admin settings, reports, environment check,
+// grader, participants…). Drive the Bootstrap table custom properties so every
+// cell — not just the ones our base layer reaches — is dark and legible.
+.table,
+table.generaltable,
+table.admintable,
+table.environmenttable,
+table.flexible,
+.generaltable {
+  --bs-table-bg: #{$az-surface};
+  --bs-table-color: #{$az-text-2};
+  --bs-table-striped-bg: #{$az-surface-2};
+  --bs-table-striped-color: #{$az-text-2};
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+  --bs-table-hover-color: #{$az-text};
+  --bs-table-border-color: #{$az-line};
+  --bs-table-active-bg: rgba(255, 255, 255, 0.05);
+  color: $az-text-2;
+
+  thead th,
+  th {
+    background-color: $az-surface-2;
+    color: $az-text;
+    border-color: $az-line;
+  }
+  td,
+  td a:not(.btn) {
+    color: $az-text-2;
+  }
+}
+
+// Admin notifications / alerts — keep tinted but readable on dark.
+.alert {
+  color: $az-text;
+  border-color: $az-line;
+}
+.alert-success { background-color: rgba(31, 122, 111, 0.22); border-color: $az-teal; }
+.alert-info    { background-color: rgba(95, 205, 189, 0.16); border-color: $az-teal-bright; }
+.alert-warning { background-color: rgba(201, 161, 59, 0.18); border-color: $az-gold; }
+.alert-danger  { background-color: rgba(232, 154, 154, 0.16); border-color: $az-danger; }
+
+// List groups, definition lists and code/pre blocks core uses on admin pages.
+.list-group-item {
+  background-color: $az-surface;
+  color: $az-text-2;
+  border-color: $az-line;
+}
+pre,
+code,
+.dialogue,
+.dropdown-menu {
+  color: $az-text-2;
+}
+
+// Moove forces #fff !important on popup/embedded layouts — recolour to dark.
+.pagelayout-popup,
+.pagelayout-embedded,
+#page.drawers.pagelayout-popup {
+  background-color: $az-bg !important; // stylelint-disable-line declaration-no-important
+}
