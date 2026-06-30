@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'format_emd';
-$plugin->version   = 2026061500;
+$plugin->version   = 2026061800;
 $plugin->requires  = 2025100600;      // Moodle 5.1.
 $plugin->supported = [501, 501];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.2.0';
+$plugin->release   = '0.3.0';
 $plugin->dependencies = [
     'local_azmsi' => 2026061500, // Course custom fields (code/credits/faculty) read by the S5 header.
 ];

@@ -1,0 +1,67 @@
+{{!
+    @template local_azmsi/completeness
+
+    Per-week content-completeness analysis for a course (Phase 4).
+}}
+<div class="az-complete">
+    <div class="az-complete-head">
+        <h2 class="az-complete-title">{{name}} <span class="az-complete-code">{{code}}</span></h2>
+        <div class="az-complete-summary {{#iscomplete}}az-is-complete{{/iscomplete}}">
+            {{#str}}weeksdone, local_azmsi, {"done": {{completeweeks}}, "total": {{totalweeks}}}{{/str}}
+        </div>
+    </div>
+
+    <p class="az-complete-rule">{{#str}}weekcompletionrule, local_azmsi{{/str}}</p>
+
+    <section class="az-complete-section">
+        <h3 class="az-complete-h3">{{#str}}courserequirements, local_azmsi{{/str}}</h3>
+        <ul class="az-complete-checks">
+            {{#courselevel}}
+            <li class="{{#ok}}az-ok{{/ok}}{{^ok}}az-miss{{/ok}}">
+                <span class="az-tick">{{#ok}}&#10003;{{/ok}}{{^ok}}&#10007;{{/ok}}</span> {{label}}
+            </li>
+            {{/courselevel}}
+        </ul>
+        {{^courseok}}
+        <p class="az-complete-note az-miss">{{#str}}courseblocksweeks, local_azmsi{{/str}}</p>
+        {{/courseok}}
+    </section>
+
+    <section class="az-complete-section">
+        <h3 class="az-complete-h3">{{#str}}weeklybreakdown, local_azmsi{{/str}}</h3>
+        {{#weeks}}
+        <div class="az-complete-week {{#complete}}az-is-complete{{/complete}}" id="week-{{num}}">
+            <div class="az-complete-week-head">
+                <span class="az-complete-week-num">{{num}}</span>
+                <span class="az-complete-week-name">{{name}}</span>
+                <span class="az-complete-badge">
+                    {{#complete}}{{#str}}weekcompletebadge, local_azmsi{{/str}}{{/complete}}
+                    {{^complete}}{{#activitiesok}}{{#contentok}}{{#str}}weekblockedbadge, local_azmsi{{/str}}{{/contentok}}{{^contentok}}{{#str}}weekpartialbadge, local_azmsi{{/str}}{{/contentok}}{{/activitiesok}}{{^activitiesok}}{{#str}}weekincompletebadge, local_azmsi{{/str}}{{/activitiesok}}{{/complete}}
+                </span>
+            </div>
+            <table class="az-complete-items">
+                <thead>
+                    <tr>
+                        <th>{{#str}}activity, local_azmsi{{/str}}</th>
+                        <th>{{#str}}activitiespresent, local_azmsi{{/str}}</th>
+                        <th>{{#str}}contentuploaded, local_azmsi{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {{#items}}
+                <tr>
+                    <td class="az-complete-item-label">{{label}}</td>
+                    <td class="{{#present}}az-ok{{/present}}{{^present}}az-miss{{/present}}">
+                        <span class="az-tick">{{#present}}&#10003;{{/present}}{{^present}}&#10007;{{/present}}</span>
+                    </td>
+                    <td class="{{#hascontent}}az-ok{{/hascontent}}{{^hascontent}}az-miss{{/hascontent}}">
+                        <span class="az-tick">{{#hascontent}}&#10003;{{/hascontent}}{{^hascontent}}&#10007;{{/hascontent}}</span>
+                    </td>
+                </tr>
+                {{/items}}
+                </tbody>
+            </table>
+        </div>
+        {{/weeks}}
+    </section>
+</div>

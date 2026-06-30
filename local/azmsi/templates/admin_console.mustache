@@ -20,208 +20,49 @@
     Admin console (S12) — institution overview. Layout mirrors the AZMSI admin
     prototype: a 3-up widget row (courses-by-status / admissions funnel / system
     health), the course-operations table, then a 3-up row (faculty load / users by
-    role / announcements). The production pipeline (with the cap+sesskey write) sits
-    below. Every value is read from the cron/event-driven rollup; nothing hardcoded.
+    role / announcements). Those data widgets live in the admin_console_live partial
+    and are wrapped in [data-region="azmsi-admin-live"] so the JS poller
+    (local_azmsi/admin_console_live) can refresh them in place from the same
+    cron/event-driven rollup — nothing on this page is hardcoded. The production
+    pipeline (cap+sesskey write) and the portal switch stay outside the live region.
 }}
 <div class="az-admin">
 
-    {{! ---- Top widgets: courses-by-status / funnel / system health ---- }}
-    <div class="az-admin-grid az-admin-grid--3">
+    {{! ---- Reviews moderation entry ---- }}
+    <section class="az-dash-section az-admin-reviews">
+        <a class="az-admin-reviews-link" href="{{reviewsurl}}">
+            <span>{{#str}}reviews, local_azmsi{{/str}}</span>
+            {{#hasreviews}}<span class="az-admin-reviews-badge">{{reviewspending}}</span>{{/hasreviews}}
+        </a>
+    </section>
 
-        <section class="az-card az-widget">
-            <div class="az-card-head">{{#str}}coursesbystatus, local_azmsi{{/str}}</div>
-            <div class="az-card-body az-status-body">
-                <div class="az-donut" style="--az-pct:{{coursesbystatus.runningpct}}%">
-                    <div class="az-donut-mid">
-                        <span class="az-donut-num">{{coursesbystatus.running}}</span>
-                        <span class="az-donut-cap">{{#str}}status_running, local_azmsi{{/str}}</span>
-                    </div>
-                </div>
-                <ul class="az-legend">
-                    {{#coursesbystatus.rows}}
-                    <li class="az-legend-row">
-                        <span class="az-legend-dot az-dot--{{key}}"></span>
-                        <span class="az-legend-label">{{label}}</span>
-                        <span class="az-legend-count">{{count}}</span>
-                    </li>
-                    {{/coursesbystatus.rows}}
-                </ul>
-            </div>
-        </section>
-
-        <section class="az-card az-widget">
-            <div class="az-card-head">{{#str}}admissionsfunnel, local_azmsi{{/str}}</div>
-            <div class="az-card-body">
-                <div class="az-funnel">
-                    {{#funnel}}
-                    <div class="az-funnel-row">
-                        <span class="az-funnel-label">{{label}}</span>
-                        <span class="az-funnel-bar"><span class="az-funnel-fill" style="--az-pct:{{pct}}%"></span></span>
-                        <span class="az-funnel-count">{{count}}</span>
-                    </div>
-                    {{/funnel}}
-                </div>
-            </div>
-        </section>
-
-        <section class="az-card az-widget">
-            <div class="az-card-head az-card-head--split">
-                <span>{{#str}}systemhealth, local_azmsi{{/str}}</span>
-                {{#operational}}<span class="az-badge-op">&#9679; {{#str}}operational, local_azmsi{{/str}}</span>{{/operational}}
-                {{^operational}}<span class="az-badge-op az-badge-op--warn">&#9679; {{#str}}degraded, local_azmsi{{/str}}</span>{{/operational}}
-            </div>
-            <div class="az-card-body">
-                <ul class="az-health">
-                    {{#systemhealth}}
-                    <li class="az-health-row">
-                        <span class="az-health-dot {{#ok}}az-health-dot--ok{{/ok}}{{^ok}}az-health-dot--warn{{/ok}}"></span>
-                        <span class="az-health-label">{{label}}</span>
-                        <span class="az-health-value">{{value}}</span>
-                    </li>
-                    {{/systemhealth}}
-                    {{^systemhealth}}<li class="az-health-row az-text-mute">{{#str}}nodata, local_azmsi{{/str}}</li>{{/systemhealth}}
-                </ul>
-            </div>
-        </section>
+    <div data-region="azmsi-admin-live" data-generatedon="{{generatedon}}">
+        {{> local_azmsi/admin_console_live }}
     </div>
 
-    {{! ---- Course operations ---- }}
+    {{! ---- Production pipeline (collapsed behind a click so the page stays light) ---- }}
     <section class="az-dash-section">
-        <div class="az-dash-section-head">
-            <h2 class="az-dash-section-title">{{#str}}courseoperations, local_azmsi{{/str}}</h2>
-            <span class="az-dash-section-meta">{{courseopslabel}}</span>
-        </div>
-        <table class="az-table az-courseops">
-            <thead><tr>
-                <th>{{#str}}course, local_azmsi{{/str}}</th>
-                <th>{{#str}}leadfaculty, local_azmsi{{/str}}</th>
-                <th class="az-num">{{#str}}students, local_azmsi{{/str}}</th>
-                <th class="az-num">{{#str}}modules, local_azmsi{{/str}}</th>
-                <th class="az-num">{{#str}}activities, local_azmsi{{/str}}</th>
-                <th>{{#str}}statuscol, local_azmsi{{/str}}</th>
-                <th>{{#str}}avgcompletion, local_azmsi{{/str}}</th>
-            </tr></thead>
-            <tbody>
-            {{#courseops}}
-                <tr>
-                    <td><strong class="az-ops-name">{{name}}</strong><span class="az-ops-code">{{code}}</span></td>
-                    <td>{{lead}}</td>
-                    <td class="az-num">{{students}}</td>
-                    <td class="az-num">{{modules}}</td>
-                    <td class="az-num">{{activities}}</td>
-                    <td><span class="az-pill az-pill--{{status}}">{{statuslabel}}</span></td>
-                    <td>
-                        <span class="az-meter"><span class="az-meter-fill" style="--az-pct:{{avg}}%"></span></span>
-                        <span class="az-meter-num">{{avg}}%</span>
-                    </td>
-                </tr>
-            {{/courseops}}
-            {{^courseops}}<tr><td colspan="7" class="az-text-mute">{{#str}}nodata, local_azmsi{{/str}}</td></tr>{{/courseops}}
-            </tbody>
-        </table>
+        <details class="az-disclosure az-pipeline-disclosure">
+            <summary class="az-disclosure-head">
+                <span class="az-disclosure-title">{{#str}}productionpipeline, local_azmsi{{/str}}</span>
+                <span class="az-disclosure-meta">
+                    {{pipelinesummary.total}} {{#str}}coursesword, local_azmsi{{/str}}
+                    {{#pipelinesummary.complete}}&middot; <span class="az-disclosure-done">{{pipelinesummary.complete}} {{#str}}statuscomplete, local_azmsi{{/str}}</span>{{/pipelinesummary.complete}}
+                </span>
+                <span class="az-disclosure-action">
+                    <span class="az-disclosure-open">{{#str}}openpipeline, local_azmsi{{/str}}</span>
+                    <span class="az-disclosure-close">{{#str}}closepipeline, local_azmsi{{/str}}</span>
+                    <span class="az-disclosure-chevron" aria-hidden="true">&#9656;</span>
+                </span>
+            </summary>
+            <div class="az-disclosure-body">
+                {{> local_azmsi/admin_pipeline }}
+            </div>
+        </details>
     </section>
-
-    {{! ---- Faculty load / Users by role / Announcements ---- }}
-    <div class="az-admin-grid az-admin-grid--3">
-        <section class="az-card az-widget">
-            <div class="az-card-head az-card-head--split">
-                <span>{{#str}}facultyload, local_azmsi{{/str}}</span>
-                <span class="az-card-head-meta">{{facultyactive}} {{#str}}activelower, local_azmsi{{/str}}</span>
-            </div>
-            <div class="az-card-body">
-                <ul class="az-loadlist">
-                    {{#facultyload}}
-                    <li class="az-load-row">
-                        <span class="az-avatar">{{initials}}</span>
-                        <span class="az-load-id">
-                            <span class="az-load-name">{{name}}</span>
-                            {{#dept}}<span class="az-load-dept">{{dept}}</span>{{/dept}}
-                        </span>
-                        <span class="az-load-stat"><b>{{courses}}</b>{{#str}}coursesword, local_azmsi{{/str}}</span>
-                        <span class="az-load-stat az-load-stat--hi"><b>{{students}}</b>{{#str}}students, local_azmsi{{/str}}</span>
-                    </li>
-                    {{/facultyload}}
-                    {{^facultyload}}<li class="az-load-row az-text-mute">{{#str}}nodata, local_azmsi{{/str}}</li>{{/facultyload}}
-                </ul>
-            </div>
-        </section>
-
-        <section class="az-card az-widget">
-            <div class="az-card-head">{{#str}}usersbyrole, local_azmsi{{/str}}</div>
-            <div class="az-card-body">
-                <div class="az-funnel">
-                    {{#usersbyrole}}
-                    <div class="az-funnel-row">
-                        <span class="az-funnel-label">{{label}}</span>
-                        <span class="az-funnel-bar"><span class="az-funnel-fill az-funnel-fill--teal" style="--az-pct:{{pct}}%"></span></span>
-                        <span class="az-funnel-count">{{count}}</span>
-                    </div>
-                    {{/usersbyrole}}
-                </div>
-            </div>
-        </section>
-
-        <section class="az-card az-widget">
-            <div class="az-card-head az-card-head--split">
-                <span>{{#str}}announcementsonhome, local_azmsi{{/str}}</span>
-                {{#canannounce}}<a class="az-mini-btn" href="{{announceurl}}">+ {{#str}}new, local_azmsi{{/str}}</a>{{/canannounce}}
-            </div>
-            <div class="az-card-body">
-                <ul class="az-ann-list">
-                    {{#announcements}}
-                    <li class="az-ann-item">
-                        <div class="az-ann-meta"><span class="az-ann-tag">{{audience}}</span><span class="az-ann-time">{{time}}</span></div>
-                        <div class="az-ann-title">{{subject}}</div>
-                    </li>
-                    {{/announcements}}
-                    {{^hasannounce}}<li class="az-ann-item az-text-mute">{{#str}}noannouncements, local_azmsi{{/str}}</li>{{/hasannounce}}
-                </ul>
-            </div>
-        </section>
-    </div>
-
-    {{! ---- Production pipeline (live, write-reflecting) ---- }}
-    <section class="az-dash-section">
-        <h2 class="az-dash-section-title">{{#str}}productionpipeline, local_azmsi{{/str}}</h2>
-        <table class="az-table az-pipeline">
-            <thead><tr>
-                <th>{{#str}}course, local_azmsi{{/str}}</th>
-                {{#pipeline.0.stages}}<th>{{label}}</th>{{/pipeline.0.stages}}
-            </tr></thead>
-            <tbody>
-            {{#pipeline}}
-                <tr>
-                    <td class="az-pipeline-course"><span class="az-course-code">&#9656; {{code}}</span></td>
-                    {{#stages}}
-                    <td class="az-pipeline-cell az-pipeline-cell--{{value}}">
-                        {{#cannext}}
-                        <form method="post" action="{{config.wwwroot}}/local/azmsi/admin.php">
-                            <input type="hidden" name="sesskey" value="{{sesskey}}">
-                            <input type="hidden" name="action" value="advance">
-                            <input type="hidden" name="courseid" value="{{courseid}}">
-                            <input type="hidden" name="stage" value="{{key}}">
-                            <input type="hidden" name="value" value="{{nextvalue}}">
-                            <button type="submit" class="az-pipeline-dot" title="{{value}} &rarr; {{nextvalue}}">{{value}}</button>
-                        </form>
-                        {{/cannext}}
-                        {{^cannext}}<span class="az-pipeline-dot">{{value}}</span>{{/cannext}}
-                    </td>
-                    {{/stages}}
-                </tr>
-            {{/pipeline}}
-            </tbody>
-        </table>
-    </section>
-
-    {{! ---- Switch portal ---- }}
-    <section class="az-dash-section">
-        <h2 class="az-dash-section-title">{{#str}}switchportal, local_azmsi{{/str}}</h2>
-        <div class="az-portals">
-            {{#portals}}
-            {{#canview}}<a class="az-sso-btn" href="{{url}}">&#8596; {{label}} {{#str}}view, local_azmsi{{/str}}</a>{{/canview}}
-            {{/portals}}
-        </div>
-    </section>
-
-    {{#generatedonstr}}<p class="az-admin-foot">{{#str}}lastrolledup, local_azmsi{{/str}} {{generatedonstr}}{{#stale}} &middot; {{#str}}kpisstale, local_azmsi{{/str}}{{/stale}}</p>{{/generatedonstr}}
 </div>
+{{#js}}
+require(['local_azmsi/admin_console_live'], function(Live) {
+    Live.init({{refreshseconds}});
+});
+{{/js}}

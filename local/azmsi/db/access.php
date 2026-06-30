@@ -75,6 +75,24 @@ $capabilities = [
         ],
     ],
 
+    // Submit a course + instructor rating/review (enrolled learners, Phase 3).
+    'local/azmsi:submitreview' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes'   => [
+            'student' => CAP_ALLOW,
+        ],
+    ],
+
+    // Moderate (approve/reject) submitted reviews (Phase 3).
+    'local/azmsi:moderatereviews' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
     // Web service read capabilities. Granted only to the ws_consumer role /
     // service accounts (AGENT_01), never to ordinary roles; each backs the
     // matching azmsi_ws external function.

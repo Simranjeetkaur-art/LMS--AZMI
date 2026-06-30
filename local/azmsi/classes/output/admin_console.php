@@ -20,6 +20,7 @@ use core\output\named_templatable;
 use renderable;
 use renderer_base;
 use local_azmsi\local\admin;
+use local_azmsi\local\completeness;
 
 /**
  * Admin console (S12) renderable — gold-accented manager home.
@@ -51,29 +52,22 @@ class admin_console implements named_templatable, renderable {
         return 'local_azmsi/admin_console';
     }
 
+    /** @var int Default seconds between in-browser live refreshes of the data widgets. */
+    public const REFRESH_SECONDS = 60;
+
     /**
-     * Compose the console context.
+     * Build the context for the live (data-widget) region of the console.
      *
-     * @param renderer_base $output
-     * @return array
+     * This is the single source of truth for the widgets that the JS poller and
+     * the {@see \local_azmsi\external\get_admin_console} web service both render
+     * via the local_azmsi/admin_console_live template. It is a pure transform of
+     * the cached rollup dataset returned by {@see admin::console()} — no inline
+     * aggregation, nothing hardcoded.
+     *
+     * @param array $data the dataset from admin::console()
+     * @return array template context for local_azmsi/admin_console_live
      */
-    public function export_for_template(renderer_base $output): array {
-        $data = admin::console();
-
-        // Decorate pipeline stages with value flags + the next forward value.
-        $next = ['queued' => 'active', 'active' => 'done'];
-        $pipeline = array_map(function ($course) use ($next) {
-            $course['stages'] = array_map(function ($s) use ($next) {
-                $s['isdone']    = $s['value'] === 'done';
-                $s['isactive']  = $s['value'] === 'active';
-                $s['isqueued']  = $s['value'] === 'queued';
-                $s['cannext']   = isset($next[$s['value']]) && $this->canmanage;
-                $s['nextvalue'] = $next[$s['value']] ?? '';
-                return $s;
-            }, $course['stages']);
-            return $course;
-        }, $data['pipeline']);
-
+    public static function live_from(array $data): array {
         $opslabel = get_string(
             'showingxofy',
             'local_azmsi',
@@ -109,16 +103,77 @@ class admin_console implements named_templatable, renderable {
             'facultyload'     => $data['facultyload'],
             'facultyactive'   => $data['facultyactive'],
             'usersbyrole'     => $data['usersbyrole'],
+            'rolesaccess'     => $data['rolesaccess'],
             'announcements'   => $announce['items'],
             'hasannounce'     => !empty($announce['items']),
             'announceurl'     => $announceurl,
             'canannounce'     => $canannounce,
-            'pipeline'        => $pipeline,
-            'portals'         => $data['portals'],
+            'generatedon'     => (int) $data['generatedon'],
             'generatedonstr'  => $generatedonstr,
             'stale'           => $data['stale'],
-            'canmanage'       => $this->canmanage,
-            'sesskey'         => sesskey(),
+        ];
+    }
+
+    /**
+     * Compose the console context (full page = live region + interactive sections).
+     *
+     * @param renderer_base $output
+     * @return array
+     */
+    public function export_for_template(renderer_base $output): array {
+        $data = admin::console();
+
+        // Decorate pipeline rows with content-readiness analysis + build-stage controls.
+        $next = ['queued' => 'active', 'active' => 'done'];
+        $pipeline = array_map(function ($course) use ($next) {
+            $fullcourse = get_course($course['courseid']);
+            $course['content'] = completeness::for_pipeline($fullcourse);
+            $course['completenessurl'] = $course['content']['url'];
+            $course['stages'] = array_map(function ($s) use ($next) {
+                $s['isdone']    = $s['value'] === 'done';
+                $s['isactive']  = $s['value'] === 'active';
+                $s['isqueued']  = $s['value'] === 'queued';
+                $s['cannext']   = isset($next[$s['value']]) && $this->canmanage;
+                $s['nextvalue'] = $next[$s['value']] ?? '';
+                return $s;
+            }, $course['stages']);
+            return $course;
+        }, $data['pipeline']);
+
+        // Per-course readiness status + a roll-up summary for the toolbar.
+        $summary = ['total' => 0, 'complete' => 0, 'inprogress' => 0, 'notstarted' => 0, 'launched' => 0];
+        foreach ($pipeline as &$course) {
+            $summary['total']++;
+            $content = $course['content'] ?? [];
+            if (!empty($content['iscomplete'])) {
+                $status = 'complete';
+                $summary['complete']++;
+            } else if (!empty($content['completeweeks'])) {
+                $status = 'inprogress';
+                $summary['inprogress']++;
+            } else {
+                $status = 'notstarted';
+                $summary['notstarted']++;
+            }
+            if (!empty($course['launched'])) {
+                $summary['launched']++;
+            }
+            $course['status'] = $status;
+            $course['islaunched'] = !empty($course['launched']);
+            $course['searchkey'] = \core_text::strtolower(($course['code'] ?? '') . ' ' . ($course['name'] ?? ''));
+        }
+        unset($course);
+
+        return self::live_from($data) + [
+            'pipeline'       => $pipeline,
+            'pipelinesummary' => $summary,
+            'haspipeline'    => !empty($pipeline),
+            'reviewspending' => $data['reviewspending'] ?? 0,
+            'hasreviews'     => !empty($data['reviewspending']),
+            'reviewsurl'     => $data['reviewsurl'] ?? '',
+            'canmanage'      => $this->canmanage,
+            'sesskey'        => sesskey(),
+            'refreshseconds' => self::REFRESH_SECONDS,
         ];
     }
 }

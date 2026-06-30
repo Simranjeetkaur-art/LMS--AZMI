@@ -1,0 +1,27 @@
+{{!
+    @template theme_azmsi/footer
+
+    Site-wide AZMSI role-aware footer. Replaces the default Moove footer
+    (contact support, mobile app badges, conecti.me copyright bar).
+}}
+{{#hasfooter}}
+<footer id="page-footer" class="footer-popover az-site-footer">
+    {{> theme_azmsi/portal_footer}}
+    {{#haslegal}}
+    <div class="az-site-footer-legal">
+        {{#hasstandardfooter}}
+        <div class="az-site-footer-privacy">{{{standardfooterhtml}}}</div>
+        {{/hasstandardfooter}}
+    </div>
+    {{/haslegal}}
+    {{#hasdebug}}
+    <div class="footer-content-debugging footer-dark bg-dark text-light">
+        <div class="moove-container-fluid footer-dark-inner">
+            {{{debugfooterhtml}}}
+        </div>
+    </div>
+    {{/hasdebug}}
+</footer>
+{{/hasfooter}}
+
+{{{standardendofbodyhtml}}}

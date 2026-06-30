@@ -142,6 +142,7 @@ class admin_rollup {
             'facultyload'     => array_slice($faculty, 0, 8),
             'facultyactive'   => count($faculty),
             'usersbyrole'     => self::users_by_role(),
+            'rolesaccess'     => self::roles_access(),
             'announcements'   => self::announcements(),
         ];
     }
@@ -454,6 +455,108 @@ class admin_rollup {
     }
 
     /**
+     * Distinct users holding at least one role with the given archetype(s).
+     *
+     * @param array $archetypes role archetype shortnames
+     * @return int
+     */
+    protected static function count_by_archetypes(array $archetypes): int {
+        global $DB;
+        [$insql, $params] = $DB->get_in_or_equal($archetypes, SQL_PARAMS_NAMED);
+        return (int) $DB->count_records_sql(
+            "SELECT COUNT(DISTINCT ra.userid)
+               FROM {role_assignments} ra JOIN {role} r ON r.id = ra.roleid
+              WHERE r.archetype $insql",
+            $params
+        );
+    }
+
+    /**
+     * Research mentors: users provisioned with local/azmsi:mentorresearch plus any
+     * distinct mentor assigned on a live research record (union, never hardcoded).
+     *
+     * @return int
+     */
+    protected static function count_research_mentors(): int {
+        global $DB;
+        $syscontext = \core\context\system::instance()->id;
+
+        $capusers = $DB->get_fieldset_sql(
+            "SELECT DISTINCT ra.userid
+               FROM {role_assignments} ra
+               JOIN {role_capabilities} rc ON rc.roleid = ra.roleid
+              WHERE ra.contextid = :ctx
+                AND rc.capability = :cap
+                AND rc.permission = :allow",
+            [
+                'ctx'   => $syscontext,
+                'cap'   => 'local/azmsi:mentorresearch',
+                'allow' => CAP_ALLOW,
+            ]
+        );
+
+        $ids = array_fill_keys(array_map('intval', $capusers), true);
+
+        try {
+            $mentors = $DB->get_fieldset_sql(
+                "SELECT DISTINCT mentorid
+                   FROM {local_azmsi_research}
+                  WHERE mentorid IS NOT NULL AND mentorid > 0"
+            );
+            foreach ($mentors as $id) {
+                $ids[(int) $id] = true;
+            }
+        } catch (\Throwable $e) {
+            // Table not installed yet — capability holders only.
+        }
+
+        return count($ids);
+    }
+
+    /**
+     * Roles & access strip — live role counts with portal / tracker links.
+     *
+     * Mirrors the admin prototype: students, faculty/SMEs, research mentors and
+     * admin/registrar counts, each with a link to the relevant portal (or
+     * "Current" for the admin column the viewer is already on).
+     *
+     * @return array{columns:array}
+     */
+    protected static function roles_access(): array {
+        return [
+            'columns' => [
+                [
+                    'count'    => self::count_by_archetypes(['student']),
+                    'label'    => get_string('rolestudents', 'local_azmsi'),
+                    'haslink'  => true,
+                    'linkurl'  => (new \moodle_url('/my/'))->out(false),
+                    'linktext' => get_string('viewportal', 'local_azmsi'),
+                ],
+                [
+                    'count'    => self::count_by_archetypes(['editingteacher', 'teacher']),
+                    'label'    => get_string('kpifaculty', 'local_azmsi'),
+                    'haslink'  => true,
+                    'linkurl'  => (new \moodle_url('/local/azmsi/faculty.php'))->out(false),
+                    'linktext' => get_string('viewportal', 'local_azmsi'),
+                ],
+                [
+                    'count'    => self::count_research_mentors(),
+                    'label'    => get_string('rolresearchmentors', 'local_azmsi'),
+                    'haslink'  => true,
+                    'linkurl'  => (new \moodle_url('/local/azmsi/research.php'))->out(false),
+                    'linktext' => get_string('viewtracker', 'local_azmsi'),
+                ],
+                [
+                    'count'        => self::count_by_archetypes(['manager']),
+                    'label'        => get_string('roleadminregistrar', 'local_azmsi'),
+                    'iscurrent'    => true,
+                    'currentlabel' => get_string('current', 'local_azmsi'),
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Users-by-role counts (bars scale to the largest).
      *
      * @return array
@@ -468,13 +571,7 @@ class admin_rollup {
         ];
         $rows = [];
         foreach ($defs as $key => $archetypes) {
-            [$insql, $params] = $DB->get_in_or_equal($archetypes, SQL_PARAMS_NAMED);
-            $count = (int) $DB->count_records_sql(
-                "SELECT COUNT(DISTINCT ra.userid)
-                   FROM {role_assignments} ra JOIN {role} r ON r.id = ra.roleid
-                  WHERE r.archetype $insql",
-                $params
-            );
+            $count = self::count_by_archetypes($archetypes);
             $rows[] = ['label' => get_string('role' . $key, 'local_azmsi'), 'count' => $count];
         }
         $max = max(1, ...array_column($rows, 'count'));

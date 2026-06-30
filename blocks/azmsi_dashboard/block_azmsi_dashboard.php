@@ -63,7 +63,32 @@ class block_azmsi_dashboard extends block_base {
     }
 
     /**
-     * Build the block content.
+     * Render this block full-bleed with no title bar — it is a whole dashboard,
+     * not a sidebar card.
+     *
+     * @return bool
+     */
+    public function hide_header() {
+        return true;
+    }
+
+    /**
+     * Mark the block wrapper so the theme can remove card chrome.
+     *
+     * @return array
+     */
+    public function html_attributes() {
+        $attributes = parent::html_attributes();
+        $attributes['class'] .= ' block_azmsi_dashboard--bleed';
+        return $attributes;
+    }
+
+    /**
+     * Build the block content — the AZMSI dashboard for the viewer's role.
+     *
+     * Admins/managers see the admin console, faculty see the faculty dashboard,
+     * and everyone else sees the student dashboard. Each is a live, cron/event
+     * backed renderable; nothing is hardcoded.
      *
      * @return stdClass
      */
@@ -81,10 +106,32 @@ class block_azmsi_dashboard extends block_base {
         }
 
         global $USER;
-        $renderer = $this->page->get_renderer('block_azmsi_dashboard');
-        $dashboard = new \block_azmsi_dashboard\output\dashboard((int) $USER->id);
-        $this->content->text = $renderer->render($dashboard);
+        $systemcontext = context_system::instance();
+        $renderable = self::role_dashboard((int) $USER->id, $systemcontext);
+
+        // A single renderer can render any named_templatable regardless of the
+        // owning component, so this works for both local_azmsi and this block.
+        $renderer = $this->page->get_renderer('local_azmsi');
+        $this->content->text = $renderer->render($renderable);
         return $this->content;
+    }
+
+    /**
+     * Pick the dashboard renderable for the viewer's capabilities.
+     *
+     * @param int $userid
+     * @param \context $systemcontext
+     * @return \renderable
+     */
+    protected static function role_dashboard(int $userid, \context $systemcontext): \renderable {
+        if (has_capability('local/azmsi:viewadminconsole', $systemcontext)) {
+            $canmanage = has_capability('local/azmsi:managepipeline', $systemcontext);
+            return new \local_azmsi\output\admin_console($canmanage);
+        }
+        if (has_capability('local/azmsi:viewfacultyportal', $systemcontext)) {
+            return new \local_azmsi\output\faculty_dashboard($userid);
+        }
+        return new \block_azmsi_dashboard\output\dashboard($userid);
     }
 
     /**

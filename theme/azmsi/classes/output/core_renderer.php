@@ -28,6 +28,41 @@ namespace theme_azmsi\output;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class core_renderer extends \theme_moove\output\core_renderer {
+    /** @var string|null Memoised AZMSI left-nav HTML ('' = none for this viewer). */
+    protected $azmsileftnavhtml = null;
+
+    /**
+     * Render the capability-gated AZMSI left navigation sidebar.
+     *
+     * Returns an empty string for guests / users with no menu, so the drawers
+     * template can omit the whole left drawer. Memoised because the drawers
+     * template asks for it more than once (presence flag + content).
+     *
+     * @return string HTML
+     */
+    public function azmsi_left_nav(): string {
+        if ($this->azmsileftnavhtml !== null) {
+            return $this->azmsileftnavhtml;
+        }
+        if (!isloggedin() || isguestuser()) {
+            return $this->azmsileftnavhtml = '';
+        }
+        $nav = new left_nav();
+        $data = $nav->export_for_template($this);
+        $this->azmsileftnavhtml = empty($data['haslinks'])
+            ? '' : $this->render_from_template('theme_azmsi/left_nav', $data);
+        return $this->azmsileftnavhtml;
+    }
+
+    /**
+     * Presence flag for the AZMSI left navigation, for template sections.
+     *
+     * @return string '1' when there is a left nav to show, '' otherwise
+     */
+    public function azmsi_has_left_nav(): string {
+        return $this->azmsi_left_nav() === '' ? '' : '1';
+    }
+
     /**
      * Render the capability-gated "Switch portal" sidebar component.
      *
@@ -44,5 +79,34 @@ class core_renderer extends \theme_moove\output\core_renderer {
             return '';
         }
         return $this->render_from_template('theme_azmsi/switchportal', $data);
+    }
+
+    /**
+     * Render the AZMSI role-aware site footer (replaces Moove's default footer).
+     *
+     * @return string HTML
+     */
+    public function azmsi_site_footer(): string {
+        global $USER;
+
+        $userid = (isloggedin() && !isguestuser()) ? (int) $USER->id : 0;
+        $data = portal_chrome::footer_for_user($userid);
+
+        $standardfooter = $this->standard_footer_html();
+        // Keep privacy links only — drop Moodle mobile-app promo from the legal strip.
+        $standardfooter = preg_replace('~<a[^>]*class="mobilelink"[^>]*>.*?</a>~s', '', $standardfooter);
+        $standardfooter = preg_replace('~<div>\s*</div>~', '', $standardfooter);
+        $standardfooter = trim($standardfooter);
+
+        $debugfooter = trim($this->debug_footer_html());
+
+        $data['standardfooterhtml'] = $standardfooter;
+        $data['debugfooterhtml'] = $this->debug_footer_html();
+        $data['standardendofbodyhtml'] = $this->standard_end_of_body_html();
+        $data['hasstandardfooter'] = $standardfooter !== '';
+        $data['hasdebug'] = $debugfooter !== '';
+        $data['haslegal'] = $data['hasstandardfooter'];
+
+        return $this->render_from_template('theme_azmsi/footer', $data);
     }
 }

@@ -16,8 +16,6 @@
 
 namespace local_azmsi\local;
 
-use moodle_url;
-
 /**
  * Reads the composed admin console (S12) for the page.
  *
@@ -61,9 +59,11 @@ class admin {
             'facultyload'     => $data['facultyload'] ?? [],
             'facultyactive'   => (int) ($data['facultyactive'] ?? 0),
             'usersbyrole'     => $data['usersbyrole'] ?? [],
+            'rolesaccess'     => $data['rolesaccess'] ?? ['columns' => []],
             'announcements'   => $data['announcements'] ?? ['items' => [], 'forumid' => 0],
             'pipeline'        => pipeline::get_all(),
-            'portals'         => self::portals(),
+            'reviewspending'  => reviews::count_pending(),
+            'reviewsurl'      => (new \moodle_url('/local/azmsi/reviews.php'))->out(false),
             'generatedon'     => (int) ($data['generatedon'] ?? 0),
             'stale'           => empty($data['generatedon']),
         ];
@@ -85,30 +85,5 @@ class admin {
             $data = admin_rollup::rebuild();
         }
         return $data;
-    }
-
-    /**
-     * "Switch portal" links, gated by the viewer's capabilities (cheap, live).
-     *
-     * @return array list of ['label','url','canview']
-     */
-    protected static function portals(): array {
-        $syscontext = \core\context\system::instance();
-        $defs = [
-            ['label' => get_string('rolefaculty', 'local_azmsi'),
-                'url' => (new moodle_url('/local/azmsi/faculty.php'))->out(false),
-                'cap' => 'local/azmsi:viewfacultyportal'],
-            ['label' => get_string('rolestudents', 'local_azmsi'),
-                'url' => (new moodle_url('/my'))->out(false), 'cap' => null],
-        ];
-        $out = [];
-        foreach ($defs as $d) {
-            $out[] = [
-                'label'   => $d['label'],
-                'url'     => $d['url'],
-                'canview' => is_null($d['cap']) || has_capability($d['cap'], $syscontext),
-            ];
-        }
-        return $out;
     }
 }

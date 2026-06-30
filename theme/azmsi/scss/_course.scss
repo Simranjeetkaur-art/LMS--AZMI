@@ -198,3 +198,246 @@
     &.az-timeline-item--active::before { background: $az-gold; border-color: $az-gold; }
   }
 }
+
+// Activity names must stay legible on the dark eMD theme. Moove applies
+// `a { color: var(--moove-link-color) }` (its brand primary), which is
+// low-contrast on the near-black background — so activity titles were barely
+// visible until hover changed the colour. Force a light heading colour with a
+// clear gold hover/focus state (matches the prototype).
+.course-content {
+  .activityname a,
+  a.aalink {
+    color: $az-text;
+
+    &:hover,
+    &:focus {
+      color: $az-gold-bright;
+    }
+  }
+
+  .activityname .instancename {
+    color: inherit;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Learner course-preview page (S5) — format_emd/coursepreview.
+// ---------------------------------------------------------------------------
+.az-prev {
+  color: $az-text-2;
+  max-width: 1180px;
+  margin: 0 auto;
+
+  .az-prev-hero {
+    padding: 28px 32px;
+    border-radius: 4px;
+    margin-bottom: 22px;
+  }
+  .az-prev-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .az-prev-title { font-weight: 900; font-size: 34px; line-height: 1.1; color: $az-text; margin: 0 0 12px; }
+  .az-prev-meta { color: #D6EFE9; font-size: 14px; display: flex; flex-wrap: wrap; gap: 14px;
+    span { position: relative; }
+    span + span::before { content: "·"; position: absolute; left: -9px; opacity: .6; }
+  }
+
+  .az-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 10.5px;
+    font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .az-pill--gold { background: rgba(201,161,59,.18); color: $az-gold-hi; }
+  .az-pill--mute { background: rgba(255,255,255,.08); color: $az-text-2; }
+  .az-pill--code { background: rgba(255,255,255,.06); color: $az-gold-bright; }
+  .az-pill--tag { background: $az-surface-2; color: $az-text-mute; min-width: 92px; text-align: center; }
+
+  .az-prev-kpis { margin-bottom: 24px; }
+
+  .az-prev-grid { display: grid; grid-template-columns: 1fr 320px; gap: 26px; align-items: start; }
+  @media (max-width: 980px) { .az-prev-grid { grid-template-columns: 1fr; } }
+
+  .az-prev-block { margin-bottom: 28px; }
+  .az-prev-h2 { font-weight: 900; font-size: 18px; color: $az-text; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .az-prev-h2-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;
+    .az-prev-h2 { margin: 0; } }
+  .az-prev-overview { color: $az-text-2; font-size: 14px; line-height: 1.6; }
+
+  .az-prev-welcome { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg,#14524A,#0E2B33);
+    border: 1px solid $az-line; border-radius: 4px; padding: 18px 20px; margin-bottom: 22px; color: $az-text;
+    text-decoration: none; transition: border-color .15s ease;
+    &:hover { border-color: rgba(255,255,255,.25); }
+    .az-prev-play { width: 40px; height: 40px; border-radius: 50%; background: $az-gold; color: $az-bg;
+      display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .az-prev-welcome-label { font-weight: 700; }
+  }
+
+  .az-prev-resources { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .az-prev-res { display: flex; align-items: center; gap: 14px; background: $az-surface; border: 1px solid $az-line;
+    border-radius: 4px; padding: 14px 16px;
+    .az-prev-res-body { flex: 1; }
+    .az-prev-res-title { color: $az-text; font-weight: 700; font-size: 14px; }
+    .az-prev-res-detail { color: $az-text-mute; font-size: 12px; margin-top: 2px; }
+  }
+
+  .az-prev-objectives { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 700px) { .az-prev-objectives { grid-template-columns: 1fr; } }
+  .az-prev-obj { background: $az-surface; border: 1px solid $az-line; border-radius: 4px; padding: 12px 14px;
+    color: $az-text-2; font-size: 13px; }
+
+  .az-prev-weektypes { display: flex; flex-wrap: wrap; gap: 8px; background: $az-surface; border: 1px solid $az-line;
+    border-radius: 4px; padding: 16px; }
+  .az-chip { display: inline-block; padding: 6px 12px; border-radius: 999px; background: $az-surface-2;
+    border: 1px solid $az-line; color: $az-text-2; font-size: 12px; font-weight: 600; }
+
+  .az-prev-weeks { display: flex; flex-direction: column; gap: 8px; }
+  .az-prev-week { background: $az-surface; border: 1px solid $az-line; border-radius: 4px; overflow: hidden;
+    &[open] { border-color: rgba(201,161,59,.35); }
+    &.az-prev-week--final { background: linear-gradient(110deg,rgba(201,161,59,.16),rgba(201,161,59,.04)); }
+  }
+  .az-prev-week-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer;
+    list-style: none; &::-webkit-details-marker { display: none; }
+    .az-prev-week-num { width: 26px; height: 26px; border-radius: 4px; background: $az-surface-2; color: $az-gold-bright;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+    .az-prev-week-name { flex: 1; color: $az-text; font-weight: 700; font-size: 14px; }
+    .az-prev-week-meta { color: $az-text-mute; font-size: 12px; font-weight: 700; }
+  }
+  .az-prev-week-body { border-top: 1px solid $az-line-soft; }
+  .az-prev-act { display: flex; align-items: center; gap: 14px; padding: 11px 16px 11px 22px; color: $az-text-2;
+    text-decoration: none; border-top: 1px solid $az-line-soft;
+    &:first-child { border-top: none; }
+    .az-prev-act-name { flex: 1; color: $az-text; }
+    .az-prev-act-detail { color: $az-text-faint; font-size: 12px; }
+  }
+  a.az-prev-act:hover { background: rgba(255,255,255,.03); .az-prev-act-name { color: $az-gold-bright; } }
+
+  // Right rail.
+  .az-prev-rail { display: flex; flex-direction: column; gap: 16px; }
+  .az-prev-enrol { padding: 18px; }
+  .az-prev-enrol-status { color: $az-teal-bright; font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+  .az-btn-gold { display: block; text-align: center; background: $az-gold; color: $az-bg; font-weight: 800;
+    padding: 12px; border-radius: 4px; text-decoration: none; &:hover { background: $az-gold-bright; color: $az-bg; } }
+  .az-btn-ghost { border: 1px solid $az-line; color: $az-text-2; padding: 7px 14px; border-radius: 4px;
+    text-decoration: none; font-size: 13px; &:hover { border-color: rgba(255,255,255,.3); color: $az-text; } }
+  .az-prev-features { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 9px;
+    li { color: $az-text-2; font-size: 13px; } }
+
+  .az-prev-assess { padding: 18px; }
+  .az-prev-assess-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 12.5px; }
+  .az-prev-assess-name { flex: 1; color: $az-text-2; }
+  .az-prev-assess-bar { width: 70px; height: 5px; border-radius: 3px; background: $az-surface-2; overflow: hidden;
+    span { display: block; height: 100%; background: $az-teal; } }
+  .az-prev-assess-val { color: $az-gold-bright; font-weight: 800; min-width: 34px; text-align: right; }
+
+  .az-prev-pathway { padding: 18px; }
+  .az-prev-path-row { display: flex; gap: 12px; margin-top: 10px; font-size: 13px; color: $az-text-2;
+    .az-prev-path-label { color: $az-text-mute; min-width: 52px; text-transform: uppercase; font-size: 10.5px;
+      font-weight: 800; letter-spacing: .1em; padding-top: 2px; } }
+
+  .az-prev-instructor { display: flex; gap: 16px; padding: 18px; }
+  .az-prev-avatar { width: 52px; height: 52px; border-radius: 50%; background: $az-teal; color: $az-text;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+  .az-prev-instructor-name { color: $az-text; font-weight: 800; font-size: 15px; }
+  .az-prev-instructor-bio { color: $az-text-3; font-size: 13px; line-height: 1.55; margin: 6px 0; }
+  .az-prev-instructor-stats { display: flex; gap: 18px; font-size: 12.5px; color: $az-text-mute; margin-top: 6px;
+    strong { color: $az-text; } .az-prev-rating { color: $az-gold-hi; } }
+}
+
+// Activity modal (iframe of the real activity).
+body.az-modal-open { overflow: hidden; }
+.az-modal {
+  position: fixed; inset: 0; z-index: 1080; display: flex; align-items: center; justify-content: center;
+  &[hidden] { display: none; }
+  .az-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.72); }
+  .az-modal-dialog { position: relative; width: min(1000px, 94vw); height: min(86vh, 900px);
+    background: $az-surface; border: 1px solid $az-line; border-radius: 6px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+  .az-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+    background: $az-bg-sidebar; border-bottom: 1px solid $az-line; }
+  .az-modal-title { color: $az-text; font-weight: 700; font-size: 14px; }
+  .az-modal-close { background: none; border: none; color: $az-text-2; font-size: 24px; line-height: 1; cursor: pointer;
+    &:hover { color: $az-gold-bright; } }
+  .az-modal-frame { flex: 1; width: 100%; border: none; background: $az-bg; }
+}
+
+// ---------------------------------------------------------------------------
+// Ratings & reviews (Phase 3): block form, moderation list, admin entry.
+// ---------------------------------------------------------------------------
+.az-rateform {
+  .az-rate-intro { color: $az-text-mute; font-size: 12px; margin: 0 0 10px; }
+  .az-rate-status { color: $az-teal-bright; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .az-rate-group { border: none; padding: 0; margin: 0 0 12px;
+    legend { color: $az-text; font-size: 12px; font-weight: 800; letter-spacing: .04em; float: none; width: auto; }
+  }
+  .az-stars { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+  .az-star { display: inline-flex; align-items: center; gap: 3px; color: $az-text-2; font-size: 12px; cursor: pointer;
+    input { accent-color: $az-gold; } span { color: $az-gold-bright; } }
+  textarea { width: 100%; background: $az-surface-2; border: 1px solid $az-line; color: $az-text;
+    border-radius: 4px; padding: 6px 8px; font-size: 12px; }
+}
+.az-prev-courserating { color: $az-gold-hi; font-weight: 800; font-size: 13px; margin-bottom: 10px; }
+
+.az-reviews { max-width: 860px;
+  .az-reviews-count { color: $az-text-mute; font-size: 13px; }
+  .az-reviews-empty { color: $az-text-mute; padding: 20px; background: $az-surface; border: 1px solid $az-line;
+    border-radius: 4px; }
+  .az-review-card { background: $az-surface; border: 1px solid $az-line; border-radius: 4px; padding: 14px 16px;
+    margin-bottom: 10px; }
+  .az-review-head { display: flex; gap: 12px; align-items: baseline; margin-bottom: 8px;
+    .az-review-rater { color: $az-text; font-weight: 800; }
+    .az-review-course { color: $az-gold-bright; font-size: 13px; }
+    .az-review-date { color: $az-text-faint; font-size: 12px; margin-left: auto; } }
+  .az-review-line { display: flex; gap: 10px; align-items: baseline; margin: 4px 0; font-size: 13px;
+    .az-review-label { color: $az-text-mute; min-width: 76px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .08em; font-weight: 800; }
+    .az-review-stars { color: $az-gold-hi; }
+    .az-review-text { color: $az-text-2; } }
+  .az-review-actions { display: flex; gap: 8px; margin-top: 10px; }
+}
+
+.az-admin-reviews { margin-bottom: 18px;
+  .az-admin-reviews-link { display: inline-flex; align-items: center; gap: 10px; color: $az-text;
+    background: $az-surface; border: 1px solid $az-line; border-radius: 4px; padding: 10px 16px;
+    text-decoration: none; font-weight: 700;
+    &:hover { border-color: rgba(255,255,255,.25); } }
+  .az-admin-reviews-badge { background: $az-gold; color: $az-bg; border-radius: 999px; padding: 1px 9px;
+    font-size: 12px; font-weight: 800; }
+}
+
+// ---------------------------------------------------------------------------
+// Content completeness analysis (Phase 4).
+// ---------------------------------------------------------------------------
+.az-complete {
+  max-width: 920px;
+  .az-complete-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+  .az-complete-rule, .az-complete-note {
+    font-size: 12px; color: $az-text-mute; line-height: 1.5; margin: 0 0 16px;
+  }
+  .az-complete-note { margin-top: 10px; margin-bottom: 0; }
+  .az-complete-title { color: $az-text; font-weight: 900; font-size: 20px; margin: 0;
+    .az-complete-code { color: $az-gold-bright; font-size: 14px; margin-left: 8px; } }
+  .az-complete-summary { color: $az-text-2; font-weight: 800; background: $az-surface; border: 1px solid $az-line;
+    border-radius: 999px; padding: 4px 14px; font-size: 13px;
+    &.az-is-complete { color: $az-bg; background: $az-teal-bright; border-color: $az-teal-bright; } }
+  .az-complete-h3 { color: $az-text; font-size: 15px; font-weight: 800; margin: 22px 0 10px; }
+  .az-complete-checks { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    li { background: $az-surface; border: 1px solid $az-line; border-radius: 4px; padding: 10px 14px; color: $az-text-2;
+      font-size: 13px; } }
+  .az-complete-week { background: $az-surface; border: 1px solid $az-line; border-radius: 4px; margin-bottom: 10px;
+    overflow: hidden;
+    &.az-is-complete { border-color: rgba(31,122,111,.55); } }
+  .az-complete-week-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border-bottom: 1px solid $az-line-soft;
+    .az-complete-week-num { width: 24px; height: 24px; border-radius: 4px; background: $az-surface-2;
+      color: $az-gold-bright; display: flex; align-items: center; justify-content: center; font-weight: 800;
+      font-size: 12px; }
+    .az-complete-week-name { flex: 1; color: $az-text; font-weight: 700; font-size: 14px; }
+    .az-complete-badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+      padding: 3px 10px; border-radius: 999px; background: $az-surface-2; color: $az-text-mute; } }
+  .az-is-complete .az-complete-badge { background: $az-teal; color: $az-text; }
+  .az-complete-items { width: 100%; border-collapse: collapse; font-size: 13px;
+    th { padding: 8px 16px; border-bottom: 1px solid $az-line; color: $az-text-mute;
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; }
+    td { padding: 8px 16px; border-top: 1px solid $az-line-soft; color: $az-text-2; }
+    .az-complete-item-label { color: $az-text; }
+    .az-complete-item-count { color: $az-text-mute; width: 60px; } }
+  .az-tick { font-weight: 800; }
+  .az-ok .az-tick, .az-ok { color: $az-teal-bright; }
+  .az-miss .az-tick, .az-miss { color: $az-danger; }
+}
+.az-pipeline-analysis a { color: $az-gold-bright; font-size: 12px; &:hover { color: $az-gold-hi; } }

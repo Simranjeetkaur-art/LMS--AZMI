@@ -1,0 +1,36 @@
+{{!
+    @template theme_azmsi/left_nav
+
+    AZMSI persistent role-aware left navigation. Rendered into the left drawer by
+    the drawers override. Every item is capability-gated server-side. Students do
+    not see a switch-portal section.
+}}
+<div class="az-leftnav">
+    <div class="az-leftnav-brand">
+        <span class="az-leftnav-logo">AZMSI</span>
+        <span class="az-leftnav-sub">{{brandsub}}</span>
+    </div>
+    <nav class="az-leftnav-menu" aria-label="{{#str}}nav_menu, theme_azmsi{{/str}}">
+        {{#items}}
+        <a class="az-leftnav-item{{#active}} az-leftnav-item--active{{/active}}" href="{{url}}">
+            <span class="az-leftnav-bar"></span>
+            <span class="az-leftnav-label">{{label}}</span>
+        </a>
+        {{#haschildren}}
+        <div class="az-leftnav-children">
+            {{#children}}
+            <a class="az-leftnav-child{{#active}} az-leftnav-child--active{{/active}}" href="{{url}}">&#9656; {{label}}</a>
+            {{/children}}
+        </div>
+        {{/haschildren}}
+        {{/items}}
+    </nav>
+    {{#hasswitch}}
+    <div class="az-leftnav-switch">
+        <div class="az-leftnav-switch-cap">{{switchlabel}}</div>
+        {{#switchlinks}}
+        <a class="az-leftnav-switch-link az-switch--{{accent}}" href="{{url}}">&#8596; {{label}}</a>
+        {{/switchlinks}}
+    </div>
+    {{/hasswitch}}
+</div>

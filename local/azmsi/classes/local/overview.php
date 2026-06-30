@@ -72,7 +72,7 @@ class overview {
         $courseout = [];
         $sum = 0;
         $graded = 0;
-        $modulescompleted = 0;
+        $continuecourseid = 0;
         foreach ($courses as $course) {
             if ($course->id == SITEID) {
                 continue;
@@ -83,6 +83,8 @@ class overview {
             }
             $pct = \core_completion\progress::get_course_progress_percentage($course, $userid);
             $progress = is_null($pct) ? 0 : (int) round($pct);
+            $context = \core\context\course::instance($course->id);
+            $instructor = self::course_instructor($context);
 
             // Per-course grade (percent) for the average.
             $gradepct = null;
@@ -96,31 +98,227 @@ class overview {
             }
 
             $courseout[] = [
-                'id'        => (int) $course->id,
-                'name'      => format_string($course->fullname),
-                'code'      => (string) ($fields['course_code'] ?? $course->idnumber),
-                'credits'   => isset($fields['credits']) ? (int) $fields['credits'] : 0,
-                'quarter'   => isset($fields['quarter']) ? (int) $fields['quarter'] : 0,
-                'status'    => ($fields['status'] ?? '') === 'in_progress' ? 'in_progress' : 'planned',
-                'progress'  => $progress,
-                'url'       => (new moodle_url('/course/view.php', ['id' => $course->id]))->out(false),
+                'id'         => (int) $course->id,
+                'name'       => format_string($course->fullname),
+                'code'       => (string) ($fields['course_code'] ?? $course->idnumber),
+                'credits'    => isset($fields['credits']) ? (int) $fields['credits'] : 0,
+                'quarter'    => isset($fields['quarter']) ? (int) $fields['quarter'] : 0,
+                'status'     => ($fields['status'] ?? '') === 'in_progress' ? 'in_progress' : 'planned',
+                'progress'   => $progress,
+                'url'        => (new moodle_url('/course/view.php', ['id' => $course->id]))->out(false),
+                'instructor' => $instructor,
+                'week'       => self::course_week($course, $fields),
             ];
-            if ($progress >= 100) {
-                $modulescompleted++;
-            }
         }
 
+        $programmap = self::program_map($courseout);
+        $currentquarter = self::current_quarter($programmap);
+        $continue = self::continue_card($userid, $courses, $courseout);
+        if (!empty($continue['courseid'])) {
+            $continuecourseid = (int) $continue['courseid'];
+        }
+        foreach ($courseout as &$c) {
+            $c['isprimary'] = $continuecourseid && (int) $c['id'] === $continuecourseid;
+        }
+        unset($c);
+
+        $inquarter = array_values(array_filter($courseout, static function ($c) use ($currentquarter) {
+            return $currentquarter && (int) $c['quarter'] === $currentquarter;
+        }));
+        if (!$inquarter) {
+            $inquarter = $courseout;
+        }
+
+        $journey = self::journey($userid, $programmap, $courseout, $currentquarter);
+
         return [
-            'fullname'         => $user ? fullname($user) : '',
-            'firstname'        => $user ? $user->firstname : '',
-            'average'          => $graded ? round($sum / $graded, 1) : 0.0,
-            'courses'          => $courseout,
-            'continue'         => self::continue_card($userid, $courses),
-            'dueweek'          => self::due_this_week($userid),
-            'programmap'       => self::program_map($courseout),
-            'coursecount'      => count($courseout),
-            'modulescompleted' => $modulescompleted,
-            'generatedon'      => time(),
+            'fullname'          => $user ? fullname($user) : '',
+            'firstname'         => $user ? $user->firstname : '',
+            'average'           => $graded ? round($sum / $graded, 1) : 0.0,
+            'courses'           => $inquarter,
+            'allcourses'        => $courseout,
+            'continue'          => $continue,
+            'dueweek'           => self::due_this_week($userid),
+            'programmap'        => $programmap,
+            'journey'           => $journey,
+            'currentquarter'    => $currentquarter,
+            'programsubtitle'   => self::program_subtitle($currentquarter, $continue),
+            'inprogressmeta'    => self::inprogress_meta($inquarter, $currentquarter),
+            'coursecount'       => count($inquarter),
+            'modulescompleted'  => self::modules_completed($userid),
+            'generatedon'       => time(),
+        ];
+    }
+
+    /**
+     * Lead instructor for a course (first editing teacher), or empty string.
+     *
+     * @param \context $context
+     * @return string
+     */
+    protected static function course_instructor(\context $context): string {
+        try {
+            $teachers = get_enrolled_users(
+                $context,
+                'moodle/course:manageactivities',
+                0,
+                'u.*',
+                'u.lastname ASC',
+                0,
+                1,
+                true
+            );
+            $t = reset($teachers);
+            return $t ? fullname($t) : '';
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Current instructional week for a course (custom field or derived from start date).
+     *
+     * @param \stdClass $course
+     * @param array $fields
+     * @return int
+     */
+    protected static function course_week(\stdClass $course, array $fields): int {
+        if (!empty($fields['current_week'])) {
+            return max(1, (int) $fields['current_week']);
+        }
+        if (!empty($course->startdate) && $course->startdate <= time()) {
+            return max(1, min(12, (int) floor((time() - $course->startdate) / WEEKSECS) + 1));
+        }
+        return 1;
+    }
+
+    /**
+     * Count of completed activity modules across all enrolled courses.
+     *
+     * @param int $userid
+     * @return int
+     */
+    protected static function modules_completed(int $userid): int {
+        global $DB;
+        try {
+            return (int) $DB->count_records_sql(
+                "SELECT COUNT(cmc.id)
+                   FROM {course_modules_completion} cmc
+                   JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+                  WHERE cmc.userid = :uid AND cmc.completionstate > 0",
+                ['uid' => $userid]
+            );
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Current quarter number from the program map (first in-progress quarter).
+     *
+     * @param array $programmap
+     * @return int
+     */
+    protected static function current_quarter(array $programmap): int {
+        foreach ($programmap as $q) {
+            if (!empty($q['current'])) {
+                return (int) $q['quarter'];
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Subtitle under the greeting (program + quarter + week).
+     *
+     * @param int $currentquarter
+     * @param array $continue
+     * @return string
+     */
+    protected static function program_subtitle(int $currentquarter, array $continue): string {
+        $week = (int) ($continue['week'] ?? 0);
+        if ($currentquarter && $week) {
+            return get_string('programsubtitle', 'block_azmsi_dashboard', (object) [
+                'quarter' => $currentquarter,
+                'week'    => $week,
+            ]);
+        }
+        if ($currentquarter) {
+            return get_string('programsubtitlequarter', 'block_azmsi_dashboard', $currentquarter);
+        }
+        return get_string('programsubtitledefault', 'block_azmsi_dashboard');
+    }
+
+    /**
+     * Meta line for the in-progress section header.
+     *
+     * @param array $courses
+     * @param int $currentquarter
+     * @return string
+     */
+    protected static function inprogress_meta(array $courses, int $currentquarter): string {
+        $count = count($courses);
+        $credits = 0;
+        foreach ($courses as $c) {
+            $credits = max($credits, (int) $c['credits']);
+        }
+        if ($currentquarter && $count) {
+            return get_string('inprogressmeta', 'block_azmsi_dashboard', (object) [
+                'quarter'  => $currentquarter,
+                'count'    => $count,
+                'credits'  => $credits ?: 4,
+            ]);
+        }
+        return '';
+    }
+
+    /**
+     * eMD Journey widget: labelled quarter chips, program progress, next live class.
+     *
+     * @param array $programmap
+     * @param array $courses
+     * @param int $currentquarter
+     * @return array
+     */
+    protected static function journey(int $userid, array $programmap, array $courses, int $currentquarter): array {
+        $doneq = 0;
+        $quarters = [];
+        foreach ($programmap as $q) {
+            $label = 'Q' . $q['quarter'];
+            $highlight = false;
+            if ($q['status'] === 'done') {
+                $doneq++;
+            }
+            if (!empty($q['current']) && $q['status'] === 'in_progress') {
+                $label = get_string('quarterinprogress', 'block_azmsi_dashboard', $q['quarter']);
+                $highlight = true;
+            }
+            $quarters[] = [
+                'quarter'   => $q['quarter'],
+                'label'     => $label,
+                'status'    => $q['status'],
+                'highlight' => $highlight,
+            ];
+        }
+
+        $currentcourses = array_filter($courses, static fn($c) => $currentquarter && (int) $c['quarter'] === $currentquarter);
+        $avg = 0;
+        if ($currentcourses) {
+            $avg = array_sum(array_column($currentcourses, 'progress')) / count($currentcourses);
+        }
+        $pct = (int) round(min(100, ($doneq * 100 + $avg) / 12));
+
+        $live = self::next_live_class($userid);
+        return [
+            'quarters'            => $quarters,
+            'programprogress'     => $pct,
+            'programprogresslabel' => $currentquarter
+                ? get_string('programprogresslabel', 'block_azmsi_dashboard', (object) [
+                    'quarter' => $currentquarter,
+                    'pct'     => $pct,
+                ]) : get_string('programprogressnone', 'block_azmsi_dashboard'),
+            'nextliveclass'       => $live,
+            'hasnextliveclass'    => !empty($live['has']),
         ];
     }
 
@@ -130,11 +328,49 @@ class overview {
      *
      * @param int $userid
      * @param array $courses enrolled courses
-     * @return array ['has' => bool, 'name' => string, 'coursename' => string, 'url' => string]
+     * @param array $courseout composed course rows (for codes/weeks)
+     * @return array
      */
-    protected static function continue_card(int $userid, array $courses): array {
+    protected static function continue_card(int $userid, array $courses, array $courseout = []): array {
         global $DB;
-        $none = ['has' => false, 'name' => '', 'coursename' => '', 'url' => ''];
+        $none = [
+            'has' => false, 'name' => '', 'coursename' => '', 'coursecode' => '',
+            'url' => '', 'courseid' => 0, 'week' => 0, 'progresstext' => '',
+            'resumelabel' => '',
+        ];
+        $codes = [];
+        foreach ($courseout as $c) {
+            $codes[(int) $c['id']] = $c;
+        }
+
+        $build = static function (int $courseid, string $name, string $url, ?int $sectionnum = null) use ($codes, $userid): array {
+            $meta = $codes[$courseid] ?? [];
+            $course = get_course($courseid);
+            $week = (int) ($meta['week'] ?? self::course_week($course, []));
+            if ($sectionnum) {
+                $week = max($week, $sectionnum);
+            }
+            $code = (string) ($meta['code'] ?? $course->idnumber);
+            $secprog = $sectionnum ? self::section_progress($courseid, $userid, $sectionnum) : ['done' => 0, 'total' => 0];
+            $progresstext = $secprog['total']
+                ? get_string('continueprogress', 'block_azmsi_dashboard', (object) $secprog) : '';
+            $title = $sectionnum
+                ? get_string('continuetitleweek', 'block_azmsi_dashboard', (object) [
+                    'week' => $week,
+                    'name' => $name,
+                ]) : $name;
+            return [
+                'has'          => true,
+                'name'         => $title,
+                'coursename'   => format_string($course->fullname),
+                'coursecode'   => $code,
+                'url'          => $url,
+                'courseid'     => $courseid,
+                'week'         => $week,
+                'progresstext' => $progresstext,
+                'resumelabel'  => get_string('resumeweek', 'block_azmsi_dashboard', $week),
+            ];
+        };
 
         // Last viewed course module from the standard log (guarded; log may be off).
         try {
@@ -150,13 +386,9 @@ class overview {
                 if (!empty($modinfo->cms[$r->cmid])) {
                     $cm = $modinfo->cms[$r->cmid];
                     if ($cm->uservisible) {
-                        return [
-                            'has'        => true,
-                            'name'       => format_string($cm->name),
-                            'coursename' => format_string(get_course($r->course)->fullname),
-                            'url'        => $cm->url ? $cm->url->out(false)
-                                : (new moodle_url('/course/view.php', ['id' => $r->course]))->out(false),
-                        ];
+                        $url = $cm->url ? $cm->url->out(false)
+                            : (new moodle_url('/course/view.php', ['id' => $r->course]))->out(false);
+                        return $build($r->course, format_string($cm->name), $url, (int) $cm->sectionnum);
                     }
                 }
             }
@@ -179,14 +411,44 @@ class overview {
             }
         }
         if ($best) {
-            return [
-                'has'        => true,
-                'name'       => format_string($best->fullname),
-                'coursename' => format_string($best->fullname),
-                'url'        => (new moodle_url('/course/view.php', ['id' => $best->id]))->out(false),
-            ];
+            return $build(
+                (int) $best->id,
+                format_string($best->fullname),
+                (new moodle_url('/course/view.php', ['id' => $best->id]))->out(false)
+            );
         }
         return $none;
+    }
+
+    /**
+     * Completion counts for trackable activities in one course section.
+     *
+     * @param int $courseid
+     * @param int $userid
+     * @param int $sectionnum
+     * @return array{done:int,total:int}
+     */
+    protected static function section_progress(int $courseid, int $userid, int $sectionnum): array {
+        try {
+            $modinfo = get_fast_modinfo($courseid, $userid);
+            $total = 0;
+            $done = 0;
+            foreach ($modinfo->cms as $cm) {
+                if ((int) $cm->sectionnum !== $sectionnum || !$cm->uservisible) {
+                    continue;
+                }
+                if ($cm->completion == COMPLETION_TRACKING_NONE) {
+                    continue;
+                }
+                $total++;
+                if (!empty($cm->completiondata->completionstate) && $cm->completiondata->completionstate > 0) {
+                    $done++;
+                }
+            }
+            return ['done' => $done, 'total' => $total];
+        } catch (\Throwable $e) {
+            return ['done' => 0, 'total' => 0];
+        }
     }
 
     /**
@@ -198,26 +460,118 @@ class overview {
     protected static function due_this_week(int $userid): array {
         global $CFG, $USER;
         $out = [];
+        $start = time();
         try {
             require_once($CFG->dirroot . '/calendar/lib.php');
-            // The calendar action-events API reports for the current $USER only.
             if ($USER->id != $userid) {
-                return $out;
+                return ['items' => [], 'range' => self::week_range_label($start), 'hasitems' => false];
             }
-            $events = calendar_get_action_events_by_timesort(time(), time() + WEEKSECS, null, 6);
+            $end = $start + WEEKSECS;
+            $events = calendar_get_action_events_by_timesort($start, $end, null, 8);
             foreach ($events as $event) {
                 $url = $event->get_action() ? $event->get_action()->get_url()->out(false) : '';
                 $duets = $event->get_times()->get_sort_time()->getTimestamp();
+                $typeinfo = self::activity_type_from_url($url);
+                $courseid = (int) $event->get_course()->get('id');
+                $coursecode = '';
+                if ($courseid && ($c = get_course($courseid, IGNORE_MISSING))) {
+                    $coursecode = (string) $c->idnumber;
+                }
                 $out[] = [
-                    'name' => format_string($event->get_name()),
-                    'url'  => $url,
-                    'due'  => userdate($duets, get_string('strftimedate', 'langconfig')),
+                    'name'       => format_string($event->get_name()),
+                    'url'        => $url,
+                    'due'        => userdate($duets, get_string('strftimedate', 'langconfig')),
+                    'dueshort'   => strtoupper(userdate($duets, '%a %b %d')),
+                    'typelabel'  => $typeinfo['label'],
+                    'typeclass'  => $typeinfo['class'],
+                    'coursecode' => $coursecode,
                 ];
             }
         } catch (\Throwable $e) {
-            return [];
+            return ['items' => [], 'range' => self::week_range_label($start), 'hasitems' => false];
         }
-        return $out;
+        return [
+            'items'    => $out,
+            'range'    => self::week_range_label($start),
+            'hasitems' => !empty($out),
+        ];
+    }
+
+    /**
+     * Map a module URL to a due-list type pill (quiz / h5p / forum / …).
+     *
+     * @param string $url
+     * @return array{label:string,class:string}
+     */
+    protected static function activity_type_from_url(string $url): array {
+        if (strpos($url, '/mod/quiz/') !== false) {
+            return ['label' => get_string('typequiz', 'block_azmsi_dashboard'), 'class' => 'quiz'];
+        }
+        if (strpos($url, '/mod/h5pactivity/') !== false || strpos($url, '/mod/hvp/') !== false) {
+            return ['label' => get_string('typeh5p', 'block_azmsi_dashboard'), 'class' => 'h5p'];
+        }
+        if (strpos($url, '/mod/forum/') !== false) {
+            return ['label' => get_string('typeforum', 'block_azmsi_dashboard'), 'class' => 'forum'];
+        }
+        if (strpos($url, '/mod/assign/') !== false) {
+            return ['label' => get_string('typeassign', 'block_azmsi_dashboard'), 'class' => 'assign'];
+        }
+        return ['label' => get_string('typetask', 'block_azmsi_dashboard'), 'class' => 'task'];
+    }
+
+    /**
+     * Human-readable Mon–Sun range for the current week.
+     *
+     * @param int $now
+     * @return string
+     */
+    protected static function week_range_label(int $now): string {
+        $start = usergetmidnight($now);
+        $dow = (int) date('w', $start);
+        $start -= ($dow === 0 ? 6 : $dow - 1) * DAYSECS;
+        $end = $start + (6 * DAYSECS);
+        return strtoupper(userdate($start, '%b %d') . '–' . userdate($end, '%d'));
+    }
+
+    /**
+     * Next upcoming live class (BigBlueButton or live-titled calendar event).
+     *
+     * @param int $userid
+     * @return array{has:bool,text:string,url:string}
+     */
+    protected static function next_live_class(int $userid): array {
+        global $CFG, $USER;
+        $none = ['has' => false, 'text' => '', 'url' => ''];
+        try {
+            require_once($CFG->dirroot . '/calendar/lib.php');
+            if ($USER->id != $userid) {
+                return $none;
+            }
+            $events = calendar_get_action_events_by_timesort(time(), time() + (14 * DAYSECS), null, 30);
+            foreach ($events as $event) {
+                $url = $event->get_action() ? $event->get_action()->get_url()->out(false) : '';
+                $name = format_string($event->get_name());
+                $islive = strpos($url, 'bigbluebuttonbn') !== false
+                    || stripos($name, 'live') !== false
+                    || stripos($name, 'seminar') !== false;
+                if (!$islive) {
+                    continue;
+                }
+                $when = userdate(
+                    $event->get_times()->get_sort_time()->getTimestamp(),
+                    get_string('strftimedaydatetime', 'langconfig')
+                );
+                $suffix = strpos($url, 'bigbluebuttonbn') !== false ? ' · BigBlueButton' : '';
+                return [
+                    'has'  => true,
+                    'text' => $name . ' — ' . $when . $suffix,
+                    'url'  => $url,
+                ];
+            }
+        } catch (\Throwable $e) {
+            return $none;
+        }
+        return $none;
     }
 
     /**

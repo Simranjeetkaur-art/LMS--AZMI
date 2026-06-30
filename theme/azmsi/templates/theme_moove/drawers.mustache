@@ -79,6 +79,24 @@
             {{$closebuttontext}}{{#str}}closecourseindex, core{{/str}}{{/closebuttontext}}
         {{/ theme_moove/drawer}}
     {{/courseindex}}
+    {{! AZMSI additive override: persistent role-aware left navigation on non-course
+        pages (course pages keep the course index). Reuses the boost left-drawer id
+        so the existing toggle + open-state preference apply. }}
+    {{^courseindex}}
+    {{#output.azmsi_has_left_nav}}
+        {{< theme_moove/drawer }}
+            {{$id}}theme_boost-drawers-courseindex{{/id}}
+            {{$drawerclasses}}drawer drawer-left az-leftnav-drawer show{{/drawerclasses}}
+            {{$drawercontent}}
+                {{{ output.azmsi_left_nav }}}
+            {{/drawercontent}}
+            {{$drawerpreferencename}}drawer-open-index{{/drawerpreferencename}}
+            {{$drawerstate}}show-drawer-left{{/drawerstate}}
+            {{$tooltipplacement}}right{{/tooltipplacement}}
+            {{$closebuttontext}}{{#str}}closecourseindex, core{{/str}}{{/closebuttontext}}
+        {{/ theme_moove/drawer}}
+    {{/output.azmsi_has_left_nav}}
+    {{/courseindex}}
     {{#hasblocks}}
         {{< theme_moove/drawer }}
             {{$id}}theme_boost-drawers-blocks{{/id}}
@@ -105,7 +123,7 @@
             {{$closebuttontext}}{{#str}}closeblockdrawer, core{{/str}}{{/closebuttontext}}
         {{/ theme_moove/drawer}}
     {{/hasblocks}}
-    <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers {{#courseindexopen}}show-drawer-left{{/courseindexopen}} {{#blockdraweropen}}show-drawer-right{{/blockdraweropen}} drag-container">
+    <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers {{#courseindexopen}}show-drawer-left{{/courseindexopen}}{{^courseindex}}{{#output.azmsi_has_left_nav}} show-drawer-left{{/output.azmsi_has_left_nav}}{{/courseindex}} {{#blockdraweropen}}show-drawer-right{{/blockdraweropen}} drag-container">
 
         {{{ output.full_header }}}
 
@@ -126,6 +144,25 @@
                             {{#pix}} t/index_drawer, moodle {{/pix}}
                         </button>
                     </div>
+                {{/courseindex}}
+                {{! AZMSI additive override: toggler for the left navigation. }}
+                {{^courseindex}}
+                {{#output.azmsi_has_left_nav}}
+                    <div class="drawer-toggler drawer-left-toggle open-nav d-print-none">
+                        <button
+                            class="btn icon-no-margin"
+                            data-toggler="drawers"
+                            data-action="toggle"
+                            data-target="theme_boost-drawers-courseindex"
+                            data-toggle="tooltip"
+                            data-placement="right"
+                            title="{{#str}}opendrawerindex, core{{/str}}"
+                        >
+                            <span class="sr-only">{{#str}}opendrawerindex, core{{/str}}</span>
+                            {{#pix}} t/index_drawer, moodle {{/pix}}
+                        </button>
+                    </div>
+                {{/output.azmsi_has_left_nav}}
                 {{/courseindex}}
                 {{#hasblocks}}
                     <div class="drawer-toggler drawer-right-toggle ms-auto d-print-none">
@@ -178,7 +215,7 @@
             </div>
         </div>
     </div>
-    {{> theme_moove/footer }}
+    {{{ output.azmsi_site_footer }}}
 
     {{{ output.standard_after_main_region_html }}}
 </div>

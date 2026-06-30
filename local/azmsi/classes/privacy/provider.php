@@ -71,6 +71,14 @@ class provider implements
             'updatedby' => 'privacy:metadata:local_azmsi_pipeline:updatedby',
         ], 'privacy:metadata:local_azmsi_pipeline');
 
+        $collection->add_database_table('local_azmsi_review', [
+            'userid'           => 'privacy:metadata:local_azmsi_review:userid',
+            'coursestars'      => 'privacy:metadata:local_azmsi_review:coursestars',
+            'coursereview'     => 'privacy:metadata:local_azmsi_review:coursereview',
+            'instructorstars'  => 'privacy:metadata:local_azmsi_review:instructorstars',
+            'instructorreview' => 'privacy:metadata:local_azmsi_review:instructorreview',
+        ], 'privacy:metadata:local_azmsi_review');
+
         return $collection;
     }
 
@@ -92,6 +100,13 @@ class provider implements
         if ($hasdata) {
             $contextlist->add_system_context();
         }
+        // Reviews live at the course context.
+        $contextlist->add_from_sql(
+            "SELECT ctx.id
+               FROM {local_azmsi_review} r
+               JOIN {context} ctx ON ctx.contextlevel = :cl AND ctx.instanceid = r.courseid
+              WHERE r.userid = :uid",
+            ['cl' => CONTEXT_COURSE, 'uid' => $userid]);
         return $contextlist;
     }
 
@@ -102,12 +117,15 @@ class provider implements
      */
     public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
-        if (!$context instanceof \core\context\system) {
-            return;
+        if ($context instanceof \core\context\system) {
+            $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_research}', []);
+            $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_application}', []);
+            $userlist->add_from_sql('updatedby',
+                'SELECT updatedby FROM {local_azmsi_pipeline} WHERE updatedby IS NOT NULL', []);
+        } else if ($context instanceof \core\context\course) {
+            $userlist->add_from_sql('userid',
+                'SELECT userid FROM {local_azmsi_review} WHERE courseid = :cid', ['cid' => $context->instanceid]);
         }
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_research}', []);
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_azmsi_application}', []);
-        $userlist->add_from_sql('updatedby', 'SELECT updatedby FROM {local_azmsi_pipeline} WHERE updatedby IS NOT NULL', []);
     }
 
     /**
@@ -118,11 +136,34 @@ class provider implements
     public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
 
+        $userid = $contextlist->get_user()->id;
+
+        // Reviews — exported under each rated course's context.
+        foreach ($contextlist->get_contexts() as $ctx) {
+            if (!$ctx instanceof \core\context\course) {
+                continue;
+            }
+            $review = $DB->get_record('local_azmsi_review', ['courseid' => $ctx->instanceid, 'userid' => $userid]);
+            if ($review) {
+                writer::with_context($ctx)->export_data(
+                    [get_string('pluginname', 'local_azmsi'), get_string('reviews', 'local_azmsi')],
+                    (object) [
+                        'coursestars'      => $review->coursestars,
+                        'coursereview'     => $review->coursereview,
+                        'instructorstars'  => $review->instructorstars,
+                        'instructorreview' => $review->instructorreview,
+                        'status'           => $review->status,
+                        'timemodified'     => $review->timemodified
+                            ? \core_privacy\local\request\transform::datetime($review->timemodified) : null,
+                    ]
+                );
+            }
+        }
+
         if (!self::approved_system_context($contextlist)) {
             return;
         }
         $context = context_system::instance();
-        $userid = $contextlist->get_user()->id;
 
         // Research records, each with its milestones and documents.
         $records = $DB->get_records('local_azmsi_research', ['userid' => $userid]);
@@ -194,6 +235,10 @@ class provider implements
      */
     public static function delete_data_for_all_users_in_context(\context $context): void {
         global $DB;
+        if ($context instanceof \core\context\course) {
+            $DB->delete_records('local_azmsi_review', ['courseid' => $context->instanceid]);
+            return;
+        }
         if (!$context instanceof \core\context\system) {
             return;
         }
@@ -211,10 +256,20 @@ class provider implements
      * @param approved_contextlist $contextlist
      */
     public static function delete_data_for_user(approved_contextlist $contextlist): void {
+        global $DB;
+        $userid = $contextlist->get_user()->id;
+
+        // Reviews in each approved course context.
+        foreach ($contextlist->get_contexts() as $ctx) {
+            if ($ctx instanceof \core\context\course) {
+                $DB->delete_records('local_azmsi_review', ['courseid' => $ctx->instanceid, 'userid' => $userid]);
+            }
+        }
+
         if (!self::approved_system_context($contextlist)) {
             return;
         }
-        self::delete_for_userids([$contextlist->get_user()->id]);
+        self::delete_for_userids([$userid]);
     }
 
     /**
@@ -223,10 +278,22 @@ class provider implements
      * @param approved_userlist $userlist
      */
     public static function delete_data_for_users(approved_userlist $userlist): void {
-        if (!$userlist->get_context() instanceof \core\context\system) {
+        global $DB;
+        $context = $userlist->get_context();
+        $userids = $userlist->get_userids();
+        if (empty($userids)) {
             return;
         }
-        self::delete_for_userids($userlist->get_userids());
+        if ($context instanceof \core\context\course) {
+            [$insql, $inparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+            $DB->delete_records_select('local_azmsi_review',
+                "courseid = :cid AND userid $insql", ['cid' => $context->instanceid] + $inparams);
+            return;
+        }
+        if (!$context instanceof \core\context\system) {
+            return;
+        }
+        self::delete_for_userids($userids);
     }
 
     /**

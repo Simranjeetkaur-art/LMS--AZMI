@@ -154,3 +154,21 @@ button:focus-visible,
   color: $az-text-2;
   &:hover, &:focus { border-color: $az-gold; color: $az-text; }
 }
+
+// Boost/Moove layout fallbacks that stay light on the dark theme. The main
+// content wrapper ships a solid white background, which shows as a vertical
+// strip beside the left drawer and in the gaps between front-page course cards.
+// Let the dark page background show through instead, and keep drawers + their
+// scrollbars dark.
+.main-inner {
+  background-color: transparent;
+}
+.drawer,
+.drawer-md,
+.drawer-sm {
+  background-color: $az-bg-sidebar;
+}
+#page.drawers,
+.drawercontent {
+  scrollbar-color: $az-line $az-bg;
+}

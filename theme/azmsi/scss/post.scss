@@ -120,9 +120,151 @@ code,
   color: $az-text-2;
 }
 
+// ===========================================================================
+// Drawer column — keep main content offset when the AZMSI left nav is open.
+// Boost only applies margin-left at lg; Moove width-calc alone leaves the footer
+// and page start at x=0 under the fixed drawer on md viewports.
+// ===========================================================================
+@include media-breakpoint-up(md) {
+  #page.drawers.show-drawer-left {
+    margin-left: 285px;
+    width: calc(100% - 285px);
+  }
+
+  #page.drawers.show-drawer-right {
+    margin-right: 315px;
+    width: calc(100% - 315px);
+  }
+
+  #page.drawers.show-drawer-left.show-drawer-right {
+    margin-left: 285px;
+    margin-right: 315px;
+    width: calc(100% - 600px);
+  }
+}
+
+// Cancel Boost limited-width footer card styling for the AZMSI site footer.
+.pagelayout-standard,
+body.limitedwidth {
+  #page-footer.az-site-footer.footer-popover {
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+  }
+}
+
 // Moove forces #fff !important on popup/embedded layouts — recolour to dark.
 .pagelayout-popup,
 .pagelayout-embedded,
 #page.drawers.pagelayout-popup {
   background-color: $az-bg !important; // stylelint-disable-line declaration-no-important
+}
+
+// ===========================================================================
+// Drawer + backdrop — kill the white strip when the left panel opens.
+//
+// Boost layout.scss sets `#page.drawers .main-inner { background-color: $white }`
+// which beats our base-layer `.main-inner { transparent }` and flashes white in
+// the gap beside the drawer and through the modal-backdrop overlay (< 991px).
+// ===========================================================================
+html,
+body,
+#page-wrapper {
+  background-color: $az-bg !important; // stylelint-disable-line declaration-no-important
+}
+
+#page.drawers {
+  background-color: $az-bg;
+
+  .main-inner {
+    background-color: transparent !important; // stylelint-disable-line declaration-no-important
+    color: $az-text-2;
+  }
+}
+
+#region-main,
+#region-main-box,
+#page-content {
+  background-color: transparent;
+}
+
+.drawer,
+.drawer-md,
+.drawer-sm,
+.drawercontent {
+  background-color: $az-bg-sidebar !important; // stylelint-disable-line declaration-no-important
+}
+
+// Drawer overlay on viewports < 991px (core/pagehelpers isSmall).
+.modal-backdrop {
+  --bs-backdrop-bg: #{$az-bg};
+  --bs-backdrop-opacity: 0.78;
+  background-color: rgba(11, 19, 27, 0.78) !important; // stylelint-disable-line declaration-no-important
+}
+
+body:has(.modal-backdrop.show) {
+  background-color: $az-bg !important; // stylelint-disable-line declaration-no-important
+}
+
+// Admin / competency settings forms (learning plan templates, etc.).
+.pagelayout-admin,
+.pagelayout-incourse {
+  #page.drawers,
+  #region-main,
+  .mform,
+  fieldset.collapsible,
+  .form-control-static {
+    background-color: transparent;
+  }
+}
+
+// ===========================================================================
+// Primary navigation (moremenu) — Boost hover-navbar() paints $gray-100 (light)
+// while our link colour stays pale → text vanishes / looks blurred on hover.
+// ===========================================================================
+.navbar.fixed-top,
+nav.navbar {
+  .primary-navigation .moremenu,
+  .moremenu.navigation {
+    .nav-tabs {
+      background-color: transparent !important; // stylelint-disable-line declaration-no-important
+    }
+
+    .nav-link {
+      color: $az-text-2 !important; // stylelint-disable-line declaration-no-important
+
+      &:hover,
+      &:focus,
+      &:focus-visible {
+        color: $az-text !important; // stylelint-disable-line declaration-no-important
+        background-color: rgba(255, 255, 255, 0.08) !important; // stylelint-disable-line declaration-no-important
+        border-color: transparent;
+        opacity: 1;
+        filter: none;
+        text-shadow: none;
+      }
+
+      &.active {
+        color: $az-text !important; // stylelint-disable-line declaration-no-important
+        font-weight: 700;
+        background-color: rgba(255, 255, 255, 0.05) !important; // stylelint-disable-line declaration-no-important
+        border-bottom-color: $az-gold !important; // stylelint-disable-line declaration-no-important
+
+        &:hover,
+        &:focus {
+          color: $az-text !important; // stylelint-disable-line declaration-no-important
+          background-color: rgba(255, 255, 255, 0.1) !important; // stylelint-disable-line declaration-no-important
+          border-bottom-color: $az-gold !important; // stylelint-disable-line declaration-no-important
+        }
+      }
+    }
+  }
+
+  // Beat the global `a:hover { color: $az-gold-hi }` rule in _base.scss.
+  .primary-navigation a:hover,
+  .primary-navigation a:focus {
+    color: $az-text !important; // stylelint-disable-line declaration-no-important
+  }
 }

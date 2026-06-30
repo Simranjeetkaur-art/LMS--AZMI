@@ -35,6 +35,7 @@ declare -A LINKS=(
   ["local/azmsi"]="local/azmsi"
   ["course/format/emd"]="course/format/emd"
   ["blocks/azmsi_dashboard"]="blocks/azmsi_dashboard"
+  ["blocks/azmsi_rating"]="blocks/azmsi_rating"
 )
 
 log()  { printf '  %s\n' "$*"; }

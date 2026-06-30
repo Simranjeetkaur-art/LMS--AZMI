@@ -78,11 +78,67 @@ verified by a read-only render on EMD-101 (export ok, no error, rail present).
 - The grouped-by-type pixel layout is a **styling layer** over the native cmlist;
   it can only be tuned/verified against a **populated** course (activities present).
 
+## Master template auto-population + "Add a week" (2026-06-18)
+
+The format now **stamps the master template onto every new eMD course** and adds an
+**"Add a week"** action — both create real Moodle activities via the core
+`add_moduleinfo()` path (completion/grades/gradebook/events stay native; no content
+stored in the format).
+
+**New/changed files (all in `format_emd`):**
+- `classes/local/master_template.php` — the engine. `apply_to_course()` (idempotent)
+  builds: section 0 = Course Overview + Welcome Video + Syllabus (Pages); Week 1 = the
+  7-item sequence; a course-level Final Exam (Quiz) in its own last section. `add_week()`
+  creates a new populated week **before** the Final Exam section. Per-module default field
+  sets mirror core's test generators (page/forum/quiz/assign).
+- `classes/observer.php` + `db/events.php` — observe `\core\event\course_created`; on a
+  **new, empty** eMD course, apply the template. Guarded (format check + "no modules yet")
+  and fully `try/catch`-wrapped so it never blocks course creation.
+- `addweek.php` — endpoint behind the button: `require_login` + sesskey + `moodle/course:update`
+  + `moodle/course:manageactivities`, calls `master_template::add_week()`, redirects to the
+  new section. Uses the repo's symlink-safe config include (`__DIR__/../../../config.php`
+  resolves into the plugins repo through the symlink, so it falls back to `/var/www/moodle/config.php`).
+- `classes/output/course_header.php` + `templates/course_header.mustache` — render an
+  **"Add a week"** button in the course-home header, **edit mode + capability gated**
+  (core `btn btn-primary`, no theme recompile needed).
+- `lang/en/format_emd.php` — template strings; native add-section relabelled "Add empty week".
+- `version.php` → `2026061800` (registers the new observer on upgrade).
+
+**Weekly sequence (7 items):** Video, Readings, H5P Lab, Discussion, Quiz, Assignment, Reflection.
+- Video / Readings → **Page**; H5P Lab → **Page placeholder** (an `h5pactivity` cannot be
+  created empty — it requires a content package; the placeholder tells the author to
+  replace it with a real H5P activity or embed H5P via the editor); Discussion → **Forum**;
+  Quiz → **Quiz**; Assignment / Reflection → **Assignment** (online-text submission enabled).
+
+**Known limitation — restore/copy:** the observer fires on `course_created`, which also
+fires when restoring/copying into a *new* course before its content is added. The
+"no modules yet" guard cannot distinguish that case, so a restore/copy into a fresh eMD
+course may get duplicate template items. Recommended: restore/copy into a non-eMD course
+then switch format, or we add a setting to disable auto-apply. Normal "Add new course"
+and the production pipeline are unaffected.
+
+**Offline validation done:** `php -l` clean on all new/changed PHP; Mustache balanced;
+all core functions used confirmed present in 5.1 with matching signatures
+(`add_moduleinfo`, `course_create_section`, `course_update_section`, `course_delete_section`,
+`course_create_sections_if_missing`, `course_get_url`); `add_moduleinfo` runs
+`set_moduleinfo_defaults()` so the generator-mirrored field sets are sufficient.
+
+**Runtime verification (staging — needs your approval, see below):**
+1. Run `upgrade.php` to register the `course_created` observer + new version.
+2. Purge caches to serve the new header button + strings.
+3. Create a **new** course with format **eMD** → confirm it auto-populates:
+   Course Introduction (3 pages) → Week 1 (7 activities) → Final Exam (quiz).
+4. With edit mode on, click **"Add a week"** → a new populated week appears **before** the
+   Final Exam; repeat to confirm numbering and ordering.
+5. Confirm each created activity opens and is editable (author can add content).
+
 ## Commands that need your approval (mutate live production)
-1. `php /var/www/moodle/admin/cli/purge_caches.php` — to serve the new rail
-   template + SCSS. (No `upgrade.php`; no version bump.)
-2. **Create/convert a course to `format_emd` with the master activities** on
-   staging (video, readings, H5P lab, discussion, quiz, assignment, reflection),
-   add an **availability** rule (quiz restricted until the H5P lab is complete) —
-   so S5/S6 render with live numbers and the lock can be confirmed. Do this on a
-   staging clone (or with explicit go-ahead), not bare production.
+1. `php /var/www/moodle/public/admin/cli/upgrade.php` — registers the new
+   `course_created` observer and the version bump (`2026061800`). **Required** for the
+   master-template auto-population to fire. Staging/branch + backup first.
+2. `php /var/www/moodle/public/admin/cli/purge_caches.php` — to serve the new header
+   button (and the earlier rail template + SCSS).
+3. **Create a new `format_emd` course** on staging and confirm auto-population, then use
+   **"Add a week"** (see the verification steps above). Optionally add an **availability**
+   rule (quiz restricted until the H5P lab is complete) to confirm the native lock.
+   Do this on a staging clone (or with explicit go-ahead), not bare production.

@@ -66,15 +66,36 @@ class faculty_dashboard implements named_templatable, renderable {
         }, $data['courses']);
 
         return [
+            'greeting'     => $data['greeting'],
+            'summary'      => $data['summary'],
             'coursecount'  => $data['coursecount'],
             'studenttotal' => $data['studenttotal'],
             'queuetotal'   => $data['queuetotal'],
             'ontracktotal' => $data['ontracktotal'],
             'atrisktotal'  => $data['atrisktotal'],
+            'hasatrisk'    => $data['atrisktotal'] > 0,
+            'ontrackpct'   => $data['ontrackpct'],
+            'quizavg'      => $data['quizavg'],
+            'hasquizavg'   => $data['hasquizavg'],
             'courses'      => $courses,
             'hascourses'   => !empty($courses),
+            'queue'        => $data['queue'],
+            'hasqueue'     => !empty($data['queue']),
             'agenda'       => $data['agenda'],
             'hasagenda'    => !empty($data['agenda']),
-        ];
+        ] + self::portal_chrome($this->userid);
+    }
+
+    /**
+     * Portal top bar + footer when theme_azmsi is available.
+     *
+     * @param int $userid
+     * @return array
+     */
+    protected static function portal_chrome(int $userid): array {
+        if (!class_exists('\theme_azmsi\output\portal_chrome')) {
+            return ['hasportalchrome' => false];
+        }
+        return \theme_azmsi\output\portal_chrome::faculty_topbar($userid);
     }
 }

@@ -31,9 +31,11 @@ $course = get_course($courseid);
 require_login($course);
 
 $context = context_course::instance($courseid);
-// Faculty portal access AND the ability to grade in this course (i.e. teaches it).
 require_capability('local/azmsi:viewfacultyportal', context_system::instance());
-require_capability('mod/assign:grade', $context);
+require_once($CFG->dirroot . '/local/azmsi/classes/local/faculty.php');
+if (!\local_azmsi\local\faculty::teaches_course($USER->id, $courseid)) {
+    throw new \moodle_exception('cannotaccess', 'error');
+}
 
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/local/azmsi/instructor.php', ['courseid' => $courseid]));

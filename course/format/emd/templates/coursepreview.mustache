@@ -1,0 +1,231 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template format_emd/coursepreview
+
+    Learner course-preview page (S5). All values are live; sections render only
+    when they have data. Activities open in a modal that loads the real activity.
+}}
+<div class="az-prev">
+    <header class="az-prev-hero az-card--teal">
+        <div class="az-prev-badges">
+            {{#hasquarter}}<span class="az-pill az-pill--gold">{{#str}}quartern, format_emd, {{quarter}}{{/str}}</span>{{/hasquarter}}
+            {{#isgateway}}<span class="az-pill az-pill--mute">{{#str}}gateway, format_emd{{/str}}</span>{{/isgateway}}
+            <span class="az-pill az-pill--code">{{code}}</span>
+        </div>
+        <h1 class="az-prev-title">{{title}}</h1>
+        <div class="az-prev-meta az-serif">
+            {{#meta}}<span>{{text}}</span>{{/meta}}
+        </div>
+    </header>
+
+    {{#kpis.0}}
+    <section class="az-prev-kpis az-kpi-strip">
+        {{#kpis}}
+        <div class="az-kpi"><div class="az-kpi-num">{{num}}</div><div class="az-kpi-label">{{label}}</div></div>
+        {{/kpis}}
+    </section>
+    {{/kpis.0}}
+
+    <div class="az-prev-grid">
+        <div class="az-prev-main">
+            {{#summary}}
+            <section class="az-prev-block">
+                <h2 class="az-prev-h2">{{#str}}courseoverview, format_emd{{/str}}</h2>
+                <div class="az-prev-overview">{{{summary}}}</div>
+            </section>
+            {{/summary}}
+
+            {{#welcome.has}}
+            <a class="az-prev-welcome" href="{{welcome.url}}" data-az-activity="{{welcome.url}}" data-az-title="{{welcome.label}}">
+                <span class="az-prev-play">&#9654;</span>
+                <span class="az-prev-welcome-label">{{welcome.label}}</span>
+            </a>
+            {{/welcome.has}}
+
+            {{#resources.0}}
+            <section class="az-prev-resources">
+                {{#resources}}
+                <div class="az-prev-res">
+                    <span class="az-pill az-pill--mute">{{tag}}</span>
+                    <div class="az-prev-res-body">
+                        <div class="az-prev-res-title">{{title}}</div>
+                        {{#detail}}<div class="az-prev-res-detail">{{detail}}</div>{{/detail}}
+                    </div>
+                    {{#url}}<a class="az-btn-ghost" href="{{url}}" data-az-activity="{{url}}" data-az-title="{{title}}">{{#str}}viewres, format_emd{{/str}}</a>{{/url}}
+                </div>
+                {{/resources}}
+            </section>
+            {{/resources.0}}
+
+            {{#objectives.0}}
+            <section class="az-prev-block">
+                <h2 class="az-prev-h2">{{#str}}whatyoulllearn, format_emd{{/str}}</h2>
+                <div class="az-prev-objectives">
+                    {{#objectives}}<div class="az-prev-obj">&#10003; {{text}}</div>{{/objectives}}
+                </div>
+            </section>
+            {{/objectives.0}}
+
+            <section class="az-prev-block">
+                <div class="az-prev-h2-row">
+                    <h2 class="az-prev-h2">{{#str}}howweekbuilt, format_emd{{/str}}</h2>
+                    <span class="az-eyebrow">{{#str}}mastermoodletemplate, format_emd{{/str}}</span>
+                </div>
+                <div class="az-prev-weektypes">
+                    {{#weektypes}}<span class="az-chip">{{label}}</span>{{/weektypes}}
+                </div>
+            </section>
+
+            <section class="az-prev-block" id="az-weekly-modules">
+                <h2 class="az-prev-h2">{{#str}}weeklymodules, format_emd{{/str}}</h2>
+                <div class="az-prev-weeks">
+                    {{#weeks}}
+                    <details class="az-prev-week {{#isfinal}}az-prev-week--final{{/isfinal}}" {{#expanded}}open{{/expanded}}>
+                        <summary class="az-prev-week-head">
+                            <span class="az-prev-week-num">{{num}}</span>
+                            <span class="az-prev-week-name">{{name}}</span>
+                            <span class="az-prev-week-meta">{{#summary}}{{summary}}{{/summary}}{{^summary}}{{#str}}nitems, format_emd, {{itemcount}}{{/str}}{{/summary}}</span>
+                        </summary>
+                        <div class="az-prev-week-body">
+                            {{#activities}}
+                            {{#hasurl}}
+                            <a class="az-prev-act" href="{{url}}" data-az-activity="{{url}}" data-az-title="{{name}}">
+                                <span class="az-pill az-pill--tag">{{tag}}</span>
+                                <span class="az-prev-act-name">{{name}}</span>
+                                <span class="az-prev-act-detail">{{detail}}</span>
+                            </a>
+                            {{/hasurl}}
+                            {{^hasurl}}
+                            <div class="az-prev-act">
+                                <span class="az-pill az-pill--tag">{{tag}}</span>
+                                <span class="az-prev-act-name">{{name}}</span>
+                                <span class="az-prev-act-detail">{{detail}}</span>
+                            </div>
+                            {{/hasurl}}
+                            {{/activities}}
+                        </div>
+                    </details>
+                    {{/weeks}}
+                </div>
+            </section>
+
+            {{#instructor.has}}
+            <section class="az-prev-block">
+                <h2 class="az-prev-h2">{{#str}}yourinstructor, format_emd{{/str}}</h2>
+                <div class="az-prev-instructor az-card">
+                    <div class="az-prev-avatar">{{instructor.initials}}</div>
+                    <div class="az-prev-instructor-body">
+                        <div class="az-prev-instructor-name">{{instructor.name}}</div>
+                        {{#instructor.bio}}<div class="az-prev-instructor-bio az-serif">{{{instructor.bio}}}</div>{{/instructor.bio}}
+                        <div class="az-prev-instructor-stats">
+                            {{#instructor.courses}}<span><strong>{{instructor.courses}}</strong> {{#str}}ratingcourses, format_emd{{/str}}</span>{{/instructor.courses}}
+                            {{#instructor.students}}<span><strong>{{instructor.students}}</strong> {{#str}}ratingstudents, format_emd{{/str}}</span>{{/instructor.students}}
+                            {{#instructor.hasrating}}<span class="az-prev-rating">&#9733; {{instructor.rating}}</span>{{/instructor.hasrating}}
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {{/instructor.has}}
+        </div>
+
+        <aside class="az-prev-rail">
+            <div class="az-card az-prev-enrol">
+                {{#courserating.has}}<div class="az-prev-courserating">&#9733; {{courserating.avg}} {{#str}}nreviews, local_azmsi, {{courserating.count}}{{/str}}</div>{{/courserating.has}}
+                {{#enrolled}}<div class="az-prev-enrol-status">&#9679; {{#str}}alreadyenrolled, format_emd{{/str}}</div>{{/enrolled}}
+                <a class="az-btn-gold" href="{{modulesanchor}}">{{#str}}gotocourse, format_emd{{/str}}</a>
+                {{#features.0}}
+                <ul class="az-prev-features">
+                    {{#features}}<li>&#10003; {{label}}</li>{{/features}}
+                </ul>
+                {{/features.0}}
+            </div>
+
+            {{#assessment.0}}
+            <div class="az-card az-prev-assess">
+                <div class="az-eyebrow">{{#str}}assessmentbreakdown, format_emd{{/str}}</div>
+                {{#assessment}}
+                <div class="az-prev-assess-row">
+                    <span class="az-prev-assess-name">{{name}}</span>
+                    <span class="az-prev-assess-bar"><span style="width: {{weight}}%"></span></span>
+                    <span class="az-prev-assess-val">{{weight}}%</span>
+                </div>
+                {{/assessment}}
+            </div>
+            {{/assessment.0}}
+
+            {{#hasratingform}}
+            <div class="az-card az-prev-ratingform">
+                <div class="az-eyebrow">{{#str}}pluginname, block_azmsi_rating{{/str}}</div>
+                {{{ratingformhtml}}}
+            </div>
+            {{/hasratingform}}
+
+            <div class="az-card az-prev-pathway">
+                <div class="az-eyebrow">{{#str}}inthispathway, format_emd{{/str}}</div>
+                <div class="az-prev-path-row"><span class="az-prev-path-label">{{#str}}prereqlabel, format_emd{{/str}}</span><span>{{pathway.prereq}}</span></div>
+                {{#pathway.hasnext}}<div class="az-prev-path-row"><span class="az-prev-path-label">{{#str}}nextlabel, format_emd{{/str}}</span><span>{{pathway.next}}</span></div>{{/pathway.hasnext}}
+            </div>
+        </aside>
+    </div>
+</div>
+
+{{! Activity modal — loads the real activity in an iframe. }}
+<div id="az-activity-modal" class="az-modal" hidden>
+    <div class="az-modal-backdrop" data-az-close></div>
+    <div class="az-modal-dialog" role="dialog" aria-modal="true">
+        <div class="az-modal-head">
+            <span class="az-modal-title"></span>
+            <button type="button" class="az-modal-close" data-az-close aria-label="{{#str}}closebuttontitle, moodle{{/str}}">&times;</button>
+        </div>
+        <iframe class="az-modal-frame" title="{{#str}}activity, moodle{{/str}}"></iframe>
+    </div>
+</div>
+{{#js}}
+require([], function() {
+    var modal = document.getElementById('az-activity-modal');
+    if (!modal) { return; }
+    var frame = modal.querySelector('.az-modal-frame');
+    var titleEl = modal.querySelector('.az-modal-title');
+    var close = function() {
+        modal.hidden = true;
+        frame.src = 'about:blank';
+        document.body.classList.remove('az-modal-open');
+    };
+    document.querySelectorAll('[data-az-activity]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            var url = el.getAttribute('data-az-activity');
+            if (!url) { return; }
+            e.preventDefault();
+            titleEl.textContent = el.getAttribute('data-az-title') || '';
+            // Load the activity in Moodle's chrome-free "embedded" layout (no
+            // primary/secondary nav, breadcrumb or footer) — local_azmsi's
+            // before_http_headers hook switches the layout when azembed=1.
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 'azembed=1';
+            frame.src = url;
+            modal.hidden = false;
+            document.body.classList.add('az-modal-open');
+        });
+    });
+    modal.querySelectorAll('[data-az-close]').forEach(function(b) {
+        b.addEventListener('click', close);
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.hidden) { close(); }
+    });
+});
+{{/js}}

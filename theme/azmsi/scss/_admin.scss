@@ -143,7 +143,210 @@
   .az-ann-time { font-size: 11px; color: $az-text-faint; }
   .az-ann-title { color: $az-text; font-size: 13px; font-weight: 600; line-height: 1.35; }
 
-  // Production pipeline grid.
+  // Production pipeline — content-readiness board.
+  .az-pipeline-board { display: flex; flex-direction: column; gap: 10px; min-width: 0; width: 100%; }
+
+  .az-pipeline-legend {
+    display: flex; flex-wrap: wrap; gap: 14px 18px; margin-bottom: 4px;
+    font-size: 11px; color: $az-text-mute;
+  }
+  .az-pipeline-legend-item { display: inline-flex; align-items: center; gap: 7px; }
+
+  .az-pipeline-chip {
+    display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+    background: $az-surface-2; border: 1px solid $az-line;
+  }
+  .az-pipeline-chip--done { background: rgba(31, 122, 111, 0.55); border-color: $az-teal-bright; }
+  .az-pipeline-chip--partial { background: rgba(201, 161, 59, 0.35); border-color: $az-gold; }
+  .az-pipeline-chip--miss { background: rgba(180, 70, 70, 0.25); border-color: $az-danger; }
+
+  .az-pipeline-card {
+    border: 1px solid $az-line; border-radius: 6px; background: $az-surface;
+    overflow: hidden; min-width: 0;
+    &.az-pipeline-card--done { border-color: rgba(31, 122, 111, 0.45); }
+  }
+
+  .az-pipeline-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    list-style: none;
+    min-width: 0;
+    &::-webkit-details-marker { display: none; }
+    &::marker { content: ''; }
+  }
+
+  .az-pipeline-summary-top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(140px, 34%);
+    align-items: center;
+    gap: 12px 16px;
+    min-width: 0;
+  }
+  @media (max-width: 900px) {
+    .az-pipeline-summary-top {
+      grid-template-columns: auto minmax(0, 1fr);
+      .az-pipeline-meter-wrap { grid-column: 1 / -1; }
+    }
+  }
+
+  .az-pipeline-summary-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    min-width: 0;
+  }
+
+  .az-pipeline-code {
+    flex-shrink: 0;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: $az-gold-bright;
+  }
+  .az-pipeline-name {
+    min-width: 0;
+    color: $az-text; font-weight: 700; font-size: 13px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .az-pipeline-meter-wrap {
+    display: flex; align-items: center; gap: 10px; min-width: 0;
+    .az-meter { flex: 1 1 60px; min-width: 0; max-width: 120px; }
+  }
+  .az-pipeline-meter-label {
+    flex-shrink: 0;
+    font-size: 11px; color: $az-text-mute; white-space: nowrap;
+  }
+
+  .az-pipeline-reqs, .az-pipeline-weeks {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0;
+  }
+  .az-pipeline-reqs { flex: 1 1 auto; }
+  .az-pipeline-weeks { flex: 0 0 auto; justify-content: flex-end; }
+
+  .az-pipeline-week-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 4px;
+    border: 1px solid $az-line;
+    background: $az-surface-2;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: $az-text-mute;
+  }
+  .az-pipeline-week-badge--done {
+    background: rgba(31, 122, 111, 0.25);
+    border-color: $az-teal-bright;
+    color: $az-teal-bright;
+  }
+  .az-pipeline-week-badge--partial {
+    background: rgba(201, 161, 59, 0.2);
+    border-color: $az-gold;
+    color: $az-gold-bright;
+  }
+  .az-pipeline-week-badge--miss {
+    background: rgba(180, 70, 70, 0.12);
+    border-color: rgba(180, 70, 70, 0.45);
+    color: $az-danger;
+  }
+  .az-req-pill {
+    font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid $az-line;
+    background: $az-surface-2; color: $az-text-mute;
+  }
+  .az-req-pill--ok { color: $az-teal-bright; border-color: $az-teal; background: rgba(31, 122, 111, 0.18); }
+  .az-req-pill--miss { color: $az-danger; border-color: rgba(180, 70, 70, 0.55); background: rgba(180, 70, 70, 0.12); }
+
+  .az-pipeline-body {
+    border-top: 1px solid $az-line-soft; padding: 16px; background: rgba(0, 0, 0, 0.12);
+  }
+  .az-pipeline-body-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .az-pipeline-body-grid { grid-template-columns: 1fr; }
+  }
+
+  .az-pipeline-panel {
+    background: $az-surface; border: 1px solid $az-line; border-radius: 4px; padding: 14px 16px;
+  }
+  .az-pipeline-panel-title {
+    margin: 0 0 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase; color: $az-text;
+  }
+  .az-pipeline-panel-note, .az-pipeline-detail-link {
+    font-size: 11px; color: $az-text-mute; line-height: 1.45; margin: 0 0 10px;
+  }
+  .az-pipeline-detail-link {
+    display: inline-block; margin-top: 10px; margin-bottom: 0;
+    color: $az-gold-bright; font-weight: 700; &:hover { color: $az-gold-hi; }
+  }
+
+  .az-pipeline-checks {
+    list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;
+    li { font-size: 12px; color: $az-text-2; }
+    .az-tick { font-weight: 800; margin-right: 4px; }
+    .az-ok .az-tick, .az-ok { color: $az-teal-bright; }
+    .az-miss .az-tick, .az-miss { color: $az-danger; }
+  }
+
+  .az-pipeline-week-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;
+  }
+  .az-pipeline-week-tile {
+    display: flex; flex-direction: column; gap: 4px; padding: 10px 12px;
+    border: 1px solid $az-line; border-radius: 4px; background: $az-surface-2;
+    text-decoration: none; color: inherit;
+    &:hover { border-color: $az-gold; }
+    &.az-is-complete { border-color: $az-teal; background: rgba(31, 122, 111, 0.12); }
+  }
+  .az-pipeline-week-tile-num {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: $az-gold-bright;
+  }
+  .az-pipeline-week-tile-name {
+    font-size: 12px; font-weight: 700; color: $az-text;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .az-pipeline-week-tile-status {
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+    color: $az-text-mute;
+  }
+  .az-is-complete .az-pipeline-week-tile-status { color: $az-teal-bright; }
+
+  .az-pipeline-stages {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+  }
+  .az-pipeline-stage {
+    display: flex; flex-direction: column; gap: 4px; padding: 8px 10px;
+    border: 1px solid $az-line; border-radius: 4px; background: $az-surface-2;
+  }
+  .az-pipeline-stage-label {
+    font-size: 10px; font-weight: 700; color: $az-text-mute; text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .az-pipeline-stage-btn {
+    display: inline-block; align-self: flex-start;
+    min-width: 56px; padding: 4px 8px; border: 1px solid $az-line; border-radius: 999px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    background: $az-surface; color: $az-text-mute;
+  }
+  button.az-pipeline-stage-btn { cursor: pointer; &:hover { border-color: $az-gold; color: $az-text; } }
+  .az-pipeline-stage--active .az-pipeline-stage-btn {
+    background: var(--az-grad-gold-active); border-color: $az-gold; color: $az-gold-bright;
+  }
+  .az-pipeline-stage--done .az-pipeline-stage-btn {
+    background: rgba(31, 122, 111, 0.25); border-color: $az-teal; color: $az-teal-bright;
+  }
+  .az-pipeline-stage form { margin: 0; }
+
+  // Legacy pipeline table helpers (content analysis links elsewhere).
   .az-pipeline-course { white-space: nowrap; }
   .az-pipeline-cell { text-align: center; }
   .az-pipeline-dot {
@@ -169,5 +372,161 @@
   .az-portals { display: flex; flex-wrap: wrap; gap: 12px; }
   .az-portals .az-sso-btn { width: auto; padding: 8px 18px; }
 
-  .az-admin-foot { color: $az-text-faint; font-size: 11px; margin: 0; }
+  // Roles & access — full-width provision strip (matches admin prototype).
+  .az-roles-access {
+    padding: 20px 24px;
+    border: 1px solid $az-line;
+  }
+  .az-roles-access-grid {
+    display: grid;
+    grid-template-columns: 1.2fr repeat(4, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 1100px) {
+    .az-roles-access-grid { grid-template-columns: 1fr 1fr; }
+    .az-roles-access-head { grid-column: 1 / -1; }
+  }
+  .az-roles-access-title {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $az-gold-bright;
+  }
+  .az-roles-access-sub {
+    font-size: 11px;
+    color: $az-text-faint;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+  .az-roles-access-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-left: 1px solid $az-line-soft;
+    padding-left: 18px;
+  }
+  .az-roles-access-count {
+    font-size: 22px;
+    font-weight: 900;
+    color: $az-text;
+    line-height: 1;
+  }
+  .az-roles-access-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: $az-text-mute;
+  }
+  .az-roles-access-link {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $az-teal-bright;
+    text-decoration: none;
+    &:hover { color: $az-text; }
+  }
+  .az-roles-access-current {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $az-text-faint;
+  }
+
+  .az-admin-foot { color: $az-text-faint; font-size: 11px; margin: 0; display: flex; align-items: center; gap: 7px; }
+
+  // Live auto-refresh indicator (the data widgets repaint from the rollup in place).
+  .az-live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $az-teal-bright;
+    box-shadow: 0 0 0 0 rgba(45, 178, 161, 0.6);
+    animation: az-live-pulse 2.4s ease-out infinite;
+  }
+}
+
+@keyframes az-live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(45, 178, 161, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(45, 178, 161, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(45, 178, 161, 0); }
+}
+
+// ---------------------------------------------------------------------------
+// Production pipeline — summary filter bar + search toolbar (redesign).
+// ---------------------------------------------------------------------------
+.az-pipeline-board {
+  .az-pipeline-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .az-pipeline-stat {
+    flex: 1 1 0; min-width: 120px; display: flex; flex-direction: column; gap: 2px;
+    background: $az-surface; border: 1px solid $az-line; border-radius: 6px; padding: 12px 16px;
+    cursor: pointer; text-align: left; transition: border-color .15s ease, background .15s ease;
+    &:hover { border-color: rgba(255,255,255,.25); }
+    &.is-active { border-color: $az-gold; background: rgba(201,161,59,.08); }
+    .az-pipeline-stat-num { font-size: 24px; font-weight: 900; color: $az-text; line-height: 1; }
+    .az-pipeline-stat-label { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: $az-text-mute; }
+    &--done .az-pipeline-stat-num { color: $az-teal-bright; }
+    &--prog .az-pipeline-stat-num { color: $az-gold-bright; }
+    &--miss .az-pipeline-stat-num { color: $az-danger; }
+    &--launch .az-pipeline-stat-num { color: $az-gold-hi; }
+  }
+
+  .az-pipeline-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .az-pipeline-search { position: relative; flex: 1; max-width: 360px; }
+  .az-pipeline-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: .5; font-size: 13px; }
+  .az-pipeline-searchinput {
+    width: 100%; background: $az-surface-2; border: 1px solid $az-line; border-radius: 6px;
+    color: $az-text; padding: 9px 12px 9px 34px; font-size: 13px;
+    &::placeholder { color: $az-text-faint; }
+    &:focus { border-color: $az-gold; box-shadow: 0 0 0 .15rem rgba(201,161,59,.2); outline: none; }
+  }
+  .az-pipeline-toolbar-right { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+  .az-pipeline-count { color: $az-text-mute; font-size: 12px; font-weight: 700; }
+  .az-pipeline-expand {
+    background: transparent; border: 1px solid $az-line; border-radius: 6px; color: $az-text-2;
+    font-size: 12px; font-weight: 700; padding: 8px 14px; cursor: pointer;
+    &:hover { border-color: rgba(255,255,255,.3); color: $az-text; }
+  }
+
+  .az-pipeline-list { display: flex; flex-direction: column; gap: 8px; }
+
+  // Per-card status tag in the summary row.
+  .az-pipeline-status-tag { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    &--complete { background: rgba(31,122,111,.22); color: $az-teal-bright; }
+    &--inprogress { background: rgba(201,161,59,.18); color: $az-gold-bright; }
+    &--notstarted { background: rgba(255,255,255,.06); color: $az-text-mute; }
+    &--launched { background: rgba(255,217,122,.16); color: $az-gold-hi; } }
+
+  .az-pipeline-empty { color: $az-text-mute; text-align: center; padding: 28px; background: $az-surface;
+    border: 1px dashed $az-line; border-radius: 6px; }
+}
+
+// Collapsible disclosure (e.g. the production pipeline) — a clickable bar that
+// keeps the admin console light until the manager opens the section.
+.az-disclosure {
+  border: 1px solid $az-line; border-radius: 8px; background: $az-surface; overflow: hidden;
+  > summary.az-disclosure-head {
+    display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer;
+    list-style: none; user-select: none;
+    &::-webkit-details-marker { display: none; }
+    &:hover { background: rgba(255,255,255,.02); }
+  }
+  .az-disclosure-title { font-weight: 900; font-size: 16px; color: $az-text; }
+  .az-disclosure-meta { color: $az-text-mute; font-size: 12.5px; }
+  .az-disclosure-done { color: $az-teal-bright; font-weight: 700; }
+  .az-disclosure-action { margin-left: auto; display: flex; align-items: center; gap: 10px;
+    color: $az-gold-bright; font-weight: 800; font-size: 12px; }
+  .az-disclosure-chevron { transition: transform .15s ease; display: inline-block; }
+  .az-disclosure-close { display: none; }
+  .az-disclosure-body { padding: 6px 20px 20px; border-top: 1px solid $az-line-soft; }
+
+  &[open] {
+    .az-disclosure-chevron { transform: rotate(90deg); }
+    .az-disclosure-open { display: none; }
+    .az-disclosure-close { display: inline; }
+  }
 }

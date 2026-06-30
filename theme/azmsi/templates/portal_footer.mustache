@@ -1,0 +1,18 @@
+{{!
+    @template theme_azmsi/portal_footer
+
+    AZMSI portal footer. Faculty variant uses the teal bar from the mockup.
+}}
+<div class="az-portal-footer az-portal-footer--{{variant}}">
+    <div class="az-portal-footer-main">
+        <div class="az-portal-footer-title" title="{{title}}">{{title}}</div>
+        <div class="az-portal-footer-contacts">{{contacts}}</div>
+    </div>
+    {{#haslinks}}
+    <nav class="az-portal-footer-links" aria-label="{{#str}}portalfooterlinks, theme_azmsi{{/str}}">
+        {{#links}}
+        <a class="az-portal-footer-link" href="{{url}}">{{label}}</a>
+        {{/links}}
+    </nav>
+    {{/haslinks}}
+</div>

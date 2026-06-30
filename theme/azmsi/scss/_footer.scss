@@ -1,6 +1,224 @@
-// AZMSI Bold — footer. Dark base with a gold top hairline accent. §A tokens.
+// AZMSI Bold — site footer. Role-aware portal bar replaces the default Moove footer.
 
-#page-footer,
+$drawer-left-width: 285px;
+$drawer-right-width: 315px;
+
+// Page shell: keep the drawer column dark so gaps never flash white.
+#page-wrapper,
+#page.drawers {
+  background-color: $az-bg;
+}
+
+// Remove the Boost/Moove gap between the main card and the role footer bar.
+#page.drawers:has(+ #page-footer.az-site-footer) .main-inner,
+#page.drawers:has(.az-site-footer) .main-inner {
+  margin-bottom: 0;
+}
+
+// Hide legacy Moove footer chrome when our site footer is active.
+#page-footer.az-site-footer {
+  &.footer-popover {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+    width: 100%;
+    border-radius: 0;
+  }
+
+  // Suppress Moove/Boost footer popover FAB and orange conecti.me strip.
+  [data-region="footer-container-popover"],
+  .footer-content-popover,
+  .copyright,
+  .footer-columns,
+  .supportemail,
+  .stores {
+    display: none !important; // stylelint-disable-line declaration-no-important
+  }
+}
+
+// Footer sits as a sibling of #page (full content-column width, drawer-aware).
+#page-wrapper > #page-footer.az-site-footer {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+
+  @include media-breakpoint-up(md) {
+    // Match left drawer offset whenever the course index / AZMSI nav is open.
+    #page-wrapper:has(#page.drawers.show-drawer-left) &,
+    #page-wrapper:has(.drawer-left.show) & {
+      margin-left: $drawer-left-width;
+      width: calc(100% - #{$drawer-left-width});
+    }
+
+    #page-wrapper:has(#page.drawers.show-drawer-right) &,
+    #page-wrapper:has(.drawer-right.show) & {
+      margin-right: $drawer-right-width;
+      width: calc(100% - #{$drawer-right-width});
+    }
+
+    #page-wrapper:has(#page.drawers.show-drawer-left.show-drawer-right) &,
+    #page-wrapper:has(.drawer-left.show.drawer-right.show) & {
+      margin-left: $drawer-left-width;
+      margin-right: $drawer-right-width;
+      width: calc(100% - #{$drawer-left-width} - #{$drawer-right-width});
+    }
+  }
+}
+
+// Role portal footer bar (student gold, faculty teal, admin gold).
+.az-portal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 18px clamp(20px, 4vw, 40px);
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+
+  &-main {
+    min-width: 0;
+    flex: 1 1 220px;
+  }
+
+  &-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Keep footer links readable — global theme `a:hover` uses gold on gold (illegible).
+  a,
+  a:visited,
+  .az-portal-footer-link {
+    opacity: 1;
+    filter: none;
+    text-shadow: none;
+    transition: color 0.12s ease;
+    -webkit-font-smoothing: antialiased;
+
+    &:hover,
+    &:focus,
+    &:focus-visible {
+      opacity: 1;
+      filter: none;
+      text-shadow: none;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
+  &--student,
+  &--admin {
+    background: $az-gold;
+    color: #15212E;
+
+    .az-portal-footer-title {
+      font-weight: 900;
+      font-size: 12.5px;
+      color: #15212E;
+    }
+
+    .az-portal-footer-contacts {
+      font-size: 10px;
+      color: #4A3F1E;
+      margin-top: 2px;
+    }
+
+    a,
+    a:visited,
+    .az-portal-footer-link {
+      color: #15212E;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+
+      &:hover,
+      &:focus,
+      &:focus-visible {
+        color: #0A0F14;
+      }
+    }
+  }
+
+  &--faculty {
+    background: #2A968A;
+    color: #06231F;
+
+    .az-portal-footer-title {
+      font-weight: 900;
+      font-size: 12.5px;
+      color: #06231F;
+    }
+
+    .az-portal-footer-contacts {
+      font-size: 10px;
+      color: #0C3A33;
+      margin-top: 2px;
+    }
+
+    a,
+    a:visited,
+    .az-portal-footer-link {
+      color: #06231F;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+
+      &:hover,
+      &:focus,
+      &:focus-visible {
+        color: #031512;
+      }
+    }
+  }
+}
+
+.az-portal-footer-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+}
+
+// Minimal legal row (data retention) below the role bar.
+.az-site-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  padding: 10px clamp(20px, 4vw, 40px) 14px;
+  background: $az-bg-sidebar;
+  border-top: 1px solid $az-line-soft;
+  font-size: 11px;
+  color: $az-text-faint;
+
+  a {
+    color: $az-text-mute;
+    text-decoration: none;
+    opacity: 1;
+    filter: none;
+
+    &:hover,
+    &:focus,
+    &:focus-visible {
+      color: $az-gold-bright;
+      text-decoration: underline;
+      opacity: 1;
+      filter: none;
+    }
+  }
+}
+
+// Legacy dark footer styling for any remaining Boost footer fragments.
+#page-footer:not(.az-site-footer),
 .footer-content-popover,
 footer.footer {
   background: $az-bg-sidebar;
@@ -23,4 +241,15 @@ footer.footer {
   font-size: 12px;
 
   .az-footer-word { color: $az-text; font-weight: 900; letter-spacing: 0.02em; }
+}
+
+@media (max-width: 768px) {
+  .az-portal-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .az-portal-footer-links {
+    justify-content: flex-start;
+  }
 }

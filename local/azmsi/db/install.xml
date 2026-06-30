@@ -99,5 +99,32 @@
         <INDEX NAME="stage" UNIQUE="false" FIELDS="stage"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_azmsi_review" COMMENT="Learner course + instructor star ratings/reviews, moderated by managers (AGENT_05 Phase 3).">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The learner who submitted the rating."/>
+        <FIELD NAME="instructorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The instructor being rated (0 if none)."/>
+        <FIELD NAME="coursestars" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1-5, 0 = not rated."/>
+        <FIELD NAME="coursereview" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="instructorstars" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1-5, 0 = not rated."/>
+        <FIELD NAME="instructorreview" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="pending" SEQUENCE="false" COMMENT="pending|approved|rejected"/>
+        <FIELD NAME="approvedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timeapproved" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="courseuser" TYPE="unique" FIELDS="courseid, userid"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="instructorstatus" UNIQUE="false" FIELDS="instructorid, status"/>
+        <INDEX NAME="coursestatus" UNIQUE="false" FIELDS="courseid, status"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

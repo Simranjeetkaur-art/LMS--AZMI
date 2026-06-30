@@ -1,0 +1,22 @@
+{{!
+    @template theme_azmsi/portal_topbar
+
+    AZMSI portal top bar — search, term label, user chip (faculty mockup S10).
+}}
+<header class="az-portal-topbar" aria-label="{{#str}}portaltopbar, theme_azmsi{{/str}}">
+    <form class="az-portal-search" action="{{searchurl}}" method="get" role="search">
+        <label class="visually-hidden" for="az-portal-search-input">{{searchplaceholder}}</label>
+        <input id="az-portal-search-input" class="az-portal-search-input" type="search" name="q"
+               placeholder="{{searchplaceholder}}" autocomplete="off">
+    </form>
+    <div class="az-portal-topbar-meta">
+        <div class="az-termlabel">{{termlabel}}</div>
+        <div class="az-portal-user">
+            <span class="az-portal-avatar" aria-hidden="true">{{initials}}</span>
+            <span class="az-portal-user-text">
+                <span class="az-portal-user-name">{{fullname}}</span>
+                <span class="az-portal-user-role">{{rolesubtitle}}</span>
+            </span>
+        </div>
+    </div>
+</header>

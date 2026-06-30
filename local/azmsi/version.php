@@ -28,8 +28,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_azmsi';
-$plugin->version   = 2026061802;
+$plugin->version   = 2026061811;
 $plugin->requires  = 2025100600;      // Moodle 5.1.
 $plugin->supported = [501, 501];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.5.2';
+$plugin->release   = '0.6.0';

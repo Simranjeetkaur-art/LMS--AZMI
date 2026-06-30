@@ -58,6 +58,14 @@ class program {
             'status'            => ['name' => 'Status', 'type' => 'text'],
             'faculty_name'      => ['name' => 'Faculty name', 'type' => 'text'],
             'welcome_video_url' => ['name' => 'Welcome video URL', 'type' => 'text'],
+            // Creator-set values surfaced on the learner course-preview page.
+            'contact_hours'     => ['name' => 'Contact hours', 'type' => 'text'],
+            'max_weeks'         => ['name' => 'Number of weeks', 'type' => 'text', 'default' => '10'],
+            'delivery_mode'     => ['name' => 'Delivery mode', 'type' => 'text', 'default' => '100% online'],
+            'textbook'          => ['name' => 'Textbook', 'type' => 'text'],
+            'textbook_isbn'     => ['name' => 'Textbook ISBN', 'type' => 'text'],
+            'oer_resources'     => ['name' => 'Open educational resources', 'type' => 'textarea'],
+            'objectives'        => ['name' => 'Learning objectives (one per line)', 'type' => 'textarea'],
         ];
     }
 
@@ -200,11 +208,18 @@ class program {
             if ($def['type'] === 'select') {
                 $configdata['options'] = "in_progress\nplanned";
                 $configdata['defaultvalue'] = 'planned';
+            } else if ($def['type'] === 'textarea') {
+                $configdata['defaultvalue'] = '';
+                $configdata['defaultvalueformat'] = FORMAT_HTML;
             } else {
                 $configdata['displaysize'] = 50;
                 $configdata['maxlength'] = 1333;
                 $configdata['ispassword'] = 0;
                 $configdata['link'] = '';
+            }
+            // Per-field default value (e.g. number of weeks = 10).
+            if (isset($def['default'])) {
+                $configdata['defaultvalue'] = $def['default'];
             }
             $record = (object) [
                 'name'              => $def['name'],

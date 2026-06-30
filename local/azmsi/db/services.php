@@ -61,6 +61,14 @@ $functions = [
         'capabilities' => 'local/azmsi:ws_admin',
         'services'     => ['azmsi_ws'],
     ],
+    'local_azmsi_get_admin_console' => [
+        'classname'    => 'local_azmsi\external\get_admin_console',
+        'description'  => 'Live admin console data region (rendered HTML) for in-page auto-refresh.',
+        'type'         => 'read',
+        'ajax'         => true,
+        'capabilities' => 'local/azmsi:viewadminconsole',
+        'services'     => ['azmsi_ws'],
+    ],
     'local_azmsi_get_faculty_overview' => [
         'classname'    => 'local_azmsi\external\get_faculty_overview',
         'description'  => 'Faculty dashboard rollup: courses taught, student counts, grading queue, class health.',
@@ -88,6 +96,7 @@ $services = [
             'local_azmsi_get_program_catalog',
             'local_azmsi_get_student_overview',
             'local_azmsi_get_admin_kpis',
+            'local_azmsi_get_admin_console',
             'local_azmsi_get_faculty_overview',
             'local_azmsi_update_pipeline_stage',
         ],

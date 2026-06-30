@@ -62,8 +62,19 @@ class course_header implements named_templatable, renderable {
      * @return array
      */
     public function export_for_template(renderer_base $output): array {
-        global $USER, $CFG;
+        global $USER, $CFG, $PAGE;
         require_once($CFG->libdir . '/gradelib.php');
+
+        // "Add a week" master-template action — only for editors with edit mode on.
+        $context = \context_course::instance($this->course->id);
+        $canaddweek = $PAGE->user_is_editing()
+            && has_capability('moodle/course:update', $context)
+            && has_capability('moodle/course:manageactivities', $context)
+            && \format_emd\local\master_template::can_add_week($this->course);
+        $addweekurl = new \moodle_url('/course/format/emd/addweek.php', [
+            'courseid' => $this->course->id,
+            'sesskey'  => sesskey(),
+        ]);
 
         // Course custom fields (code/credits/faculty) — read live, never hardcoded.
         $fields = [];
@@ -107,6 +118,9 @@ class course_header implements named_templatable, renderable {
             'progress'     => $progress,
             'hasgrade'     => !is_null($gradedisplay),
             'grade'        => $gradedisplay,
+            // "Add a week" master-template action (editors only).
+            'canaddweek'   => $canaddweek,
+            'addweekurl'   => $addweekurl->out(false),
             // Right rail.
             'hasobjectives' => $objectives !== '',
             'objectives'    => $objectives,

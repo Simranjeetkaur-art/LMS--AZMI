@@ -1,35 +1,38 @@
 {{!
-    This file is part of Moodle - http://moodle.org/
-
-    Moodle is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Moodle is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-}}
-{{!
     @template local_azmsi/faculty_dashboard
 
     Faculty dashboard (S10). Teal-accented; all figures from the live faculty
-    overview composition. Context: coursecount, studenttotal, queuetotal,
-    ontracktotal, atrisktotal, courses[{name,code,students,ungraded,classavg,
-    hasavg,hasungraded,manageurl}], agenda[{name,url,due}].
+    overview composition.
 }}
+{{#hasportalchrome}}
+<div class="az-portal az-portal--faculty">
+{{#topbar}}
+{{> theme_azmsi/portal_topbar}}
+{{/topbar}}
+{{/hasportalchrome}}
 <div class="az-faculty">
-    <section class="az-faculty-kpis az-kpi-strip">
-        <div class="az-kpi"><div class="az-kpi-num">{{coursecount}}</div><div class="az-kpi-label">{{#str}}facultycourses, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num">{{studenttotal}}</div><div class="az-kpi-label">{{#str}}facultystudents, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num az-kpi-num--hi">{{queuetotal}}</div><div class="az-kpi-label">{{#str}}gradingqueue, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num">{{ontracktotal}}</div><div class="az-kpi-label">{{#str}}ontrack, local_azmsi{{/str}}</div></div>
-        <div class="az-kpi"><div class="az-kpi-num">{{atrisktotal}}</div><div class="az-kpi-label">{{#str}}atrisk, local_azmsi{{/str}}</div></div>
-    </section>
+
+    <header class="az-faculty-header">
+        <div class="az-faculty-header-main">
+            <div class="az-eyebrow">{{#str}}teachingdashboard, local_azmsi{{/str}}</div>
+            <h1 class="az-faculty-greeting">{{greeting}}</h1>
+            <p class="az-faculty-summary">{{summary}}</p>
+        </div>
+        <div class="az-faculty-header-kpis az-kpi-strip">
+            <div class="az-kpi">
+                <div class="az-kpi-num az-kpi-num--hi">{{queuetotal}}</div>
+                <div class="az-kpi-label">{{#str}}gradingqueue, local_azmsi{{/str}}</div>
+            </div>
+            <div class="az-kpi">
+                <div class="az-kpi-num">{{studenttotal}}</div>
+                <div class="az-kpi-label">{{#str}}facultystudents, local_azmsi{{/str}}</div>
+            </div>
+            <div class="az-kpi">
+                <div class="az-kpi-num">{{coursecount}}</div>
+                <div class="az-kpi-label">{{#str}}facultycourses, local_azmsi{{/str}}</div>
+            </div>
+        </div>
+    </header>
 
     <section class="az-dash-section">
         <h2 class="az-dash-section-title">{{#str}}coursestaught, local_azmsi{{/str}}</h2>
@@ -44,12 +47,16 @@
                 <div class="az-card-body">
                     <div class="az-course-name">{{name}}</div>
                     <div class="az-faculty-coursemeta">
-                        <span>{{students}} {{#str}}students, local_azmsi{{/str}}</span>
+                        <span>{{students}} {{#str}}students, local_azmsi{{/str}} &middot; {{weeklabel}}</span>
                         {{#hasavg}}<span class="az-faculty-avg">{{classavg}}% {{#str}}classavg, local_azmsi{{/str}}</span>{{/hasavg}}
                     </div>
                 </div>
-                <div class="az-card-foot">
-                    <a class="az-sso-btn az-faculty-manage" href="{{manageurl}}">{{#str}}manage, local_azmsi{{/str}} &rarr;</a>
+                <div class="az-card-foot az-faculty-coursefoot">
+                    <span class="az-faculty-status">{{status}}</span>
+                    <div class="az-faculty-courseactions">
+                        {{#canbuild}}<a class="az-link-teal" href="{{buildurl}}">{{#str}}buildcontent, local_azmsi{{/str}}</a>{{/canbuild}}
+                        <a class="az-sso-btn az-faculty-manage" href="{{manageurl}}">{{#str}}manage, local_azmsi{{/str}} &rarr;</a>
+                    </div>
                 </div>
             </div>
             {{/courses}}
@@ -58,18 +65,72 @@
         {{^hascourses}}<p class="az-loginsub">{{#str}}nocoursestaught, local_azmsi{{/str}}</p>{{/hascourses}}
     </section>
 
-    {{#hasagenda}}
-    <section class="az-dash-section">
-        <h2 class="az-dash-section-title">{{#str}}agenda, local_azmsi{{/str}}</h2>
-        <ul class="az-checklist">
-            {{#agenda}}
-            <li class="az-check">
-                <span class="az-check-mark">&#9656;</span>
-                <a class="az-check-link" href="{{url}}">{{name}}</a>
-                <span class="az-check-due">{{due}}</span>
-            </li>
-            {{/agenda}}
-        </ul>
-    </section>
-    {{/hasagenda}}
+    <div class="az-faculty-bottom">
+        <section class="az-card az-faculty-queue" id="az-grading-queue">
+            <div class="az-card-head az-card-head--split">
+                <span>{{#str}}gradingqueue, local_azmsi{{/str}}</span>
+                {{#hasqueue}}<span class="az-card-head-meta">{{queuetotal}} {{#str}}pending, local_azmsi{{/str}}</span>{{/hasqueue}}
+            </div>
+            <div class="az-card-body">
+                {{#hasqueue}}
+                <table class="az-table az-faculty-queue-table">
+                    <tbody>
+                        {{#queue}}
+                        <tr>
+                            <td class="az-faculty-queue-student">{{student}}</td>
+                            <td>{{assign}}{{#coursecode}} <span class="az-text-mute">· {{coursecode}}</span>{{/coursecode}}</td>
+                            <td><span class="az-due-type az-due-type--{{typeclass}}">{{typelabel}}</span></td>
+                            <td class="az-instructor-time">{{timeago}}</td>
+                            <td><a class="az-sso-btn az-faculty-gradebtn" href="{{gradeurl}}">{{#str}}grade, local_azmsi{{/str}}</a></td>
+                        </tr>
+                        {{/queue}}
+                    </tbody>
+                </table>
+                {{/hasqueue}}
+                {{^hasqueue}}<p class="az-text-mute">{{#str}}nosubmissions, local_azmsi{{/str}}</p>{{/hasqueue}}
+            </div>
+        </section>
+
+        <div class="az-faculty-side">
+            {{#hasagenda}}
+            <section class="az-card az-faculty-agenda">
+                <div class="az-card-head">{{#str}}agendaweek, local_azmsi{{/str}}</div>
+                <div class="az-card-body">
+                    <ul class="az-checklist">
+                        {{#agenda}}
+                        <li class="az-check">
+                            <span class="az-check-mark">&#9656;</span>
+                            <a class="az-check-link" href="{{url}}">{{name}}</a>
+                            <span class="az-check-due">{{due}}</span>
+                        </li>
+                        {{/agenda}}
+                    </ul>
+                </div>
+            </section>
+            {{/hasagenda}}
+
+            <section class="az-card az-faculty-health">
+                <div class="az-card-head">{{#str}}classhealth, local_azmsi{{/str}}</div>
+                <div class="az-card-body">
+                    <div class="az-faculty-health-row">
+                        <span>{{#str}}ontrackstudents, local_azmsi{{/str}}</span>
+                        <span class="az-faculty-health-val">{{ontracktotal}}/{{studenttotal}}</span>
+                    </div>
+                    <div class="az-progress"><div class="az-progress-fill az-progress-fill--teal" style="--az-pct:{{ontrackpct}}%"></div></div>
+                    {{#hasquizavg}}
+                    <div class="az-faculty-health-row">
+                        <span>{{#str}}avgquizscore, local_azmsi{{/str}}</span>
+                        <span class="az-faculty-health-val az-faculty-avg">{{quizavg}}%</span>
+                    </div>
+                    {{/hasquizavg}}
+                    {{#hasatrisk}}
+                    <p class="az-faculty-outreach">{{#str}}atriskoutreach, local_azmsi, {{atrisktotal}}{{/str}}</p>
+                    {{/hasatrisk}}
+                </div>
+            </section>
+        </div>
+    </div>
 </div>
+{{#hasportalchrome}}
+</div>
+{{/hasportalchrome}}

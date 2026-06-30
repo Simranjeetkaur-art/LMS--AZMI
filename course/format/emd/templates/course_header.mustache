@@ -29,6 +29,8 @@
     * progress - completion percent (int)
     * hasgrade - bool, whether a current grade is available
     * grade - formatted current grade (e.g. "92.4 %")
+    * canaddweek - bool, whether to show the "Add a week" action (editors only)
+    * addweekurl - URL of the add-week endpoint (with sesskey)
 
     Example context (json):
     {
@@ -39,7 +41,9 @@
         "hasprogress": true,
         "progress": 64,
         "hasgrade": true,
-        "grade": "92.4 %"
+        "grade": "92.4 %",
+        "canaddweek": true,
+        "addweekurl": "https://example.com/course/format/emd/addweek.php?courseid=2&sesskey=abc"
     }
 }}
 <section class="az-coursehead az-card--teal" aria-label="{{title}}">
@@ -64,6 +68,11 @@
             </div>
         {{/hasgrade}}
     </div>
+    {{#canaddweek}}
+        <div class="az-coursehead-actions">
+            <a href="{{addweekurl}}" class="btn btn-primary az-addweek">{{#str}}addweek, format_emd{{/str}}</a>
+        </div>
+    {{/canaddweek}}
 </section>
 
 {{! S5 right rail — instructor, grading & rubric (gradebook weights), objectives,

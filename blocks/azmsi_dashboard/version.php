@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'block_azmsi_dashboard';
-$plugin->version   = 2026061400;
+$plugin->version   = 2026061803;
 $plugin->requires  = 2025100600;      // Moodle 5.1.
 $plugin->supported = [501, 501];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.1.0-skeleton';
+$plugin->release   = '0.2.0';
 $plugin->dependencies = [
-    'local_azmsi' => 2026061400, // Reads local_azmsi_get_student_overview.
+    'local_azmsi' => 2026061400, // Renders the role dashboards (admin/faculty/student).
 ];

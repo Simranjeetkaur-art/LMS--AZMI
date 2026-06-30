@@ -62,11 +62,31 @@ class format_emd extends core_courseformat\base {
     }
 
     /**
+     * Enable the course-editor AJAX (drag-and-drop, inline move/delete/edit) like the
+     * core numbered formats. include_course_ajax() gates the editor JS on this, so
+     * without it activities cannot be dragged between weeks.
+     *
+     * @return stdClass
+     */
+    public function supports_ajax() {
+        $ajaxsupport = new stdClass();
+        $ajaxsupport->capable = true;
+        return $ajaxsupport;
+    }
+
+    /**
      * Output the eMD master-template header (S5) above the course content.
      *
      * @return \renderable|null
      */
     public function course_content_header() {
+        global $PAGE;
+        // With Edit mode off the full preview page (format.php) is shown, which
+        // carries its own hero header — so suppress this one to avoid duplication.
+        // With Edit mode on (editors), show the S5 header above the editing UI.
+        if (!$PAGE->user_is_editing()) {
+            return null;
+        }
         return new \format_emd\output\course_header($this->get_course());
     }
 
@@ -129,6 +149,35 @@ class format_emd extends core_courseformat\base {
                     'type'    => PARAM_INT,
                 ],
             ];
+        }
+        if ($foreditform && !isset($courseformatoptions['coursedisplay']['label'])) {
+            $hiddensectionslist = new core\output\choicelist();
+            $hiddensectionslist->set_allow_empty(false);
+            $hiddensectionslist->add_option(1, new lang_string('hiddensectionsinvisible'), [
+                'description' => new lang_string('hiddensectionsinvisible_description'),
+            ]);
+            $hiddensectionslist->add_option(0, new lang_string('hiddensectionscollapsed'), [
+                'description' => new lang_string('hiddensectionscollapsed_description'),
+            ]);
+
+            $courseformatoptionsedit = [
+                'hiddensections' => [
+                    'label'              => new lang_string('hiddensections'),
+                    'element_type'       => 'choicedropdown',
+                    'element_attributes' => [$hiddensectionslist],
+                ],
+                'coursedisplay' => [
+                    'label'              => new lang_string('coursedisplay'),
+                    'element_type'       => 'select',
+                    'element_attributes' => [[
+                        COURSE_DISPLAY_SINGLEPAGE => new lang_string('coursedisplay_single'),
+                        COURSE_DISPLAY_MULTIPAGE  => new lang_string('coursedisplay_multi'),
+                    ]],
+                    'help'           => 'coursedisplay',
+                    'help_component' => 'moodle',
+                ],
+            ];
+            $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
         return $courseformatoptions;
     }

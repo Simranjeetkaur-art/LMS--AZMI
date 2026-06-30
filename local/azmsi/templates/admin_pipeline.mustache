@@ -1,0 +1,200 @@
+{{!
+    @template local_azmsi/admin_pipeline
+
+    Content-readiness production pipeline. A clickable summary bar (which doubles
+    as status filters), a search box and expand/collapse-all sit above per-course
+    cards that expand to show requirements, weekly checks and the build stepper.
+}}
+<div class="az-pipeline-board" data-region="az-pipeline">
+
+    {{! ---- summary tiles (also act as status filters) ---- }}
+    <div class="az-pipeline-stats" role="group" aria-label="{{#str}}filterbystatus, local_azmsi{{/str}}">
+        <button type="button" class="az-pipeline-stat is-active" data-az-filter="all">
+            <span class="az-pipeline-stat-num">{{pipelinesummary.total}}</span>
+            <span class="az-pipeline-stat-label">{{#str}}course, local_azmsi{{/str}}</span>
+        </button>
+        <button type="button" class="az-pipeline-stat az-pipeline-stat--done" data-az-filter="complete">
+            <span class="az-pipeline-stat-num">{{pipelinesummary.complete}}</span>
+            <span class="az-pipeline-stat-label">{{#str}}statuscomplete, local_azmsi{{/str}}</span>
+        </button>
+        <button type="button" class="az-pipeline-stat az-pipeline-stat--prog" data-az-filter="inprogress">
+            <span class="az-pipeline-stat-num">{{pipelinesummary.inprogress}}</span>
+            <span class="az-pipeline-stat-label">{{#str}}statusinprogress, local_azmsi{{/str}}</span>
+        </button>
+        <button type="button" class="az-pipeline-stat az-pipeline-stat--miss" data-az-filter="notstarted">
+            <span class="az-pipeline-stat-num">{{pipelinesummary.notstarted}}</span>
+            <span class="az-pipeline-stat-label">{{#str}}statusnotstarted, local_azmsi{{/str}}</span>
+        </button>
+        <button type="button" class="az-pipeline-stat az-pipeline-stat--launch" data-az-filter="launched">
+            <span class="az-pipeline-stat-num">{{pipelinesummary.launched}}</span>
+            <span class="az-pipeline-stat-label">{{#str}}statuslaunched, local_azmsi{{/str}}</span>
+        </button>
+    </div>
+
+    {{! ---- toolbar: search + count + expand-all ---- }}
+    <div class="az-pipeline-toolbar">
+        <div class="az-pipeline-search">
+            <span class="az-pipeline-search-icon" aria-hidden="true">&#128269;</span>
+            <input type="search" class="az-pipeline-searchinput" data-az-search
+                   placeholder="{{#str}}searchcourses, local_azmsi{{/str}}"
+                   aria-label="{{#str}}searchcourses, local_azmsi{{/str}}">
+        </div>
+        <div class="az-pipeline-toolbar-right">
+            <span class="az-pipeline-count" data-az-count></span>
+            <button type="button" class="az-pipeline-expand" data-az-expand
+                    data-expand="{{#str}}expandall, local_azmsi{{/str}}"
+                    data-collapse="{{#str}}collapseall, local_azmsi{{/str}}">{{#str}}expandall, local_azmsi{{/str}}</button>
+        </div>
+    </div>
+
+    <div class="az-pipeline-legend">
+        <span class="az-pipeline-legend-item"><span class="az-pipeline-chip az-pipeline-chip--done"></span> {{#str}}weekcompletebadge, local_azmsi{{/str}}</span>
+        <span class="az-pipeline-legend-item"><span class="az-pipeline-chip az-pipeline-chip--partial"></span> {{#str}}weekpartialbadge, local_azmsi{{/str}}</span>
+        <span class="az-pipeline-legend-item"><span class="az-pipeline-chip az-pipeline-chip--miss"></span> {{#str}}weekincompletebadge, local_azmsi{{/str}}</span>
+    </div>
+
+    <div class="az-pipeline-list" data-az-list>
+    {{#pipeline}}
+    <details class="az-pipeline-card{{#content.iscomplete}} az-pipeline-card--done{{/content.iscomplete}}"
+             data-az-card data-az-status="{{status}}{{#islaunched}} launched{{/islaunched}}" data-az-search="{{searchkey}}">
+        <summary class="az-pipeline-summary">
+            <div class="az-pipeline-summary-top">
+                <span class="az-pipeline-code">{{code}}</span>
+                <span class="az-pipeline-name" title="{{name}}">{{name}}</span>
+                <span class="az-pipeline-status-tag az-pipeline-status-tag--{{status}}">
+                    {{#islaunched}}{{#str}}statuslaunched, local_azmsi{{/str}}{{/islaunched}}
+                    {{^islaunched}}
+                        {{#content.iscomplete}}{{#str}}statuscomplete, local_azmsi{{/str}}{{/content.iscomplete}}
+                        {{^content.iscomplete}}{{#content.completeweeks}}{{#str}}statusinprogress, local_azmsi{{/str}}{{/content.completeweeks}}{{^content.completeweeks}}{{#str}}statusnotstarted, local_azmsi{{/str}}{{/content.completeweeks}}{{/content.iscomplete}}
+                    {{/islaunched}}
+                </span>
+                <span class="az-pipeline-meter-wrap">
+                    <span class="az-meter" style="--az-pct: {{content.weekspct}}%"><span class="az-meter-fill"></span></span>
+                    <span class="az-pipeline-meter-label">{{#str}}weeksdone, local_azmsi, {"done": {{content.completeweeks}}, "total": {{content.totalweeks}}}{{/str}}</span>
+                </span>
+            </div>
+            <div class="az-pipeline-summary-meta">
+                <span class="az-pipeline-reqs">
+                    {{#content.courselevel}}
+                    <span class="az-req-pill {{#ok}}az-req-pill--ok{{/ok}}{{^ok}}az-req-pill--miss{{/ok}}" title="{{label}}">{{shortlabel}}</span>
+                    {{/content.courselevel}}
+                </span>
+                <span class="az-pipeline-weeks">
+                    {{#content.weeks}}
+                    <span class="az-pipeline-week-badge {{#complete}}az-pipeline-week-badge--done{{/complete}}{{^complete}}{{#activitiesok}}{{#contentok}}az-pipeline-week-badge--miss{{/contentok}}{{^contentok}}az-pipeline-week-badge--partial{{/contentok}}{{/activitiesok}}{{^activitiesok}}az-pipeline-week-badge--miss{{/activitiesok}}{{/complete}}" title="{{name}}">{{shortlabel}}</span>
+                    {{/content.weeks}}
+                </span>
+            </div>
+        </summary>
+
+        <div class="az-pipeline-body">
+            <div class="az-pipeline-body-grid">
+                <section class="az-pipeline-panel">
+                    <h3 class="az-pipeline-panel-title">{{#str}}courserequirements, local_azmsi{{/str}}</h3>
+                    <p class="az-pipeline-panel-note">{{#str}}weekcompletionrule, local_azmsi{{/str}}</p>
+                    <ul class="az-pipeline-checks">
+                        {{#content.courselevel}}
+                        <li class="{{#ok}}az-ok{{/ok}}{{^ok}}az-miss{{/ok}}">
+                            <span class="az-tick">{{#ok}}&#10003;{{/ok}}{{^ok}}&#10007;{{/ok}}</span> {{label}}
+                        </li>
+                        {{/content.courselevel}}
+                    </ul>
+                </section>
+
+                <section class="az-pipeline-panel">
+                    <h3 class="az-pipeline-panel-title">{{#str}}weeklybreakdown, local_azmsi{{/str}}</h3>
+                    <div class="az-pipeline-week-grid">
+                        {{#content.weeks}}
+                        <a class="az-pipeline-week-tile {{#complete}}az-is-complete{{/complete}}" href="{{../completenessurl}}#week-{{num}}">
+                            <span class="az-pipeline-week-tile-num">{{shortlabel}}</span>
+                            <span class="az-pipeline-week-tile-name">{{name}}</span>
+                            <span class="az-pipeline-week-tile-status">
+                                {{#complete}}{{#str}}weekcompletebadge, local_azmsi{{/str}}{{/complete}}
+                                {{^complete}}{{#activitiesok}}{{#contentok}}{{#str}}weekblockedbadge, local_azmsi{{/str}}{{/contentok}}{{^contentok}}{{#str}}weekpartialbadge, local_azmsi{{/str}}{{/contentok}}{{/activitiesok}}{{^activitiesok}}{{#str}}weekincompletebadge, local_azmsi{{/str}}{{/activitiesok}}{{/complete}}
+                            </span>
+                        </a>
+                        {{/content.weeks}}
+                    </div>
+                    <a class="az-pipeline-detail-link" href="{{completenessurl}}">{{#str}}viewcontentanalysis, local_azmsi{{/str}} &rarr;</a>
+                </section>
+
+                <section class="az-pipeline-panel az-pipeline-panel--stages">
+                    <h3 class="az-pipeline-panel-title">{{#str}}buildstages, local_azmsi{{/str}}</h3>
+                    <div class="az-pipeline-stages">
+                        {{#stages}}
+                        <div class="az-pipeline-stage az-pipeline-stage--{{value}}">
+                            <span class="az-pipeline-stage-label">{{label}}</span>
+                            {{#cannext}}
+                            <form method="post" action="{{config.wwwroot}}/local/azmsi/admin.php">
+                                <input type="hidden" name="sesskey" value="{{../sesskey}}">
+                                <input type="hidden" name="action" value="advance">
+                                <input type="hidden" name="courseid" value="{{../courseid}}">
+                                <input type="hidden" name="stage" value="{{key}}">
+                                <input type="hidden" name="value" value="{{nextvalue}}">
+                                <button type="submit" class="az-pipeline-stage-btn" title="{{value}} &rarr; {{nextvalue}}">{{value}}</button>
+                            </form>
+                            {{/cannext}}
+                            {{^cannext}}<span class="az-pipeline-stage-btn">{{value}}</span>{{/cannext}}
+                        </div>
+                        {{/stages}}
+                    </div>
+                </section>
+            </div>
+        </div>
+    </details>
+    {{/pipeline}}
+        <div class="az-pipeline-empty" data-az-empty hidden>{{#str}}nopipelinematches, local_azmsi{{/str}}</div>
+    </div>
+</div>
+{{#js}}
+require([], function() {
+    var board = document.querySelector('[data-region="az-pipeline"]');
+    if (!board) { return; }
+    var cards = Array.prototype.slice.call(board.querySelectorAll('[data-az-card]'));
+    var searchInput = board.querySelector('[data-az-search]');
+    var countEl = board.querySelector('[data-az-count]');
+    var emptyEl = board.querySelector('[data-az-empty]');
+    var filterBtns = Array.prototype.slice.call(board.querySelectorAll('[data-az-filter]'));
+    var expandBtn = board.querySelector('[data-az-expand]');
+    var state = { filter: 'all', q: '' };
+
+    var apply = function() {
+        var shown = 0;
+        cards.forEach(function(c) {
+            var status = c.getAttribute('data-az-status') || '';
+            var key = c.getAttribute('data-az-search') || '';
+            var okFilter = state.filter === 'all' || status.indexOf(state.filter) !== -1;
+            var okSearch = !state.q || key.indexOf(state.q) !== -1;
+            var show = okFilter && okSearch;
+            c.hidden = !show;
+            if (show) { shown++; }
+        });
+        if (countEl) { countEl.textContent = shown + ' / ' + cards.length; }
+        if (emptyEl) { emptyEl.hidden = shown !== 0; }
+    };
+
+    filterBtns.forEach(function(b) {
+        b.addEventListener('click', function() {
+            state.filter = b.getAttribute('data-az-filter');
+            filterBtns.forEach(function(x) { x.classList.toggle('is-active', x === b); });
+            apply();
+        });
+    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            state.q = searchInput.value.trim().toLowerCase();
+            apply();
+        });
+    }
+    if (expandBtn) {
+        expandBtn.addEventListener('click', function() {
+            var anyClosed = cards.some(function(c) { return !c.hidden && !c.open; });
+            cards.forEach(function(c) { if (!c.hidden) { c.open = anyClosed; } });
+            expandBtn.textContent = anyClosed
+                ? expandBtn.getAttribute('data-collapse')
+                : expandBtn.getAttribute('data-expand');
+        });
+    }
+    apply();
+});
+{{/js}}

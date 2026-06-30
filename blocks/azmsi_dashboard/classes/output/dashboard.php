@@ -24,9 +24,9 @@ use local_azmsi\local\overview;
 /**
  * AZMSI student dashboard (S4) renderable.
  *
- * Pulls the shared overview composition (local_azmsi) — greeting, continue card,
- * course cards, due-this-week, program map, KPIs — all from live Moodle data,
- * nothing hardcoded. Output via Mustache + theme_azmsi tokens.
+ * Pulls the shared overview composition (local_azmsi) — greeting, continue banner,
+ * in-progress course cards, due-this-week, eMD journey — all from live Moodle data.
+ * No switch-portal block and no admissions content on the student dashboard.
  *
  * @package    block_azmsi_dashboard
  * @copyright  2026 AZMSI
@@ -63,41 +63,47 @@ class dashboard implements named_templatable, renderable {
      */
     public function export_for_template(renderer_base $output): array {
         $data = overview::for_user($this->userid);
+        $due = $data['dueweek'] ?? ['items' => [], 'range' => '', 'hasitems' => false];
+        $journey = $data['journey'] ?? [];
 
-        // Per-course presentation flags/labels (Mustache can't compare strings).
         $courses = array_map(static function ($c) {
             $inprogress = $c['status'] === 'in_progress';
             $c['status_inprogress'] = $inprogress;
             $c['statuslabel'] = get_string($inprogress ? 'statusinprogress' : 'statusplanned', 'block_azmsi_dashboard');
             $c['hascredits'] = $c['credits'] > 0;
+            $c['hasinstructor'] = !empty($c['instructor']);
+            $c['weeklabel'] = get_string('weekn', 'block_azmsi_dashboard', (int) ($c['week'] ?? 1));
             return $c;
         }, $data['courses']);
-        $data['courses'] = $courses;
 
-        // Capability-gated Switch Portal (reuse the theme component when present).
-        $switchportal = null;
-        if (class_exists('\\theme_azmsi\\output\\switch_portal')) {
-            $portal = new \theme_azmsi\output\switch_portal();
-            $exported = $portal->export_for_template($output);
-            $switchportal = !empty($exported['haslinks']) ? $exported : null;
+        $continuedata = $data['continue'] ?? ['has' => false];
+        if (!empty($continuedata['has']) && empty($continuedata['coursecode'])) {
+            $continuedata['coursecode'] = '';
         }
 
         return [
-            'firstname'        => $data['firstname'],
-            'fullname'         => $data['fullname'],
-            'average'          => $data['average'],
-            'hasaverage'       => $data['average'] > 0,
-            'modulescompleted' => $data['modulescompleted'],
-            'coursecount'      => $data['coursecount'],
-            'continue'         => $data['continue'],
-            'courses'          => $data['courses'],
-            'hascourses'       => !empty($data['courses']),
-            'dueweek'          => $data['dueweek'],
-            'hasdueweek'       => !empty($data['dueweek']),
-            'duecount'         => count($data['dueweek']),
-            'programmap'       => $data['programmap'],
-            'switchportal'     => $switchportal,
-            'hasswitchportal'  => !is_null($switchportal),
+            'firstname'            => $data['firstname'],
+            'fullname'             => $data['fullname'],
+            'programsubtitle'      => $data['programsubtitle'] ?? '',
+            'average'              => $data['average'],
+            'hasaverage'           => $data['average'] > 0,
+            'modulescompleted'     => $data['modulescompleted'],
+            'coursecount'          => $data['coursecount'],
+            'currentquarter'       => (int) ($data['currentquarter'] ?? 0),
+            'inprogressmeta'       => $data['inprogressmeta'] ?? '',
+            'inprogresstitle'      => (int) ($data['currentquarter'] ?? 0)
+                ? get_string('inprogressquarter', 'block_azmsi_dashboard', $data['currentquarter'])
+                : get_string('inprogress', 'block_azmsi_dashboard'),
+            'continue'             => $continuedata,
+            'courses'              => $courses,
+            'hascourses'           => !empty($courses),
+            'dueweek'              => $due['items'] ?? [],
+            'duerange'             => $due['range'] ?? '',
+            'hasdueweek'           => !empty($due['hasitems']),
+            'duecount'             => count($due['items'] ?? []),
+            'journey'              => $journey,
+            'hasjourney'           => !empty($journey['quarters']),
+            'hasnextliveclass'     => !empty($journey['hasnextliveclass']),
         ];
     }
 }

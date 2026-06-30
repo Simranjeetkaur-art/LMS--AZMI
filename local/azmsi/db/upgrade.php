@@ -29,7 +29,7 @@
  * @return bool
  */
 function xmldb_local_azmsi_upgrade($oldversion) {
-    global $DB;
+    global $DB, $CFG;
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2026061500) {
@@ -116,6 +116,40 @@ function xmldb_local_azmsi_upgrade($oldversion) {
         }
 
         upgrade_plugin_savepoint(true, 2026061600, 'local', 'azmsi');
+    }
+
+    if ($oldversion < 2026061806) {
+        require_once($CFG->dirroot . '/local/azmsi/classes/local/role_policy.php');
+        \local_azmsi\local\role_policy::apply_calendar_policy();
+        upgrade_plugin_savepoint(true, 2026061806, 'local', 'azmsi');
+    }
+
+    if ($oldversion < 2026061810) {
+        // Course + instructor ratings/reviews (Phase 3).
+        $table = new xmldb_table('local_azmsi_review');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('instructorid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('coursestars', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('coursereview', XMLDB_TYPE_TEXT, null, null, null, null, null);
+            $table->add_field('instructorstars', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('instructorreview', XMLDB_TYPE_TEXT, null, null, null, null, null);
+            $table->add_field('status', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'pending');
+            $table->add_field('approvedby', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timeapproved', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
+            $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $table->add_key('courseuser', XMLDB_KEY_UNIQUE, ['courseid', 'userid']);
+            $table->add_index('instructorstatus', XMLDB_INDEX_NOTUNIQUE, ['instructorid', 'status']);
+            $table->add_index('coursestatus', XMLDB_INDEX_NOTUNIQUE, ['courseid', 'status']);
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026061810, 'local', 'azmsi');
     }
 
     return true;

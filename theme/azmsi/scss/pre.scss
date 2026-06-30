@@ -116,6 +116,10 @@ $modal-footer-border-color: $az-line;
 $popover-bg:              $az-surface;
 $popover-border-color:    $az-line;
 
+// Drawers (Boost defaults to $gray-100 — light grey/white).
+$drawer-bg-color:         $az-bg-sidebar !default;
+$drawer-scroll-bg-track:  $az-bg-sidebar !default;
+
 // Navbar (top bar) — dark.
 $navbar-dark-color:       $az-text-2;
 $navbar-dark-hover-color: $az-text;

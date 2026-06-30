@@ -17,17 +17,10 @@
 {{!
     @template theme_azmsi/login
 
-    AZMSI branded split-screen sign-in (AGENT_02a). The right column embeds the
-    REAL Moodle login form via output.main_content (CSRF, lockout, errors,
-    remember-me and configured IdP/SSO buttons are all native). No demo block.
-
-    Context variables required for this template:
-    * output - core renderer
-    * bodyattributes - body tag attributes
-    * logineyebrow / loginheadline / loginsubhead - editable brand copy
-    * logourl - optional crest/logo moodle_url (null = text wordmark only)
-    * applyurl / wwwroot - utility links
-    * year - current year for the footer
+    AZMSI portal landing (AGENT_02a). A marketing-style page whose sign-in card
+    embeds the REAL Moodle login form via output.main_content (CSRF, lockout,
+    errors, remember-me, IdP buttons all native). Stats, year cards and the
+    Quarter-1 course cards are passed live from the catalog.
 
     Example context (json):
     {
@@ -35,12 +28,25 @@
         "output": { "doctype": "<!DOCTYPE html>", "page_title": "Sign in", "favicon": "favicon.ico", "main_content": "<form>…</form>" },
         "bodyattributes": "",
         "logineyebrow": "Executive Medical Doctorate · LMS",
-        "loginheadline": "The campus for the future of medical science.",
-        "loginsubhead": "One online learning environment, built for working professionals.",
+        "loginheadline": "Advance medical science. From anywhere.",
+        "loginsubhead": "Your courses, assessments, research and live seminars — one portal.",
         "logourl": null,
-        "applyurl": "https://azmsi.example.com",
-        "wwwroot": "https://lms.azmsi.example.com",
-        "year": "2026"
+        "azmsicom": "https://azmsi.com",
+        "applyurl": "https://azmsi.com",
+        "curriculumurl": "https://azmsi.com/curriculum",
+        "fullcatalogurl": "https://lms.azmsi.com/course/",
+        "signinanchor": "#az-signin",
+        "wwwroot": "https://lms.azmsi.com",
+        "loginhost": "lms.azmsi.com",
+        "year": "2026",
+        "totalcourses": 48,
+        "stats": [{"num": 48, "label": "Courses"}],
+        "years": [],
+        "q1courses": [],
+        "hasq1": false,
+        "features": [],
+        "experiences": [],
+        "badges": []
     }
 }}
 {{> theme_boost/head }}
@@ -48,86 +54,206 @@
 <body {{{ bodyattributes }}}>
 {{> core/local/toast/wrapper}}
 
-<div id="page-wrapper">
+<div id="page-wrapper" class="az-portal">
 
     {{{ output.standard_top_of_body_html }}}
 
-    <div id="page" class="az-login">
+    <header class="az-portal-nav">
+        <a class="az-portal-brand" href="{{wwwroot}}">
+            {{#logourl}}<img class="az-portal-logo" src="{{logourl}}" alt="{{sitename}}">{{/logourl}}
+            <span class="az-portal-brandtext">
+                <span class="az-portal-brandword">AZMSI</span>
+                <span class="az-portal-brandsub">{{#str}}studentfacultyportal, theme_azmsi{{/str}}</span>
+            </span>
+        </a>
+        <nav class="az-portal-navlinks" aria-label="{{sitename}}">
+            <a href="#az-program">{{#str}}navprogram, theme_azmsi{{/str}}</a>
+            <a href="{{curriculumurl}}">{{#str}}navcurriculum, theme_azmsi{{/str}}</a>
+            <a href="#az-platform">{{#str}}navplatform, theme_azmsi{{/str}}</a>
+            <a href="{{applyurl}}">{{#str}}navadmissions, theme_azmsi{{/str}}</a>
+        </nav>
+        <div class="az-portal-navactions">
+            <a class="az-portal-navback" href="{{azmsicom}}">&larr; azmsi.com</a>
+            <a class="az-portal-btn az-portal-btn--outline" href="{{signinanchor}}">{{#str}}login, core{{/str}}</a>
+            <a class="az-portal-btn az-portal-btn--gold" href="{{applyurl}}">{{#str}}applynow, theme_azmsi{{/str}}</a>
+        </div>
+    </header>
 
-        <aside class="az-login-brand">
-            <div class="az-login-grid" aria-hidden="true"></div>
-
-            <div class="az-login-brandrow">
-                {{#logourl}}<img class="az-brand-logo" src="{{logourl}}" alt="{{sitename}}">{{/logourl}}
-                <div class="az-brand">
-                    <span class="az-brand-word">AZMSI</span>
-                    <span class="az-brand-sub">Student &amp; Faculty Portal</span>
+    {{! ---------- HERO + sign-in ---------- }}
+    <section class="az-portal-hero">
+        <div class="az-portal-hero-grid" aria-hidden="true"></div>
+        <div class="az-portal-hero-inner">
+            <div class="az-portal-hero-copy">
+                <div class="az-eyebrow az-portal-eyebrow"><span class="az-login-rule"></span>{{logineyebrow}}</div>
+                <h1 class="az-portal-h1">{{loginheadline}}</h1>
+                <p class="az-portal-sub az-serif">{{loginsubhead}}</p>
+                <div class="az-portal-hero-cta">
+                    <a class="az-portal-btn az-portal-btn--gold az-portal-btn--lg" href="{{signinanchor}}">{{#str}}logintoportal, theme_azmsi{{/str}}</a>
+                    <a class="az-portal-btn az-portal-btn--ghost" href="{{curriculumurl}}">{{#str}}explorecurriculum, theme_azmsi{{/str}}</a>
+                </div>
+                <div class="az-portal-stats az-kpi-strip">
+                    {{#stats}}
+                    <div class="az-kpi"><div class="az-kpi-num {{#hi}}az-kpi-num--hi{{/hi}}">{{num}}</div><div class="az-kpi-label">{{label}}</div></div>
+                    {{/stats}}
                 </div>
             </div>
 
-            <div class="az-login-hero">
-                <div class="az-login-eyebrow"><span class="az-login-rule"></span>{{logineyebrow}}</div>
-                <h1 class="az-login-headline">{{loginheadline}}</h1>
-                <p class="az-login-subhead az-serif">{{loginsubhead}}</p>
-
-                <div class="az-login-stats az-kpi-strip">
-                    <div class="az-kpi"><div class="az-kpi-num">12</div><div class="az-kpi-label">Quarters</div></div>
-                    <div class="az-kpi"><div class="az-kpi-num">48</div><div class="az-kpi-label">Courses</div></div>
-                    <div class="az-kpi"><div class="az-kpi-num az-kpi-num--hi">100%</div><div class="az-kpi-label">Online</div></div>
+            <div class="az-portal-signin" id="az-signin">
+                <div class="az-portal-signin-head">
+                    <div class="az-eyebrow">{{#str}}welcomeback, theme_azmsi{{/str}}</div>
+                    <h2 class="az-portal-signin-title">{{#str}}enterportal, theme_azmsi{{/str}}</h2>
                 </div>
-            </div>
-
-            <div class="az-login-seal">
-                <span class="az-login-medallion"><img src="{{cresturl}}" alt=""></span>
-                <div class="az-login-sealtext">
-                    <span class="az-login-institute">Arizona Medical Sciences Institute</span>
-                    <span class="az-login-tagline">Educate · Innovate · Lead · Transform</span>
-                </div>
-            </div>
-        </aside>
-
-        <main id="region-main" class="az-login-main">
-            <div class="az-login-utility">
-                <a class="az-login-back" href="{{applyurl}}">&larr; Back to azmsi.com</a>
-                <a class="az-login-apply az-cta" href="{{applyurl}}">Apply</a>
-            </div>
-
-            <div class="az-login-card">
-                <div class="az-login-card-head">
-                    <div class="az-login-eyebrow">{{#str}}welcomeback, theme_azmsi{{/str}}</div>
-                    <h2 class="az-login-card-title">{{#str}}signintoportal, theme_azmsi{{/str}}</h2>
-                    <p class="az-login-card-sub">{{#str}}signinsubtitle, theme_azmsi{{/str}}</p>
-                </div>
-
-                {{! The real Moodle login form (username/password/login/forgot/remember-me/IdP buttons). }}
-                <div class="az-login-form">
+                {{! The REAL Moodle login form (username/password/login/forgot/remember-me/IdP). }}
+                <div class="az-portal-signin-form">
                     {{{ output.main_content }}}
                 </div>
-
-                {{#showdemoaccess}}
-                <div class="az-demo">
-                    <div class="az-demo-label">{{#str}}demoaccess, theme_azmsi{{/str}}</div>
-                    <div class="az-demo-grid">
-                        {{#demolinks}}
-                            <a class="az-demo-link az-demo-link--{{accent}}" href="{{url}}">
-                                <span class="az-demo-dot"></span>{{label}}
-                            </a>
-                        {{/demolinks}}
-                    </div>
-                </div>
-                {{/showdemoaccess}}
             </div>
+        </div>
+    </section>
 
-            <div class="az-login-footer">
-                <span class="az-login-copy">&copy; {{year}} AZMSI &middot; {{sitehost}}</span>
-                <span class="az-login-links">
-                    <span class="az-login-link">{{#str}}support, theme_azmsi{{/str}}</span>
-                    <span class="az-login-link">{{#str}}systemstatus, theme_azmsi{{/str}}</span>
-                    <a class="az-login-link" href="{{wwwroot}}/admin/tool/dataprivacy/summary.php">{{#str}}privacy, theme_azmsi{{/str}}</a>
+    {{! ---------- institution band ---------- }}
+    <div class="az-portal-band">
+        <span class="az-portal-band-label">{{#str}}institutionline, theme_azmsi{{/str}}</span>
+        <div class="az-portal-band-badges">
+            {{#badges}}<span class="az-portal-badge">+ {{label}}</span>{{/badges}}
+        </div>
+    </div>
+
+    {{! ---------- the program ---------- }}
+    <section class="az-portal-section" id="az-program">
+        <div class="az-portal-section-head">
+            <div>
+                <div class="az-eyebrow">{{#str}}theprogram, theme_azmsi{{/str}}</div>
+                <h2 class="az-portal-h2">{{#str}}programheadline, theme_azmsi{{/str}}</h2>
+            </div>
+            <a class="az-portal-btn az-portal-btn--gold az-portal-btn--sm" href="{{fullcatalogurl}}">{{#str}}viewallcourses, theme_azmsi, {{totalcourses}}{{/str}}</a>
+        </div>
+        <div class="az-portal-years">
+            {{#years}}
+            <div class="az-portal-year az-portal-year--{{accent}}">
+                <div class="az-portal-year-top">
+                    <span class="az-eyebrow">{{#str}}yearlabel, theme_azmsi, {{ordinal}}{{/str}}</span>
+                    <span class="az-portal-year-num">{{num}}</span>
+                </div>
+                <h3 class="az-portal-year-title">{{title}}</h3>
+                <p class="az-portal-year-desc">{{desc}}</p>
+                <ul class="az-portal-year-bullets">
+                    {{#bullets}}<li>{{.}}</li>{{/bullets}}
+                </ul>
+                <div class="az-portal-year-meta">{{quarters}} &middot; {{#str}}ncourses, theme_azmsi, {{courses}}{{/str}}</div>
+            </div>
+            {{/years}}
+        </div>
+    </section>
+
+    {{! ---------- inside the platform ---------- }}
+    <section class="az-portal-section" id="az-platform">
+        <div class="az-eyebrow">{{#str}}insideplatform, theme_azmsi{{/str}}</div>
+        <h2 class="az-portal-h2 az-portal-h2--wide">{{#str}}platformheadline, theme_azmsi{{/str}}</h2>
+        <div class="az-portal-features">
+            {{#features}}
+            <div class="az-portal-feature">
+                <span class="az-portal-feature-icon az-portal-feature-icon--{{accent}}">{{{icon}}}</span>
+                <h3 class="az-portal-feature-title">{{title}}</h3>
+                <p class="az-portal-feature-desc">{{desc}}</p>
+            </div>
+            {{/features}}
+        </div>
+    </section>
+
+    {{! ---------- quarter 1 courses ---------- }}
+    {{#hasq1}}
+    <section class="az-portal-section">
+        <div class="az-portal-section-head">
+            <div>
+                <div class="az-eyebrow">{{#str}}q1nowenrolling, theme_azmsi{{/str}}</div>
+                <h2 class="az-portal-h2">{{#str}}startfoundations, theme_azmsi{{/str}}</h2>
+            </div>
+            <a class="az-portal-link-gold" href="{{fullcatalogurl}}">{{#str}}fullcatalog, theme_azmsi{{/str}}</a>
+        </div>
+        <div class="az-portal-courses">
+            {{#q1courses}}
+            <a class="az-portal-course" href="{{url}}">
+                <div class="az-portal-course-img az-portal-course-img--{{accent}}">
+                    <span class="az-portal-course-code">{{code}}</span>
+                </div>
+                <div class="az-portal-course-body">
+                    <h3 class="az-portal-course-name">{{name}}</h3>
+                    <div class="az-portal-course-meta">{{#str}}nweekscredits, theme_azmsi, {"weeks": "{{weeks}}", "credits": "{{credits}}"}{{/str}}</div>
+                    <span class="az-portal-course-link">{{#str}}previewcourse, theme_azmsi{{/str}}</span>
+                </div>
+            </a>
+            {{/q1courses}}
+        </div>
+    </section>
+    {{/hasq1}}
+
+    {{! ---------- built for everyone ---------- }}
+    <section class="az-portal-section">
+        <div class="az-eyebrow">{{#str}}builtforeveryone, theme_azmsi{{/str}}</div>
+        <h2 class="az-portal-h2">{{#str}}threeexperiences, theme_azmsi{{/str}}</h2>
+        <div class="az-portal-experiences">
+            {{#experiences}}
+            <div class="az-portal-exp">
+                <div class="az-portal-exp-head">
+                    <span class="az-portal-exp-avatar az-portal-exp-avatar--{{accent}}">{{letter}}</span>
+                    <h3 class="az-portal-exp-title">{{title}}</h3>
+                </div>
+                <ul class="az-portal-exp-bullets">
+                    {{#bullets}}<li>&#10003; {{.}}</li>{{/bullets}}
+                </ul>
+                <a class="az-portal-link-gold" href="{{signinanchor}}">{{linklabel}}</a>
+            </div>
+            {{/experiences}}
+        </div>
+    </section>
+
+    {{! ---------- CTA ---------- }}
+    <section class="az-portal-cta">
+        <div class="az-portal-cta-copy">
+            <h2 class="az-portal-cta-title">{{#str}}begindoctorate, theme_azmsi{{/str}}</h2>
+            <p class="az-portal-cta-sub">{{#str}}begindoctoratesub, theme_azmsi{{/str}}</p>
+        </div>
+        <div class="az-portal-cta-actions">
+            <a class="az-portal-btn az-portal-btn--gold" href="{{applyurl}}">{{#str}}applynow, theme_azmsi{{/str}}</a>
+            <a class="az-portal-btn az-portal-btn--outline-light" href="{{signinanchor}}">{{#str}}login, core{{/str}}</a>
+        </div>
+    </section>
+
+    {{! ---------- footer ---------- }}
+    <footer class="az-portal-footer">
+        <div class="az-portal-footer-brand">
+            <div class="az-portal-brand">
+                {{#logourl}}<img class="az-portal-logo" src="{{logourl}}" alt="">{{/logourl}}
+                <span class="az-portal-brandtext">
+                    <span class="az-portal-brandword">AZMSI {{#str}}portal, theme_azmsi{{/str}}</span>
+                    <span class="az-portal-brandsub">{{loginhost}}</span>
                 </span>
             </div>
-        </main>
-    </div>
+            <p class="az-portal-footer-tag">{{#str}}footertagline, theme_azmsi{{/str}}</p>
+        </div>
+        <div class="az-portal-footer-col">
+            <div class="az-portal-footer-head">{{#str}}footerprogram, theme_azmsi{{/str}}</div>
+            <a href="{{curriculumurl}}">{{#str}}navcurriculum, theme_azmsi{{/str}}</a>
+            <a href="{{applyurl}}">{{#str}}navadmissions, theme_azmsi{{/str}}</a>
+            <a href="{{azmsicom}}">{{#str}}aboutazmsi, theme_azmsi{{/str}}</a>
+        </div>
+        <div class="az-portal-footer-col">
+            <div class="az-portal-footer-head">{{#str}}footerportal, theme_azmsi{{/str}}</div>
+            <a href="{{signinanchor}}">{{#str}}login, core{{/str}}</a>
+            <a href="{{wwwroot}}/my">{{#str}}myhome, core{{/str}}</a>
+            <a href="{{wwwroot}}/login/forgot_password.php">{{#str}}helpcenter, theme_azmsi{{/str}}</a>
+        </div>
+        <div class="az-portal-footer-col">
+            <div class="az-portal-footer-head">{{#str}}footercontact, theme_azmsi{{/str}}</div>
+            <a href="mailto:{{supportemail}}">{{supportemail}}</a>
+            <a href="mailto:{{admissionsemail}}">{{admissionsemail}}</a>
+            <span>{{phone}}</span>
+        </div>
+        <div class="az-portal-footer-base">
+            &copy; {{year}} Arizona Medical Sciences Institute. {{#str}}allrightsreserved, theme_azmsi{{/str}}
+        </div>
+    </footer>
 </div>
 
 </body>

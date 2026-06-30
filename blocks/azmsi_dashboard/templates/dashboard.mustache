@@ -1,42 +1,24 @@
 {{!
-    This file is part of Moodle - http://moodle.org/
-
-    Moodle is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Moodle is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-}}
-{{!
     @template block_azmsi_dashboard/dashboard
 
-    AZMSI student dashboard (03_SCREEN_SPECS S4). All values come from the shared
-    local_azmsi overview composition (live completion/gradebook/calendar/customfields).
-
-    Context: firstname, fullname, average, hasaverage, modulescompleted, coursecount,
-    continue{has,name,coursename,url}, courses[{code,name,credits,progress,status,url}],
-    dueweek[{name,url,due}], hasdueweek, duecount, programmap[{quarter,status,current}],
-    switchportal{label,links[]}, hasswitchportal.
+    AZMSI student dashboard (S4). All values come from the shared local_azmsi overview
+    composition (live completion, gradebook, calendar, custom fields). No switch
+    portal and no admissions content on this page.
 }}
 <div class="az-dashboard">
 
     <header class="az-dash-greeting">
         <h1 class="az-dash-hello">{{#str}}greeting, block_azmsi_dashboard, {{firstname}}{{/str}}</h1>
+        {{#programsubtitle}}<p class="az-dash-subtitle">{{programsubtitle}}</p>{{/programsubtitle}}
     </header>
 
     {{#continue.has}}
     <section class="az-continue-banner" aria-label="{{#str}}continue, block_azmsi_dashboard{{/str}}">
         <div class="az-continue-body">
-            <div class="az-continue-eyebrow">{{#str}}continue, block_azmsi_dashboard{{/str}} &middot; {{continue.coursename}}</div>
-            <div class="az-continue-title">{{continue.name}}</div>
-            <a class="az-cta" href="{{continue.url}}">{{#str}}resume, block_azmsi_dashboard{{/str}} &rarr;</a>
+            <div class="az-continue-eyebrow">{{#str}}continue, block_azmsi_dashboard{{/str}}{{#continue.coursecode}} &middot; {{continue.coursecode}}{{/continue.coursecode}}</div>
+            <div class="az-continue-title">{{{continue.name}}}</div>
+            {{#continue.progresstext}}<p class="az-continue-meta">{{continue.progresstext}}</p>{{/continue.progresstext}}
+            <a class="az-cta" href="{{continue.url}}">{{continue.resumelabel}} &rarr;</a>
         </div>
         <div class="az-continue-stats az-kpi-strip">
             <div class="az-kpi">
@@ -60,24 +42,27 @@
     {{#hascourses}}
     <section class="az-dash-section">
         <div class="az-dash-section-head">
-            <h2 class="az-dash-section-title">{{#str}}inprogress, block_azmsi_dashboard{{/str}}</h2>
-            <span class="az-eyebrow">{{coursecount}} {{#str}}courses, block_azmsi_dashboard{{/str}}</span>
+            <h2 class="az-dash-section-title">{{inprogresstitle}}</h2>
+            {{#inprogressmeta}}<span class="az-eyebrow">{{inprogressmeta}}</span>{{/inprogressmeta}}
         </div>
         <div class="az-dash-cards">
             {{#courses}}
-            <a class="az-course-card" href="{{url}}">
+            <a class="az-course-card {{#isprimary}}az-course-card--primary{{/isprimary}}" href="{{url}}">
                 <div class="az-course-card-top">
                     <span class="az-course-code">&#9656; {{code}}</span>
-                    {{#status_inprogress}}<span class="az-pill az-pill--gold">{{statuslabel}}</span>{{/status_inprogress}}
-                    {{^status_inprogress}}<span class="az-pill az-pill--mute">{{statuslabel}}</span>{{/status_inprogress}}
+                    <span class="az-pill az-pill--{{#isprimary}}gold{{/isprimary}}{{^isprimary}}mute{{/isprimary}}">{{weeklabel}}</span>
                 </div>
                 <div class="az-course-card-body">
                     <div class="az-course-name">{{name}}</div>
-                    {{#hascredits}}<div class="az-course-meta">{{credits}} {{#str}}credits, block_azmsi_dashboard{{/str}}</div>{{/hascredits}}
+                    {{#hasinstructor}}<div class="az-course-meta">{{instructor}}{{#hascredits}} &middot; {{credits}} {{#str}}credits, block_azmsi_dashboard{{/str}}{{/hascredits}}</div>{{/hasinstructor}}
+                    {{^hasinstructor}}{{#hascredits}}<div class="az-course-meta">{{credits}} {{#str}}credits, block_azmsi_dashboard{{/str}}</div>{{/hascredits}}{{/hasinstructor}}
                 </div>
                 <div class="az-course-card-foot">
                     <div class="az-progress"><div class="az-progress-fill" style="--az-pct:{{progress}}%"></div></div>
-                    <div class="az-course-progresslabel">{{progress}}% {{#str}}complete, block_azmsi_dashboard{{/str}}</div>
+                    <div class="az-course-card-footrow">
+                        <span class="az-course-progresslabel">{{progress}}% {{#str}}completeupper, block_azmsi_dashboard{{/str}}</span>
+                        <span class="az-course-open">{{#str}}open, block_azmsi_dashboard{{/str}} &rarr;</span>
+                    </div>
                 </div>
             </a>
             {{/courses}}
@@ -85,33 +70,54 @@
     </section>
     {{/hascourses}}
 
-    {{#hasdueweek}}
-    <section class="az-dash-section">
-        <h2 class="az-dash-section-title">{{#str}}duethisweek, block_azmsi_dashboard{{/str}}</h2>
-        <ul class="az-checklist">
-            {{#dueweek}}
-            <li class="az-check az-check--due">
-                <span class="az-check-mark">&#9656;</span>
-                <a class="az-check-link" href="{{url}}">{{name}}</a>
-                <span class="az-check-due">{{due}}</span>
-            </li>
-            {{/dueweek}}
-        </ul>
-    </section>
-    {{/hasdueweek}}
+    <div class="az-dash-bottom">
+        <section class="az-card az-dueweek">
+            <div class="az-card-head az-card-head--split">
+                <span>{{#str}}duethisweek, block_azmsi_dashboard{{/str}}</span>
+                {{#duerange}}<span class="az-card-head-meta">{{duerange}}</span>{{/duerange}}
+            </div>
+            <div class="az-card-body az-dueweek-body">
+                {{#dueweek}}
+                <a class="az-due-row" href="{{url}}">
+                    <span class="az-due-type az-due-type--{{typeclass}}">{{typelabel}}</span>
+                    <span class="az-due-id">
+                        <span class="az-due-name">{{name}}</span>
+                        {{#coursecode}}<span class="az-due-meta">{{coursecode}}</span>{{/coursecode}}
+                    </span>
+                    <span class="az-due-when">{{dueshort}}</span>
+                </a>
+                {{/dueweek}}
+                {{^hasdueweek}}<p class="az-text-mute">{{#str}}noduelist, block_azmsi_dashboard{{/str}}</p>{{/hasdueweek}}
+            </div>
+        </section>
 
-    <section class="az-dash-section">
-        <h2 class="az-dash-section-title">{{#str}}programmap, block_azmsi_dashboard{{/str}}</h2>
-        <ol class="az-progmap">
-            {{#programmap}}
-            <li class="az-progmap-q az-progmap-q--{{status}} {{#current}}az-progmap-q--current{{/current}}">
-                <span class="az-progmap-num">{{#str}}quartern, block_azmsi_dashboard, {{quarter}}{{/str}}</span>
-            </li>
-            {{/programmap}}
-        </ol>
-    </section>
-
-    {{#hasswitchportal}}
-        {{> theme_azmsi/switchportal }}
-    {{/hasswitchportal}}
+        {{#hasjourney}}
+        <section class="az-card az-journey">
+            <div class="az-card-head">
+                <span class="az-journey-title">{{#str}}emdjourney, block_azmsi_dashboard{{/str}}</span>
+                <span class="az-journey-sub">{{#str}}emdjourneysub, block_azmsi_dashboard{{/str}}</span>
+            </div>
+            <div class="az-card-body">
+                <div class="az-journey-chips">
+                    {{#journey.quarters}}
+                    <span class="az-journey-chip az-journey-chip--{{status}}{{#highlight}} az-journey-chip--hi{{/highlight}}">{{label}}</span>
+                    {{/journey.quarters}}
+                </div>
+                <div class="az-journey-progress">
+                    <div class="az-journey-progress-head">
+                        <span>{{#str}}programprogress, block_azmsi_dashboard{{/str}}</span>
+                        <span class="az-journey-progress-val">{{journey.programprogresslabel}}</span>
+                    </div>
+                    <div class="az-progress"><div class="az-progress-fill az-progress-fill--gold" style="--az-pct:{{journey.programprogress}}%"></div></div>
+                </div>
+                {{#hasnextliveclass}}
+                <div class="az-journey-live">
+                    <span class="az-journey-live-cap">{{#str}}nextliveclass, block_azmsi_dashboard{{/str}}</span>
+                    <span class="az-journey-live-text">{{journey.nextliveclass.text}}</span>
+                </div>
+                {{/hasnextliveclass}}
+            </div>
+        </section>
+        {{/hasjourney}}
+    </div>
 </div>
