@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/flashdeck/db" VERSION="20260708" COMMENT="XMLDB file for Moodle mod/flashdeck"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="flashdeck" COMMENT="One row per flashdeck activity instance">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course this activity belongs to"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Deck name"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Activity introduction"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field"/>
+        <FIELD NAME="scheduler" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="sm2" SEQUENCE="false" COMMENT="Spaced-repetition scheduler for this deck: sm2 or leitner"/>
+        <FIELD NAME="newperday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="20" SEQUENCE="false" COMMENT="Maximum new cards introduced per learner per day"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="flashdeck_cards" COMMENT="Cards belonging to a deck; type-specific payload lives in the content JSON">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="deckid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Owning flashdeck instance"/>
+        <FIELD NAME="cardtype" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="basic" SEQUENCE="false" COMMENT="Card type identifier from the card-type registry"/>
+        <FIELD NAME="position" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Sort order within the deck"/>
+        <FIELD NAME="tags" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Comma-separated topic tags for filtering and reuse"/>
+        <FIELD NAME="content" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Validated JSON payload with the type-specific card content"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User who last edited the card"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="deckid" TYPE="foreign" FIELDS="deckid" REFTABLE="flashdeck" REFFIELDS="id"/>
+        <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="deckid-position" UNIQUE="false" FIELDS="deckid, position" COMMENT="Fast ordered listing of a deck"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="flashdeck_review" COMMENT="Per-user, per-card spaced-repetition state (privacy-sensitive)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="deckid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Owning flashdeck instance, denormalised for fast due queries"/>
+        <FIELD NAME="cardid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Card being scheduled"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Learner this state belongs to"/>
+        <FIELD NAME="easefactor" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="2.5" SEQUENCE="false" DECIMALS="2" COMMENT="SM-2 ease factor"/>
+        <FIELD NAME="intervaldays" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Current interval in days"/>
+        <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp the card next becomes due"/>
+        <FIELD NAME="repetitions" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Successful reviews in a row"/>
+        <FIELD NAME="lapses" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Times the card fell back to relearning"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="new" SEQUENCE="false" COMMENT="new, learning, review or relearning"/>
+        <FIELD NAME="lastgrade" TYPE="int" LENGTH="4" NOTNULL="false" SEQUENCE="false" COMMENT="Last self-grade: 0 again, 1 hard, 2 good, 3 easy"/>
+        <FIELD NAME="lastreviewed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of the last review"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="deckid" TYPE="foreign" FIELDS="deckid" REFTABLE="flashdeck" REFFIELDS="id"/>
+        <KEY NAME="cardid" TYPE="foreign" FIELDS="cardid" REFTABLE="flashdeck_cards" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="cardid-userid" UNIQUE="true" FIELDS="cardid, userid" COMMENT="One scheduling row per learner per card"/>
+        <INDEX NAME="deckid-userid-duedate" UNIQUE="false" FIELDS="deckid, userid, duedate" COMMENT="Fast lookup of due cards in a deck"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

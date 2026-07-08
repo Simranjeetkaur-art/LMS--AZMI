@@ -1,0 +1,291 @@
+/*
+ * mod_flashdeck styles.
+ *
+ * Every colour and face font is a CSS custom property declared once in
+ * the block below, so a theme can re-skin the plugin (including the
+ * word-part role colours) by overriding the variables — components
+ * never reference raw hex values directly. Defaults follow the program
+ * identity: deep teal/navy shell, warm off-white card surfaces, gold
+ * accent, serif card faces. All defaults meet WCAG AA on the surface.
+ */
+.path-mod-flashdeck {
+    --flashdeck-surface: #faf7f0;
+    --flashdeck-ink: #212b36;
+    --flashdeck-muted: #5b6570;
+    --flashdeck-shell: #123f4f;
+    --flashdeck-accent: #b08a24;
+    --flashdeck-serif: Georgia, 'Times New Roman', serif;
+    --flashdeck-role-prefix: #145a8a;
+    --flashdeck-role-root: #8e2f4f;
+    --flashdeck-role-link: #7a5c14;
+    --flashdeck-role-suffix: #556b2f;
+}
+
+/* Local visually-hidden utility (works on both Bootstrap 4 and 5 themes). */
+.path-mod-flashdeck .flashdeck-vh {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ---------- Legend (always visible so the colour code is learnable) ---------- */
+.path-mod-flashdeck .flashdeck-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+}
+
+.path-mod-flashdeck .flashdeck-legendtitle {
+    font-weight: bold;
+    margin-right: 0.25rem;
+}
+
+.path-mod-flashdeck .flashdeck-legenditem {
+    display: inline-block;
+    padding: 0.1rem 0.6rem;
+    border: 2px solid currentColor;
+    border-radius: 1rem;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-role-prefix {
+    color: var(--flashdeck-role-prefix);
+}
+
+.path-mod-flashdeck .flashdeck-role-root {
+    color: var(--flashdeck-role-root);
+}
+
+.path-mod-flashdeck .flashdeck-role-link {
+    color: var(--flashdeck-role-link);
+}
+
+.path-mod-flashdeck .flashdeck-role-suffix {
+    color: var(--flashdeck-role-suffix);
+}
+
+/* ---------- Cards (no-JS baseline: a vertical list with native reveals) ---------- */
+.path-mod-flashdeck .flashdeck-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 44rem;
+    margin: 0 auto;
+}
+
+.path-mod-flashdeck .flashdeck-card {
+    background: var(--flashdeck-surface);
+    color: var(--flashdeck-ink);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 4px solid var(--flashdeck-accent);
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.path-mod-flashdeck .flashdeck-face-body {
+    padding: 1.5rem;
+    font-family: var(--flashdeck-serif);
+    font-size: 1.15rem;
+    text-align: center;
+}
+
+.path-mod-flashdeck .flashdeck-reveal {
+    cursor: pointer;
+    padding: 0.5rem 1.5rem;
+    color: var(--flashdeck-shell);
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-term {
+    font-size: 2rem;
+    margin: 1rem 0 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-prompthint {
+    color: var(--flashdeck-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.path-mod-flashdeck .flashdeck-dissection {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.path-mod-flashdeck .flashdeck-part {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 11rem;
+}
+
+.path-mod-flashdeck .flashdeck-parttext {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: inherit;
+    border-bottom: 3px solid currentColor;
+    padding: 0 0.15rem;
+}
+
+.path-mod-flashdeck .flashdeck-partcaption {
+    font-family: sans-serif;
+    font-size: 0.75rem;
+    color: var(--flashdeck-ink);
+    margin-top: 0.35rem;
+}
+
+.path-mod-flashdeck .flashdeck-definition {
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    padding-top: 0.75rem;
+    margin-bottom: 0;
+}
+
+/* ---------- Progress, controls, hint ---------- */
+.path-mod-flashdeck .flashdeck-progress {
+    text-align: center;
+    color: var(--flashdeck-muted);
+    margin-bottom: 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.path-mod-flashdeck .flashdeck-hint {
+    text-align: center;
+    color: var(--flashdeck-muted);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-managelink {
+    margin-top: 1.25rem;
+    text-align: center;
+}
+
+.path-mod-flashdeck .flashdeck-addbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.path-mod-flashdeck .flashdeck-actions {
+    white-space: nowrap;
+}
+
+.path-mod-flashdeck .flashdeck-actions .btn {
+    margin-right: 0.25rem;
+}
+
+/* ---------- JS-enhanced mode: one-card stage with a 3D flip ---------- */
+.flashdeck-js .flashdeck-stage {
+    display: block;
+    perspective: 1200px;
+    min-height: 20rem;
+    position: relative;
+}
+
+.flashdeck-js .flashdeck-card {
+    display: none;
+    position: relative;
+    min-height: 20rem;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.flashdeck-js .flashdeck-card.flashdeck-active {
+    display: block;
+}
+
+.flashdeck-js .flashdeck-cardinner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 20rem;
+    transform-style: preserve-3d;
+    transition: transform 0.45s ease;
+}
+
+.flashdeck-js .flashdeck-card.flashdeck-flipped .flashdeck-cardinner {
+    transform: rotateY(180deg);
+}
+
+.flashdeck-js .flashdeck-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--flashdeck-surface);
+    color: var(--flashdeck-ink);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 4px solid var(--flashdeck-accent);
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.flashdeck-js .flashdeck-face-back {
+    transform: rotateY(180deg);
+}
+
+/* The native reveal is redundant once the flip is active. */
+.flashdeck-js .flashdeck-reveal {
+    display: none;
+}
+
+/* Flip becomes a crossfade when the user prefers reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+    .flashdeck-js .flashdeck-cardinner {
+        transform-style: flat;
+        transition: none;
+    }
+
+    .flashdeck-js .flashdeck-card.flashdeck-flipped .flashdeck-cardinner {
+        transform: none;
+    }
+
+    .flashdeck-js .flashdeck-face {
+        backface-visibility: visible;
+        -webkit-backface-visibility: visible;
+        transition: opacity 0.2s ease;
+    }
+
+    .flashdeck-js .flashdeck-face-back {
+        transform: none;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .flashdeck-js .flashdeck-card.flashdeck-flipped .flashdeck-face-back {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .flashdeck-js .flashdeck-card.flashdeck-flipped .flashdeck-face-front {
+        opacity: 0;
+        pointer-events: none;
+    }
+}

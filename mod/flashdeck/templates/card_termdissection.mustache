@@ -1,0 +1,55 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/card_termdissection
+
+    Term dissection card: front shows the whole term; the back reveals
+    the term split into colour-coded word parts (prefix / root / link /
+    suffix), each captioned with its role and meaning, plus the full
+    definition. Part colours come from theme CSS variables.
+
+    Example context (json):
+    {
+        "term": "cardiology",
+        "definition": "The medical specialty devoted to the study of the heart.",
+        "parts": [
+            {"text": "cardi", "role": "root", "rolename": "Root", "meaning": "heart"},
+            {"text": "o", "role": "link", "rolename": "Link", "meaning": "combining vowel"},
+            {"text": "logy", "role": "suffix", "rolename": "Suffix", "meaning": "study of"}
+        ]
+    }
+}}
+<div class="flashdeck-face flashdeck-face-front">
+    <div class="flashdeck-face-body">
+        <p class="flashdeck-term">{{term}}</p>
+        <p class="flashdeck-prompthint">{{#str}} dissectprompt, mod_flashdeck {{/str}}</p>
+    </div>
+</div>
+<details class="flashdeck-face flashdeck-face-back">
+    <summary class="flashdeck-reveal">{{#str}} showanswer, mod_flashdeck {{/str}}</summary>
+    <div class="flashdeck-face-body">
+        <p class="flashdeck-dissection">
+            {{#parts}}
+            <span class="flashdeck-part flashdeck-role-{{role}}">
+                <span class="flashdeck-parttext">{{text}}</span>
+                <span class="flashdeck-partcaption">{{rolename}}{{#meaning}} · {{meaning}}{{/meaning}}</span>
+            </span>
+            {{/parts}}
+        </p>
+        <p class="flashdeck-definition">{{definition}}</p>
+    </div>
+</details>

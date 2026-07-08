@@ -23,6 +23,7 @@ declare -A COMPONENTS=(
   ["local/azmsi"]="local_azmsi"
   ["course/format/emd"]="format_emd"
   ["blocks/azmsi_dashboard"]="block_azmsi_dashboard"
+  ["mod/flashdeck"]="mod_flashdeck"
 )
 
 fail=0

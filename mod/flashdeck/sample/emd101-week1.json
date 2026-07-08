@@ -1,0 +1,206 @@
+{
+    "name": "EMD-101 Week 1 — Medical Terminology foundations",
+    "description": "Sample deck demonstrating the term-dissection card type: prefixes, roots, suffixes and the combining-vowel link, plus a few basic recall cards.",
+    "cards": [
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,cardiology",
+            "content": {
+                "term": "cardiology",
+                "definition": "The medical specialty devoted to the study of the heart.",
+                "parts": [
+                    {"text": "cardi", "role": "root", "meaning": "heart"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "logy", "role": "suffix", "meaning": "study of"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,cardiology",
+            "content": {
+                "term": "hypertension",
+                "definition": "Abnormally high blood pressure.",
+                "parts": [
+                    {"text": "hyper", "role": "prefix", "meaning": "excessive, above normal"},
+                    {"text": "tens", "role": "root", "meaning": "pressure, stretching"},
+                    {"text": "ion", "role": "suffix", "meaning": "condition, process"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,cardiology",
+            "content": {
+                "term": "tachycardia",
+                "definition": "An abnormally fast resting heart rate.",
+                "parts": [
+                    {"text": "tachy", "role": "prefix", "meaning": "fast"},
+                    {"text": "cardi", "role": "root", "meaning": "heart"},
+                    {"text": "a", "role": "suffix", "meaning": "condition"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,cardiology",
+            "content": {
+                "term": "bradycardia",
+                "definition": "An abnormally slow resting heart rate.",
+                "parts": [
+                    {"text": "brady", "role": "prefix", "meaning": "slow"},
+                    {"text": "cardi", "role": "root", "meaning": "heart"},
+                    {"text": "a", "role": "suffix", "meaning": "condition"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,gastroenterology",
+            "content": {
+                "term": "hepatitis",
+                "definition": "Inflammation of the liver.",
+                "parts": [
+                    {"text": "hepat", "role": "root", "meaning": "liver"},
+                    {"text": "itis", "role": "suffix", "meaning": "inflammation"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,gastroenterology",
+            "content": {
+                "term": "gastroenterology",
+                "definition": "The medical specialty concerned with the stomach and intestines.",
+                "parts": [
+                    {"text": "gastr", "role": "root", "meaning": "stomach"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "enter", "role": "root", "meaning": "intestine"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "logy", "role": "suffix", "meaning": "study of"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,dermatology",
+            "content": {
+                "term": "dermatology",
+                "definition": "The medical specialty concerned with the skin.",
+                "parts": [
+                    {"text": "dermat", "role": "root", "meaning": "skin"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "logy", "role": "suffix", "meaning": "study of"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,neurology",
+            "content": {
+                "term": "neuropathy",
+                "definition": "Disease or damage of the peripheral nerves.",
+                "parts": [
+                    {"text": "neur", "role": "root", "meaning": "nerve"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "pathy", "role": "suffix", "meaning": "disease"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,hematology",
+            "content": {
+                "term": "hematology",
+                "definition": "The study of blood and blood disorders.",
+                "parts": [
+                    {"text": "hemat", "role": "root", "meaning": "blood"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "logy", "role": "suffix", "meaning": "study of"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,orthopedics",
+            "content": {
+                "term": "osteoporosis",
+                "definition": "A condition in which bones become porous and fragile.",
+                "parts": [
+                    {"text": "oste", "role": "root", "meaning": "bone"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "por", "role": "root", "meaning": "pore, passage"},
+                    {"text": "osis", "role": "suffix", "meaning": "abnormal condition"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,cardiology",
+            "content": {
+                "term": "electrocardiogram",
+                "definition": "A recording of the electrical activity of the heart.",
+                "parts": [
+                    {"text": "electr", "role": "root", "meaning": "electrical activity"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "cardi", "role": "root", "meaning": "heart"},
+                    {"text": "o", "role": "link", "meaning": "combining vowel"},
+                    {"text": "gram", "role": "suffix", "meaning": "record, tracing"}
+                ]
+            }
+        },
+        {
+            "cardtype": "termdissection",
+            "tags": "emd101,week1,pharmacology",
+            "content": {
+                "term": "subcutaneous",
+                "definition": "Situated or applied under the skin.",
+                "parts": [
+                    {"text": "sub", "role": "prefix", "meaning": "under, below"},
+                    {"text": "cutane", "role": "root", "meaning": "skin"},
+                    {"text": "ous", "role": "suffix", "meaning": "pertaining to"}
+                ]
+            }
+        },
+        {
+            "cardtype": "basic",
+            "tags": "emd101,week1,wordparts",
+            "content": {
+                "front": "<p>What does the suffix <strong>-itis</strong> mean?</p>",
+                "frontformat": 1,
+                "back": "<p><strong>Inflammation.</strong> Example: hepat<em>itis</em> — inflammation of the liver.</p>",
+                "backformat": 1
+            }
+        },
+        {
+            "cardtype": "basic",
+            "tags": "emd101,week1,wordparts",
+            "content": {
+                "front": "<p>What is a <strong>combining vowel</strong> and why is it used?</p>",
+                "frontformat": 1,
+                "back": "<p>A vowel — usually <strong>o</strong> — placed between word parts to make a term easier to pronounce, as in gastr<em>o</em>enterology. It carries no meaning of its own.</p>",
+                "backformat": 1
+            }
+        },
+        {
+            "cardtype": "basic",
+            "tags": "emd101,week1,wordparts",
+            "content": {
+                "front": "<p>What does a <strong>prefix</strong> do in a medical term?</p>",
+                "frontformat": 1,
+                "back": "<p>It sits at the <strong>beginning</strong> of the term and modifies its meaning — often indicating time, speed, location, number or absence (hyper-, brady-, sub-).</p>",
+                "backformat": 1
+            }
+        },
+        {
+            "cardtype": "basic",
+            "tags": "emd101,week1,wordparts",
+            "content": {
+                "front": "<p>What does a <strong>suffix</strong> do in a medical term?</p>",
+                "frontformat": 1,
+                "back": "<p>It sits at the <strong>end</strong> of the term and usually names a condition, procedure or specialty (-itis, -logy, -gram).</p>",
+                "backformat": 1
+            }
+        }
+    ]
+}

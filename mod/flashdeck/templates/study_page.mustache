@@ -1,0 +1,107 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/study_page
+
+    The student study view. Without JavaScript every card is listed with
+    a native details reveal; the study AMD module upgrades the list to a
+    one-card-at-a-time stage with an animated, accessible flip.
+
+    Example context (json):
+    {
+        "uniqid": "flashdeck-abc123",
+        "cmid": 12,
+        "intro": "<p>Week 1 vocabulary.</p>",
+        "hascards": true,
+        "cardcount": 2,
+        "hasdissection": true,
+        "legendroles": [
+            {"role": "prefix", "rolename": "Prefix"},
+            {"role": "root", "rolename": "Root"},
+            {"role": "link", "rolename": "Link"},
+            {"role": "suffix", "rolename": "Suffix"}
+        ],
+        "cards": [
+            {"cardid": 1, "cardtype": "basic", "typename": "Basic (two-sided)",
+             "index": 1, "first": true, "cardhtml": "<div>...</div>"}
+        ],
+        "canmanage": true,
+        "manageurl": "https://example.com/mod/flashdeck/edit.php?id=12"
+    }
+}}
+<div id="{{uniqid}}" class="flashdeck-study"
+     data-str-answershown="{{#str}} answershown, mod_flashdeck {{/str}}"
+     data-str-promptshown="{{#str}} promptshown, mod_flashdeck {{/str}}">
+
+    {{{intro}}}
+
+    {{^hascards}}
+        <p class="flashdeck-empty">{{#str}} nocards, mod_flashdeck {{/str}}</p>
+    {{/hascards}}
+
+    {{#hascards}}
+        {{#hasdissection}}
+        <div class="flashdeck-legend">
+            <span class="flashdeck-legendtitle">{{#str}} legendtitle, mod_flashdeck {{/str}}</span>
+            {{#legendroles}}
+            <span class="flashdeck-legenditem flashdeck-role-{{role}}">{{rolename}}</span>
+            {{/legendroles}}
+        </div>
+        {{/hasdissection}}
+
+        <p class="flashdeck-progress">
+            <span class="flashdeck-vh">{{#str}} cardprogress, mod_flashdeck {{/str}}</span>
+            <span data-region="current">1</span> / {{cardcount}}
+        </p>
+
+        <div class="flashdeck-stage" data-region="stage">
+            {{#cards}}
+            <article class="flashdeck-card{{#first}} flashdeck-active{{/first}}" data-region="card"
+                     data-cardid="{{cardid}}" data-cardtype="{{cardtype}}" aria-label="{{typename}}">
+                <div class="flashdeck-cardinner">
+                    {{{cardhtml}}}
+                </div>
+            </article>
+            {{/cards}}
+        </div>
+
+        <div class="flashdeck-controls" data-region="controls" hidden>
+            <button type="button" class="btn btn-secondary" data-action="prev">
+                {{#str}} prevcard, mod_flashdeck {{/str}}
+            </button>
+            <button type="button" class="btn btn-primary" data-action="flip" aria-pressed="false">
+                {{#str}} flip, mod_flashdeck {{/str}}
+            </button>
+            <button type="button" class="btn btn-secondary" data-action="next">
+                {{#str}} nextcard, mod_flashdeck {{/str}}
+            </button>
+        </div>
+        <p class="flashdeck-hint" data-region="hint" hidden>{{#str}} keyboardhint, mod_flashdeck {{/str}}</p>
+        <div class="flashdeck-vh" aria-live="polite" data-region="announce"></div>
+    {{/hascards}}
+
+    {{#canmanage}}
+    <div class="flashdeck-managelink">
+        <a class="btn btn-outline-secondary" href="{{manageurl}}">{{#str}} managecards, mod_flashdeck {{/str}}</a>
+    </div>
+    {{/canmanage}}
+</div>
+{{#js}}
+require(['mod_flashdeck/study'], function(study) {
+    study.init('{{uniqid}}');
+});
+{{/js}}
