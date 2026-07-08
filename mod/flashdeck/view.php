@@ -40,6 +40,26 @@ require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/flashdeck:view', $context);
 
+$mode = optional_param('mode', 'learn', PARAM_ALPHA);
+$canstudy = has_capability('mod/flashdeck:study', $context);
+
+// No-JS fallback for the four-button grade: a plain form post, handled
+// through the same api the AJAX loop uses, then redirect (PRG).
+$grade = optional_param('grade', null, PARAM_INT);
+$gradecardid = optional_param('cardid', 0, PARAM_INT);
+if ($grade !== null && $gradecardid && data_submitted()) {
+    require_sesskey();
+    require_capability('mod/flashdeck:study', $context);
+    if ($grade < \mod_flashdeck\scheduler\scheduler::GRADE_AGAIN
+            || $grade > \mod_flashdeck\scheduler\scheduler::GRADE_EASY) {
+        throw new moodle_exception('errinvalidgrade', 'mod_flashdeck');
+    }
+    $gradecard = $DB->get_record('flashdeck_cards',
+        ['id' => $gradecardid, 'deckid' => $deck->id], '*', MUST_EXIST);
+    \mod_flashdeck\local\api::grade_card($deck, $gradecard, $USER->id, $grade, $context);
+    redirect(new moodle_url('/mod/flashdeck/view.php', ['id' => $cm->id]));
+}
+
 $event = \mod_flashdeck\event\course_module_viewed::create([
     'objectid' => $deck->id,
     'context' => $context,
@@ -51,17 +71,27 @@ $event->trigger();
 $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
-$PAGE->set_url('/mod/flashdeck/view.php', ['id' => $cm->id]);
+$urlparams = ['id' => $cm->id];
+if ($mode === 'browse') {
+    $urlparams['mode'] = 'browse';
+}
+$PAGE->set_url('/mod/flashdeck/view.php', $urlparams);
 $PAGE->set_title(format_string($course->shortname) . ': ' . format_string($deck->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_activity_record($deck);
-
-$cards = $DB->get_records('flashdeck_cards', ['deckid' => $deck->id], 'position ASC, id ASC');
-$canmanage = has_capability('mod/flashdeck:managecards', $context);
 
 /** @var \mod_flashdeck\output\renderer $renderer */
 $renderer = $PAGE->get_renderer('mod_flashdeck');
 
 echo $OUTPUT->header();
-echo $renderer->render(new \mod_flashdeck\output\study_page($deck, $cm, $cards, $context, $canmanage));
+if ($mode !== 'browse' && $canstudy) {
+    // Learn mode: the spaced-repetition session (default).
+    echo $renderer->render(new \mod_flashdeck\output\learn_page($deck, $cm, $context, $USER->id));
+} else {
+    // Browse mode: the sequential card browser; also the read-only
+    // fallback for users without the study capability (e.g. guests).
+    $cards = $DB->get_records('flashdeck_cards', ['deckid' => $deck->id], 'position ASC, id ASC');
+    $canmanage = has_capability('mod/flashdeck:managecards', $context);
+    echo $renderer->render(new \mod_flashdeck\output\study_page($deck, $cm, $cards, $context, $canmanage));
+}
 echo $OUTPUT->footer();

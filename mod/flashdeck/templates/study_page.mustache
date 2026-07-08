@@ -94,11 +94,14 @@
         <div class="flashdeck-vh" aria-live="polite" data-region="announce"></div>
     {{/hascards}}
 
-    {{#canmanage}}
     <div class="flashdeck-managelink">
+        {{#canstudy}}
+        <a class="btn btn-primary" href="{{learnurl}}">{{#str}} studymodelearn, mod_flashdeck {{/str}}</a>
+        {{/canstudy}}
+        {{#canmanage}}
         <a class="btn btn-outline-secondary" href="{{manageurl}}">{{#str}} managecards, mod_flashdeck {{/str}}</a>
+        {{/canmanage}}
     </div>
-    {{/canmanage}}
 </div>
 {{#js}}
 require(['mod_flashdeck/study'], function(study) {

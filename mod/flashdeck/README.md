@@ -19,15 +19,55 @@ anatomy, genetics, or health-systems policy.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Skeleton, schema, capabilities, Basic + Term-dissection card types, accessible flip UI, seed deck | **Done** |
-| 2 | Scheduler interface, SM-2 + Leitner, AJAX study loop, four-button grading, resumable progress | Planned |
+| 2 | Scheduler interface, SM-2 + Leitner, AJAX study loop, four-button grading, resumable progress | **Done** |
 | 3 | Image/hotspot, cloze, matching, ordering, compare/contrast, Q&A card types; File API media | Planned |
 | 4 | Gradebook, completion rules, streaks/points/badges, study modes, teacher report | Planned |
 | 5 | CSV/JSON/GIFT import-export, tags & duplication, backup/restore, Behat breadth, mobile support | Planned |
 
-Phase 1 intentionally does **not** yet show the four-button grade bar:
-grades that silently persist nothing would be dishonest UI. The bar
-lands with the real scheduler in Phase 2. Backup/restore is likewise
-undeclared until Phase 5 implements it.
+Backup/restore stays undeclared until Phase 5 implements it.
+
+## The study loop (Phase 2)
+
+`view.php` defaults to **Learn mode**: active recall with spaced
+repetition. See the prompt → attempt the answer → reveal → self-grade
+with **Again / Hard / Good / Easy**. Every button shows the interval it
+would schedule ("1 min", "10 min", "1 day", …) so the spacing is
+visible. `?mode=browse` keeps the Phase 1 sequential browser.
+
+All scheduling is computed **server-side** — the client only ever sends
+a grade. One internal class (`\mod_flashdeck\local\api`) builds the
+queue and applies grades; it is shared by:
+
+- the AJAX loop (`mod_flashdeck_get_next_due_card`,
+  `mod_flashdeck_submit_review`, `mod_flashdeck_get_deck_progress`
+  external functions — capability-checked, sesskey-validated, one round
+  trip per review), and
+- the no-JavaScript fallback: the grade bar is a real form posting to
+  view.php (post/redirect/get), so the full spaced-repetition loop
+  works without JS.
+
+Queue priority per user: due learning steps → due reviews (most
+overdue first) → new cards up to the deck's *new cards per day* limit →
+learning steps due within a 20-minute learn-ahead window so sessions
+can finish what they started. Progress is resumable by construction:
+state lives in `flashdeck_review`, keyed by user and card.
+
+### Schedulers
+
+Selected per deck in the activity settings; both implement
+`\mod_flashdeck\scheduler\scheduler` and are deterministic (no fuzz),
+which keeps the interval maths unit-testable.
+
+- **SM-2 (modified, Anki-style — default).** New cards pass 1 min /
+  10 min learning steps, graduate at 1 day (Easy: 4 days). Reviews:
+  Hard = interval × 1.2 and ease −0.15; Good = interval × ease;
+  Easy = interval × ease × 1.3 and ease +0.15; Again lapses the card
+  (ease −0.20, relearn 10 min, interval halves on graduation). Ease is
+  floored at 1.30, successful intervals always grow by ≥1 day, and are
+  capped at 365 days.
+- **Leitner (5 boxes, simpler).** Fixed intervals 1 / 2 / 4 / 8 / 16
+  days. Again → box 1 in 10 minutes, Hard repeats the box, Good moves
+  up one, Easy moves up two.
 
 ## Install
 
@@ -122,9 +162,14 @@ component references a raw hex.
 
 - PHPUnit: `tests/lib_test.php` (instance lifecycle),
   `tests/cardtype_test.php` (registry + validation + rendering exports),
-  `tests/seeder_test.php` (sample deck integrity).
+  `tests/seeder_test.php` (sample deck integrity),
+  `tests/scheduler_test.php` (exact SM-2 and Leitner interval maths:
+  learning steps, growth, lapses, ease floor, cap, previews),
+  `tests/external_test.php` (AJAX loop: queue order, persistence,
+  events, learn-ahead, new-per-day limit, capability checks).
 - Behat: `tests/behat/flashdeck.feature` (student view, teacher
-  authoring, sample-deck load, delete flow, capability separation).
+  authoring, sample-deck load, delete flow, capability separation, and
+  the full no-JS spaced-repetition session through the grade buttons).
 
 Run from a Moodle dev checkout, e.g.
 `vendor/bin/phpunit --testsuite mod_flashdeck_testsuite`.

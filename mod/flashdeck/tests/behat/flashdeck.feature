@@ -67,3 +67,37 @@ Feature: Teachers author flashcard decks and students study them
   Scenario: A student cannot manage cards
     When I am on the "Week 1 terminology" "flashdeck activity" page logged in as student1
     Then I should not see "Manage cards"
+
+  Scenario: A student studies with spaced repetition using the four grade buttons
+    Given the following "mod_flashdeck > cards" exist:
+      | flashdeck          | cardtype | front | back |
+      | Week 1 terminology | basic    | Q1    | A1   |
+      | Week 1 terminology | basic    | Q2    | A2   |
+    When I am on the "Week 1 terminology" "flashdeck activity" page logged in as student1
+    Then I should see "Q1"
+    And I should see "How well did you recall it?"
+    And I should see "Again"
+    And I should see "Easy"
+    # Good on a new card moves it into a 10-minute learning step,
+    # so the other new card is served next.
+    When I press "Good"
+    Then I should see "Q2"
+    # Both cards now wait in learning steps; the learn-ahead window
+    # serves them early so the session can finish what it started.
+    When I press "Good"
+    Then I should see "Q1"
+    When I press "Good"
+    Then I should see "Q2"
+    # The second Good graduates each card to a one-day interval.
+    When I press "Good"
+    Then I should see "All caught up!"
+    And I should see "Next review:"
+
+  Scenario: A student can switch to browsing all cards without scheduling
+    Given the following "mod_flashdeck > cards" exist:
+      | flashdeck          | cardtype | front | back |
+      | Week 1 terminology | basic    | Q1    | A1   |
+    When I am on the "Week 1 terminology" "flashdeck activity" page logged in as student1
+    And I follow "Browse all cards"
+    Then I should see "Q1"
+    And I should see "Study (spaced repetition)"

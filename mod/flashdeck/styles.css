@@ -154,6 +154,64 @@
     margin-bottom: 0;
 }
 
+/* ---------- Learn mode: counts, grade bar, done panel ---------- */
+.path-mod-flashdeck .flashdeck-counts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.path-mod-flashdeck .flashdeck-gradebar {
+    max-width: 44rem;
+    margin: 1rem auto 0;
+    text-align: center;
+}
+
+.path-mod-flashdeck .flashdeck-gradeprompt {
+    margin-bottom: 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-gradebuttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-grade {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 5.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-gradelabel {
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-gradepreview {
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.path-mod-flashdeck .flashdeck-done {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    background: var(--flashdeck-surface);
+    color: var(--flashdeck-ink);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 4px solid var(--flashdeck-accent);
+    border-radius: 0.6rem;
+}
+
+.path-mod-flashdeck .flashdeck-donetitle {
+    font-family: var(--flashdeck-serif);
+}
+
 /* ---------- Progress, controls, hint ---------- */
 .path-mod-flashdeck .flashdeck-progress {
     text-align: center;

@@ -110,6 +110,8 @@ class study_page implements \renderable, \templatable {
             'legendroles' => $legendroles,
             'canmanage' => $this->canmanage,
             'manageurl' => (new \moodle_url('/mod/flashdeck/edit.php', ['id' => $this->cm->id]))->out(false),
+            'canstudy' => has_capability('mod/flashdeck:study', $this->context),
+            'learnurl' => (new \moodle_url('/mod/flashdeck/view.php', ['id' => $this->cm->id]))->out(false),
         ];
     }
 }

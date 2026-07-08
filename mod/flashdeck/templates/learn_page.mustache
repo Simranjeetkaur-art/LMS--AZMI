@@ -1,0 +1,149 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/learn_page
+
+    Spaced-repetition study session. The first due card is rendered
+    server-side and the grade bar is a real form posting to view.php,
+    so the whole loop works without JavaScript; the learn AMD module
+    upgrades it to an animated single-page session over AJAX.
+
+    Example context (json):
+    {
+        "uniqid": "flashdeck-abc123",
+        "cmid": 12,
+        "flashdeckid": 3,
+        "intro": "<p>Week 1 vocabulary.</p>",
+        "hascards": true,
+        "hasdissection": true,
+        "legendroles": [
+            {"role": "prefix", "rolename": "Prefix"},
+            {"role": "root", "rolename": "Root"}
+        ],
+        "done": false,
+        "cardid": 7,
+        "cardhtml": "<div class=\"flashdeck-face\">...</div>",
+        "previews": {"again": "1 min", "hard": "10 min", "good": "1 day", "easy": "4 days"},
+        "counts": {"duenow": 3, "learning": 2, "newremaining": 18, "total": 16},
+        "nextdue": 0,
+        "nextduelabel": "",
+        "actionurl": "https://example.com/mod/flashdeck/view.php",
+        "sesskey": "abc",
+        "browseurl": "#",
+        "canmanage": false,
+        "manageurl": "#"
+    }
+}}
+<div id="{{uniqid}}" class="flashdeck-study flashdeck-learn"
+     data-flashdeckid="{{flashdeckid}}"
+     data-str-answershown="{{#str}} answershown, mod_flashdeck {{/str}}"
+     data-str-promptshown="{{#str}} promptshown, mod_flashdeck {{/str}}">
+
+    {{{intro}}}
+
+    {{^hascards}}
+        <p class="flashdeck-empty">{{#str}} nocards, mod_flashdeck {{/str}}</p>
+    {{/hascards}}
+
+    {{#hascards}}
+        {{#hasdissection}}
+        <div class="flashdeck-legend">
+            <span class="flashdeck-legendtitle">{{#str}} legendtitle, mod_flashdeck {{/str}}</span>
+            {{#legendroles}}
+            <span class="flashdeck-legenditem flashdeck-role-{{role}}">{{rolename}}</span>
+            {{/legendroles}}
+        </div>
+        {{/hasdissection}}
+
+        <p class="flashdeck-counts">
+            <span class="flashdeck-stat">
+                <strong data-region="count-duenow">{{counts.duenow}}</strong> {{#str}} statduenow, mod_flashdeck {{/str}}
+            </span>
+            <span class="flashdeck-stat">
+                <strong data-region="count-learning">{{counts.learning}}</strong> {{#str}} statlearning, mod_flashdeck {{/str}}
+            </span>
+            <span class="flashdeck-stat">
+                <strong data-region="count-newremaining">{{counts.newremaining}}</strong> {{#str}} statnewleft, mod_flashdeck {{/str}}
+            </span>
+        </p>
+
+        <div data-region="cardarea" {{#done}}hidden{{/done}}>
+            <div class="flashdeck-stage flashdeck-learnstage" data-region="stage">
+                <article class="flashdeck-card flashdeck-active" data-region="card">
+                    <div class="flashdeck-cardinner" data-region="cardinner">
+                        {{{cardhtml}}}
+                    </div>
+                </article>
+            </div>
+
+            <div class="flashdeck-controls" data-region="controls" hidden>
+                <button type="button" class="btn btn-primary" data-action="flip" aria-pressed="false">
+                    {{#str}} flip, mod_flashdeck {{/str}}
+                </button>
+            </div>
+
+            <form method="post" action="{{actionurl}}" data-region="gradeform" class="flashdeck-gradebar">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="id" value="{{cmid}}">
+                <input type="hidden" name="cardid" value="{{cardid}}" data-region="gradecardid">
+                <p class="flashdeck-gradeprompt">{{#str}} gradeprompt, mod_flashdeck {{/str}}</p>
+                <div class="flashdeck-gradebuttons">
+                    <button type="submit" name="grade" value="0" class="btn btn-outline-danger flashdeck-grade">
+                        <span class="flashdeck-gradelabel">{{#str}} gradeagain, mod_flashdeck {{/str}}</span>
+                        <span class="flashdeck-gradepreview" data-region="preview-again">{{previews.again}}</span>
+                    </button>
+                    <button type="submit" name="grade" value="1" class="btn btn-outline-warning flashdeck-grade">
+                        <span class="flashdeck-gradelabel">{{#str}} gradehard, mod_flashdeck {{/str}}</span>
+                        <span class="flashdeck-gradepreview" data-region="preview-hard">{{previews.hard}}</span>
+                    </button>
+                    <button type="submit" name="grade" value="2" class="btn btn-outline-success flashdeck-grade">
+                        <span class="flashdeck-gradelabel">{{#str}} gradegood, mod_flashdeck {{/str}}</span>
+                        <span class="flashdeck-gradepreview" data-region="preview-good">{{previews.good}}</span>
+                    </button>
+                    <button type="submit" name="grade" value="3" class="btn btn-outline-info flashdeck-grade">
+                        <span class="flashdeck-gradelabel">{{#str}} gradeeasy, mod_flashdeck {{/str}}</span>
+                        <span class="flashdeck-gradepreview" data-region="preview-easy">{{previews.easy}}</span>
+                    </button>
+                </div>
+            </form>
+            <p class="flashdeck-hint" data-region="hint" hidden>{{#str}} keyboardhintlearn, mod_flashdeck {{/str}}</p>
+        </div>
+
+        <div class="flashdeck-done" data-region="donepanel" {{^done}}hidden{{/done}}>
+            <h4 class="flashdeck-donetitle">{{#str}} studydone, mod_flashdeck {{/str}}</h4>
+            <p>{{#str}} studydonebody, mod_flashdeck {{/str}}</p>
+            <p data-region="nextduerow" {{^nextduelabel}}hidden{{/nextduelabel}}>
+                {{#str}} nextreviewat, mod_flashdeck {{/str}}
+                <strong data-region="nextduetext">{{nextduelabel}}</strong>
+            </p>
+        </div>
+
+        <div class="flashdeck-vh" aria-live="polite" data-region="announce"></div>
+
+        <div class="flashdeck-managelink">
+            <a class="btn btn-outline-secondary" href="{{browseurl}}">{{#str}} browsecards, mod_flashdeck {{/str}}</a>
+            {{#canmanage}}
+            <a class="btn btn-outline-secondary" href="{{manageurl}}">{{#str}} managecards, mod_flashdeck {{/str}}</a>
+            {{/canmanage}}
+        </div>
+    {{/hascards}}
+</div>
+{{#js}}
+require(['mod_flashdeck/learn'], function(learn) {
+    learn.init('{{uniqid}}');
+});
+{{/js}}
