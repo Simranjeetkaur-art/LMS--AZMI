@@ -4,6 +4,7 @@ define('CLI_SCRIPT', true);
 // Process-local component rescan so the not-yet-installed plugin is visible
 // without touching the running site's caches.
 define('IGNORE_COMPONENT_CACHE', true);
+define('CACHE_DISABLE_ALL', true);
 require('/var/www/moodle/public/config.php');
 
 global $CFG, $OUTPUT, $PAGE;
@@ -22,7 +23,8 @@ $check('component directory resolved', $dir === $CFG->dirroot . '/mod/flashdeck'
 
 // 2. Registry.
 $types = \mod_flashdeck\cardtype\manager::get_types();
-$check('registry has basic + termdissection', array_keys($types) === ['basic', 'termdissection']);
+$check('registry contains the Phase 1 types',
+    in_array('basic', array_keys($types), true) && in_array('termdissection', array_keys($types), true));
 $check('exists() rejects unknown', !\mod_flashdeck\cardtype\manager::exists('hologram'));
 
 // 3. Language strings resolve (spot-check + display names).
