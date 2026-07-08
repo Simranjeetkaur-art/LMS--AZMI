@@ -33,6 +33,12 @@ class manager {
     const TYPES = [
         'basic' => basic::class,
         'termdissection' => termdissection::class,
+        'imagelabel' => imagelabel::class,
+        'cloze' => cloze::class,
+        'matching' => matching::class,
+        'ordering' => ordering::class,
+        'comparecontrast' => comparecontrast::class,
+        'qanda' => qanda::class,
     ];
 
     /** @var card_type[] instance cache */

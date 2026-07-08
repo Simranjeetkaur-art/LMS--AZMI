@@ -19,6 +19,17 @@
     --flashdeck-role-root: #8e2f4f;
     --flashdeck-role-link: #7a5c14;
     --flashdeck-role-suffix: #556b2f;
+    --flashdeck-correct: #2e7d32;
+    --flashdeck-incorrect: #b3261e;
+}
+
+/* Elements that only make sense with JavaScript (e.g. Check buttons). */
+.path-mod-flashdeck .flashdeck-jsonly {
+    display: none;
+}
+
+.flashdeck-js .flashdeck-jsonly {
+    display: block;
 }
 
 /* Local visually-hidden utility (works on both Bootstrap 4 and 5 themes). */
@@ -152,6 +163,172 @@
     border-top: 1px solid rgba(0, 0, 0, 0.15);
     padding-top: 0.75rem;
     margin-bottom: 0;
+}
+
+/* ---------- Interactive card types ---------- */
+.path-mod-flashdeck .flashdeck-prompt {
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+}
+
+.path-mod-flashdeck .flashdeck-imagewrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.path-mod-flashdeck .flashdeck-imagewrap img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 0.3rem;
+}
+
+.path-mod-flashdeck .flashdeck-marker {
+    position: absolute;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border: 3px solid var(--flashdeck-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75);
+    pointer-events: none;
+}
+
+.path-mod-flashdeck .flashdeck-hotspotdot {
+    position: absolute;
+    width: 1rem;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    pointer-events: none;
+}
+
+.path-mod-flashdeck .flashdeck-hotspotdot.flashdeck-fieldcorrect {
+    background: var(--flashdeck-correct);
+}
+
+.path-mod-flashdeck .flashdeck-hotspotdot.flashdeck-fieldincorrect {
+    background: var(--flashdeck-incorrect);
+}
+
+.flashdeck-js [data-region="hotspot"] img {
+    cursor: crosshair;
+}
+
+.path-mod-flashdeck .flashdeck-blank {
+    font: inherit;
+    color: inherit;
+    text-align: center;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--flashdeck-shell);
+    border-radius: 0;
+    padding: 0 0.2rem;
+}
+
+.path-mod-flashdeck input.flashdeck-fieldcorrect,
+.path-mod-flashdeck select.flashdeck-fieldcorrect {
+    border-color: var(--flashdeck-correct);
+    box-shadow: 0 0 0 1px var(--flashdeck-correct);
+}
+
+.path-mod-flashdeck input.flashdeck-fieldincorrect,
+.path-mod-flashdeck select.flashdeck-fieldincorrect {
+    border-color: var(--flashdeck-incorrect);
+    box-shadow: 0 0 0 1px var(--flashdeck-incorrect);
+}
+
+.path-mod-flashdeck .flashdeck-checkfeedback {
+    font-weight: bold;
+    margin: 0 0.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-clozeanswer {
+    background: transparent;
+    color: inherit;
+    font-weight: bold;
+    border-bottom: 2px solid var(--flashdeck-accent);
+    padding: 0;
+}
+
+.path-mod-flashdeck .flashdeck-alternatives {
+    font-size: 0.85em;
+    color: var(--flashdeck-muted);
+}
+
+.path-mod-flashdeck .flashdeck-matchrows {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.path-mod-flashdeck .flashdeck-matchrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-weight: normal;
+}
+
+.path-mod-flashdeck .flashdeck-matchleft {
+    min-width: 8rem;
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-matchanswers {
+    display: inline-block;
+    text-align: left;
+    margin: 0;
+}
+
+.path-mod-flashdeck .flashdeck-matchpair {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.path-mod-flashdeck .flashdeck-matchpair dt {
+    min-width: 8rem;
+}
+
+.path-mod-flashdeck .flashdeck-matchpair dd {
+    margin: 0;
+}
+
+.path-mod-flashdeck .flashdeck-orderedlist {
+    display: inline-block;
+    text-align: left;
+    margin: 0 auto;
+}
+
+.path-mod-flashdeck .flashdeck-comparewrap {
+    overflow-x: auto;
+}
+
+.path-mod-flashdeck .flashdeck-comparetable {
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+.path-mod-flashdeck .flashdeck-comparetable th,
+.path-mod-flashdeck .flashdeck-comparetable td {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+}
+
+.path-mod-flashdeck .flashdeck-comparecell {
+    text-align: center;
+    color: var(--flashdeck-muted);
+}
+
+.path-mod-flashdeck .flashdeck-guidance {
+    border-left: 3px solid var(--flashdeck-accent);
+    padding-left: 0.75rem;
+    text-align: left;
+    font-size: 0.95em;
 }
 
 /* ---------- Learn mode: counts, grade bar, done panel ---------- */

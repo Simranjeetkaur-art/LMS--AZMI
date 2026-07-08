@@ -104,7 +104,8 @@
     </div>
 </div>
 {{#js}}
-require(['mod_flashdeck/study'], function(study) {
+require(['mod_flashdeck/study', 'mod_flashdeck/interactions'], function(study, interactions) {
     study.init('{{uniqid}}');
+    interactions.init('{{uniqid}}');
 });
 {{/js}}

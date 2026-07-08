@@ -20,7 +20,7 @@ anatomy, genetics, or health-systems policy.
 | --- | --- | --- |
 | 1 | Skeleton, schema, capabilities, Basic + Term-dissection card types, accessible flip UI, seed deck | **Done** |
 | 2 | Scheduler interface, SM-2 + Leitner, AJAX study loop, four-button grading, resumable progress | **Done** |
-| 3 | Image/hotspot, cloze, matching, ordering, compare/contrast, Q&A card types; File API media | Planned |
+| 3 | Image/hotspot, cloze, matching, ordering, compare/contrast, Q&A card types; File API media | **Done** |
 | 4 | Gradebook, completion rules, streaks/points/badges, study modes, teacher report | Planned |
 | 5 | CSV/JSON/GIFT import-export, tags & duplication, backup/restore, Behat breadth, mobile support | Planned |
 
@@ -111,6 +111,59 @@ and meaning, plus the full definition. Content JSON:
 ```
 
 Valid roles: `prefix`, `root`, `link`, `suffix`. At least two parts.
+
+### imagelabel
+Anatomy-style image card; the image lives in the `cardimage` file area
+(itemid = card id) and is served only through `pluginfile.php` with
+capability checks. Alt text is mandatory. Two variants over one target
+region (an ellipse in percentage coordinates: `{"cx": 42.5, "cy": 31,
+"r": 8}`): **identify** shows a marker and asks for the name;
+**hotspot** asks the learner to click where the named structure is —
+JavaScript gives hit/miss feedback, and without JavaScript the reveal
+shows the marked region.
+
+```json
+{"variant": "identify", "label": "Deltoid", "question": "",
+ "alttext": "Shoulder muscles, lateral view", "description": "Abducts the arm.",
+ "region": {"cx": 42.5, "cy": 31.0, "r": 8.0}}
+```
+
+### cloze
+Type-the-answer. Blanks are marked inline: `[[answer]]` or
+`[[answer|alternative]]`. Blanks render as native text inputs (the
+attempt works without JS); the Check button marks each blank with light
+normalisation — trim, collapse whitespace, case-insensitive unless
+configured — so trivial variation is never punished.
+
+```json
+{"text": "The powerhouse of the cell is the [[mitochondrion|mitochondria]].",
+ "casesensitive": false}
+```
+
+### matching
+`{"prompt": "...", "pairs": [{"left": "brady-", "right": "slow"}, ...]}` —
+the front pairs each left item with a native select of all right options
+(sorted alphabetically, so presentation order carries no information).
+
+### ordering
+`{"prompt": "...", "items": ["Prophase", "Metaphase", ...]}` (authored
+in correct order) — presented alphabetically, the learner assigns
+position numbers with native selects; the back shows the numbered
+sequence.
+
+### comparecontrast
+`{"prompt": "...", "columna": "Beveridge", "columnb": "Bismarck",
+"rows": [{"aspect": "Funding", "a": "...", "b": "..."}]}` — the front
+shows the frame (columns × aspects) for recall; the back reveals the
+full table.
+
+### qanda
+A basic card plus optional `"guidance"` shown with the model answer to
+support an honest self-grade.
+
+All interactive self-checks (typing, matching, ordering, hotspot) are
+client-side attempt aids; the four-button self-grade remains the only
+input to the server-side scheduler.
 
 ## Seed deck
 

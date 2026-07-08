@@ -86,6 +86,61 @@ function flashdeck_update_instance(stdClass $data, ?mod_flashdeck_mod_form $mfor
 }
 
 /**
+ * Serve files from the flashdeck file areas.
+ *
+ * Areas: 'intro' (activity description) and 'cardimage' (one image per
+ * card, itemid = card id). Everything is capability-checked; files are
+ * never served outside pluginfile.php.
+ *
+ * @param stdClass $course the course
+ * @param stdClass $cm the course module
+ * @param context $context the module context
+ * @param string $filearea the file area
+ * @param array $args remaining path arguments
+ * @param bool $forcedownload whether to force download
+ * @param array $options additional send_file options
+ * @return bool false when the file is not found (otherwise the file is sent)
+ */
+function flashdeck_pluginfile($course, $cm, $context, string $filearea, array $args,
+        bool $forcedownload, array $options = []): bool {
+    global $DB;
+
+    if ($context->contextlevel != CONTEXT_MODULE) {
+        return false;
+    }
+    require_login($course, true, $cm);
+    require_capability('mod/flashdeck:view', $context);
+
+    $fs = get_file_storage();
+
+    if ($filearea === 'intro') {
+        $relativepath = implode('/', $args);
+        $fullpath = "/{$context->id}/mod_flashdeck/intro/0/{$relativepath}";
+        if (!$file = $fs->get_file_by_hash(sha1($fullpath))) {
+            return false;
+        }
+        send_stored_file($file, null, 0, $forcedownload, $options);
+    }
+
+    if ($filearea === 'cardimage') {
+        $cardid = (int) array_shift($args);
+        // The card must belong to this activity instance.
+        if (!$DB->record_exists('flashdeck_cards', ['id' => $cardid, 'deckid' => $cm->instance])) {
+            return false;
+        }
+        $filename = array_pop($args);
+        $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
+        $file = $fs->get_file($context->id, 'mod_flashdeck', 'cardimage', $cardid, $filepath, $filename);
+        if (!$file || $file->is_directory()) {
+            return false;
+        }
+        send_stored_file($file, 86400, 0, $forcedownload, $options);
+    }
+
+    return false;
+}
+
+/**
  * Delete a flashdeck instance and all its dependent data.
  *
  * @param int $id id of the flashdeck instance

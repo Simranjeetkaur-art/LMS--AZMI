@@ -138,11 +138,12 @@ export const init = (rootId) => {
         }
     });
 
-    // Mouse convenience: clicking the card body flips it. The buttons
-    // remain the canonical accessible path.
+    // Mouse convenience: clicking the card body flips it — but never
+    // when the click lands on interactive content (links, buttons,
+    // cloze inputs, matching selects, hotspot images).
     cards.forEach((card) => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('a, button, summary')) {
+            if (e.target.closest('a, button, summary, input, select, textarea, label, [data-region="hotspot"]')) {
                 return;
             }
             flip();

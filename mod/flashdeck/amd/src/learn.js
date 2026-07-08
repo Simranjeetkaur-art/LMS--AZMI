@@ -190,7 +190,7 @@ export const init = (rootId) => {
 
     flipBtn.addEventListener('click', () => setFlipped(!flipped));
     card.addEventListener('click', (e) => {
-        if (e.target.closest('a, button, summary')) {
+        if (e.target.closest('a, button, summary, input, select, textarea, label, [data-region="hotspot"]')) {
             return;
         }
         setFlipped(!flipped);

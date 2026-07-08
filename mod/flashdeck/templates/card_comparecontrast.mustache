@@ -1,0 +1,84 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/card_comparecontrast
+
+    Compare/contrast card: the front shows the frame (columns and
+    aspects) for the learner to recall each cell; the back reveals the
+    full structured comparison.
+
+    Example context (json):
+    {
+        "prompt": "Compare the Beveridge and Bismarck models",
+        "columna": "Beveridge",
+        "columnb": "Bismarck",
+        "rows": [
+            {"aspect": "Funding", "a": "General taxation", "b": "Payroll social insurance"}
+        ]
+    }
+}}
+<div class="flashdeck-face flashdeck-face-front">
+    <div class="flashdeck-face-body">
+        <p class="flashdeck-prompt">{{prompt}}</p>
+        <div class="flashdeck-comparewrap">
+            <table class="flashdeck-comparetable">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">{{columna}}</th>
+                        <th scope="col">{{columnb}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <th scope="row">{{aspect}}</th>
+                        <td class="flashdeck-comparecell" aria-hidden="true">?</td>
+                        <td class="flashdeck-comparecell" aria-hidden="true">?</td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+        <p class="flashdeck-prompthint">{{#str}} comparefronthint, mod_flashdeck {{/str}}</p>
+    </div>
+</div>
+<details class="flashdeck-face flashdeck-face-back">
+    <summary class="flashdeck-reveal">{{#str}} showanswer, mod_flashdeck {{/str}}</summary>
+    <div class="flashdeck-face-body">
+        <div class="flashdeck-comparewrap">
+            <table class="flashdeck-comparetable">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">{{columna}}</th>
+                        <th scope="col">{{columnb}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        <th scope="row">{{aspect}}</th>
+                        <td>{{a}}</td>
+                        <td>{{b}}</td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</details>

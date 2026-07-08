@@ -84,13 +84,15 @@ if ($data = $form->get_data()) {
         $record->timecreated = $now;
         $record->position = 1 + (int) $DB->get_field_sql(
             'SELECT COALESCE(MAX(position), 0) FROM {flashdeck_cards} WHERE deckid = ?', [$deck->id]);
-        $DB->insert_record('flashdeck_cards', $record);
+        $record->id = $DB->insert_record('flashdeck_cards', $record);
     }
+    // The card id is known now, so file areas (itemid = card id) can be saved.
+    $type->process_files($data, $record, $context);
     redirect($returnurl, get_string('cardsaved', 'mod_flashdeck'), null,
         \core\output\notification::NOTIFY_SUCCESS);
 }
 
-$form->set_data($type->form_defaults($content) + [
+$form->set_data($type->form_defaults($content) + $type->file_defaults($card, $context) + [
     'id' => $cm->id,
     'cardid' => $cardid,
     'type' => $typeid,

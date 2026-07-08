@@ -1,0 +1,44 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/card_qanda
+
+    Q&A (open recall) card: free-form prompt, model answer and optional
+    marking guidance to support an honest self-grade.
+
+    Example context (json):
+    {
+        "fronthtml": "<p>Why is spaced repetition more effective than massed review?</p>",
+        "backhtml": "<p>Retrieval at increasing intervals strengthens retention…</p>",
+        "guidance": "A strong answer mentions the spacing effect and active recall."
+    }
+}}
+<div class="flashdeck-face flashdeck-face-front">
+    <div class="flashdeck-face-body">
+        {{{fronthtml}}}
+    </div>
+</div>
+<details class="flashdeck-face flashdeck-face-back">
+    <summary class="flashdeck-reveal">{{#str}} showanswer, mod_flashdeck {{/str}}</summary>
+    <div class="flashdeck-face-body">
+        {{{backhtml}}}
+        {{#guidance}}
+        <p class="flashdeck-guidance">{{guidance}}</p>
+        {{/guidance}}
+        <p class="flashdeck-prompthint">{{#str}} selfgradehint, mod_flashdeck {{/str}}</p>
+    </div>
+</details>

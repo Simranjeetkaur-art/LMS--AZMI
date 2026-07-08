@@ -60,6 +60,7 @@ if ($action === 'delete' && $card) {
         die;
     }
     require_sesskey();
+    get_file_storage()->delete_area_files($context->id, 'mod_flashdeck', 'cardimage', $card->id);
     $DB->delete_records('flashdeck_review', ['cardid' => $card->id]);
     $DB->delete_records('flashdeck_cards', ['id' => $card->id]);
     flashdeck_resequence($deck->id);

@@ -93,6 +93,36 @@ Feature: Teachers author flashcard decks and students study them
     Then I should see "All caught up!"
     And I should see "Next review:"
 
+  Scenario: A teacher authors a cloze card and a student types into its blank
+    Given I am on the "Week 1 terminology" "flashdeck activity" page logged in as teacher1
+    When I follow "Manage cards"
+    And I follow "Cloze / type the answer"
+    And I set the field "Text with blanks" to "The suffix [[‑itis|itis]] means inflammation."
+    And I press "Save changes"
+    Then I should see "Card saved."
+    And I should see "The suffix … means inflammation."
+    When I am on the "Week 1 terminology" "flashdeck activity" page logged in as student1
+    Then I should see "The suffix"
+    And I should see "means inflammation."
+    And "input" "css_element" should exist in the ".flashdeck-clozetext" "css_element"
+
+  Scenario: A teacher authors a matching card served with alphabetical options
+    Given I am on the "Week 1 terminology" "flashdeck activity" page logged in as teacher1
+    When I follow "Manage cards"
+    And I follow "Matching"
+    And I set the following fields to these values:
+      | Prompt        | Match each prefix to its meaning |
+      | Left item 1   | tachy-                           |
+      | Right match 1 | fast                             |
+      | Left item 2   | brady-                           |
+      | Right match 2 | slow                             |
+    And I press "Save changes"
+    Then I should see "Card saved."
+    When I am on the "Week 1 terminology" "flashdeck activity" page logged in as student1
+    Then I should see "Match each prefix to its meaning"
+    And I should see "tachy-"
+    And ".flashdeck-matchselect" "css_element" should exist
+
   Scenario: A student can switch to browsing all cards without scheduling
     Given the following "mod_flashdeck > cards" exist:
       | flashdeck          | cardtype | front | back |

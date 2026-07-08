@@ -114,6 +114,33 @@ abstract class card_type {
     abstract public function get_summary(\stdClass $card): string;
 
     /**
+     * Prepare draft file areas for the editor form.
+     *
+     * Card types with file fields (e.g. images) override this to load
+     * existing files into a draft area and return the element defaults.
+     *
+     * @param \stdClass|null $card the existing card, or null when adding
+     * @param \context_module $context module context
+     * @return array element name => draft item id
+     */
+    public function file_defaults(?\stdClass $card, \context_module $context): array {
+        return [];
+    }
+
+    /**
+     * Persist draft files after the card record has been saved.
+     *
+     * Called with the saved card (id is known), so file areas can use
+     * the card id as itemid.
+     *
+     * @param \stdClass $data submitted form data
+     * @param \stdClass $card the saved flashdeck_cards record
+     * @param \context_module $context module context
+     */
+    public function process_files(\stdClass $data, \stdClass $card, \context_module $context): void {
+    }
+
+    /**
      * Decode a card record's content JSON defensively.
      *
      * @param \stdClass $card the flashdeck_cards record

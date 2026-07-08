@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/card_imagelabel
+
+    Image/label card. Identify variant: marker shown, learner recalls
+    the name. Hotspot variant: learner clicks where the structure is
+    (JS feedback); without JS the reveal shows the marked region.
+
+    Example context (json):
+    {
+        "ishotspot": false,
+        "hasimage": true,
+        "imageurl": "https://example.com/pluginfile.php/1/mod_flashdeck/cardimage/1/deltoid.png",
+        "alttext": "Shoulder muscles, lateral view",
+        "question": "Name the highlighted structure.",
+        "label": "Deltoid",
+        "description": "Abducts the arm.",
+        "cx": 42.5, "cy": 31.0, "r": 8.0
+    }
+}}
+<div class="flashdeck-face flashdeck-face-front">
+    <div class="flashdeck-face-body">
+        <p class="flashdeck-prompt">{{question}}</p>
+        {{#hasimage}}
+        {{^ishotspot}}
+        <div class="flashdeck-imagewrap">
+            <img src="{{imageurl}}" alt="{{alttext}}">
+            <span class="flashdeck-marker" aria-hidden="true"
+                  style="left: {{cx}}%; top: {{cy}}%; width: {{d}}%;"></span>
+        </div>
+        {{/ishotspot}}
+        {{#ishotspot}}
+        <div class="flashdeck-imagewrap" data-region="hotspot" data-cx="{{cx}}" data-cy="{{cy}}" data-r="{{r}}"
+             data-str-hit="{{#str}} hotspothit, mod_flashdeck {{/str}}"
+             data-str-miss="{{#str}} hotspotmiss, mod_flashdeck {{/str}}">
+            <img src="{{imageurl}}" alt="{{alttext}}">
+        </div>
+        <p class="flashdeck-checkfeedback" data-region="hotspotfeedback" aria-live="polite"></p>
+        {{/ishotspot}}
+        {{/hasimage}}
+        {{^hasimage}}
+        <p class="flashdeck-empty">{{#str}} noimage, mod_flashdeck {{/str}} {{alttext}}</p>
+        {{/hasimage}}
+    </div>
+</div>
+<details class="flashdeck-face flashdeck-face-back">
+    <summary class="flashdeck-reveal">{{#str}} showanswer, mod_flashdeck {{/str}}</summary>
+    <div class="flashdeck-face-body">
+        <p class="flashdeck-term">{{label}}</p>
+        {{#hasimage}}
+        <div class="flashdeck-imagewrap">
+            <img src="{{imageurl}}" alt="{{alttext}}">
+            <span class="flashdeck-marker" aria-hidden="true"
+                  style="left: {{cx}}%; top: {{cy}}%; width: {{d}}%;"></span>
+        </div>
+        {{/hasimage}}
+        {{#description}}
+        <p class="flashdeck-definition">{{description}}</p>
+        {{/description}}
+    </div>
+</details>
