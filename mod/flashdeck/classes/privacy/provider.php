@@ -51,6 +51,12 @@ class provider implements
             'lastreviewed' => 'privacy:metadata:flashdeck_review:lastreviewed',
         ], 'privacy:metadata:flashdeck_review');
 
+        // Teacher-provided source text is sent to the site-configured
+        // inference server during AI card generation.
+        $collection->add_external_location_link('aiserver', [
+            'sourcetext' => 'privacy:metadata:aiserver:sourcetext',
+        ], 'privacy:metadata:aiserver');
+
         $collection->add_database_table('flashdeck_session', [
             'userid' => 'privacy:metadata:flashdeck_session:userid',
             'daystart' => 'privacy:metadata:flashdeck_session:daystart',

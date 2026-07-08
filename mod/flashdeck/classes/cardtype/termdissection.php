@@ -212,4 +212,20 @@ class termdissection extends card_type {
         $content = self::decode($card);
         return shorten_text($content['term'] ?? '', 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidesctermdissection', 'mod_flashdeck'),
+            'content' => [
+                'term' => 'cardiology',
+                'definition' => 'The medical specialty devoted to the study of the heart.',
+                'parts' => [
+                    ['text' => 'cardi', 'role' => 'root', 'meaning' => 'heart'],
+                    ['text' => 'o', 'role' => 'link', 'meaning' => 'combining vowel'],
+                    ['text' => 'logy', 'role' => 'suffix', 'meaning' => 'study of'],
+                ],
+            ],
+        ];
+    }
 }

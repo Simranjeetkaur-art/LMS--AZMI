@@ -141,6 +141,20 @@ abstract class card_type {
     }
 
     /**
+     * How an AI generator should author this type, or null when the
+     * type cannot be machine-generated (e.g. it needs an image file).
+     *
+     * The generator builds its format contract from the registry via
+     * this hook, so new card types become generatable by implementing
+     * it — no generator changes needed.
+     *
+     * @return array|null ['description' => string, 'content' => example payload]
+     */
+    public function get_ai_example(): ?array {
+        return null;
+    }
+
+    /**
      * Decode a card record's content JSON defensively.
      *
      * @param \stdClass $card the flashdeck_cards record

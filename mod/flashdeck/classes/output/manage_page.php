@@ -93,6 +93,9 @@ class manage_page implements \renderable, \templatable {
             'copyurl' => (new \moodle_url('/mod/flashdeck/edit.php',
                 ['id' => $this->cm->id, 'action' => 'copyfrom']))->out(false),
             'importurl' => (new \moodle_url('/mod/flashdeck/import.php', ['id' => $this->cm->id]))->out(false),
+            'cangenerate' => \mod_flashdeck\local\ai_generator::is_available()
+                && has_capability('mod/flashdeck:generateai', $this->cm->context),
+            'generateurl' => (new \moodle_url('/mod/flashdeck/generate.php', ['id' => $this->cm->id]))->out(false),
             'exportjsonurl' => (new \moodle_url('/mod/flashdeck/export.php',
                 ['id' => $this->cm->id, 'format' => 'json']))->out(false),
             'exportcsvurl' => (new \moodle_url('/mod/flashdeck/export.php',

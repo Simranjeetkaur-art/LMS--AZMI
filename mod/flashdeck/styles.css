@@ -389,6 +389,34 @@
     font-family: var(--flashdeck-serif);
 }
 
+/* ---------- AI generation preview ---------- */
+.path-mod-flashdeck .flashdeck-previewitem {
+    margin-bottom: 1.5rem;
+}
+
+.path-mod-flashdeck .flashdeck-previewpick {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+}
+
+.path-mod-flashdeck .flashdeck-previewtype {
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-previewtags {
+    font-size: 0.85em;
+    color: var(--flashdeck-muted);
+}
+
+.path-mod-flashdeck .flashdeck-previewrejected {
+    border-left: 3px solid var(--flashdeck-incorrect);
+    padding-left: 0.75rem;
+    margin: 1rem 0;
+}
+
 /* ---------- Gamification: mastery ring, streak, points ---------- */
 .path-mod-flashdeck .flashdeck-gamebar {
     display: flex;

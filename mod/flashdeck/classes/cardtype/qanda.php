@@ -68,4 +68,19 @@ class qanda extends basic {
             'guidance' => $content['guidance'] ?? '',
         ];
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidescqanda', 'mod_flashdeck'),
+            'content' => [
+                'front' => '<p>Why is spaced repetition more effective than massed review?</p>',
+                'frontformat' => FORMAT_HTML,
+                'back' => '<p>Retrieval at increasing intervals strengthens long-term retention '
+                    . '(the spacing effect), while massed review inflates short-term familiarity.</p>',
+                'backformat' => FORMAT_HTML,
+                'guidance' => 'A strong answer mentions the spacing effect and retrieval practice.',
+            ],
+        ];
+    }
 }

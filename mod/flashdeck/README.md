@@ -196,6 +196,39 @@ deck (12 term-dissection + 4 basic cards). Teachers load it from
 *Manage cards → Load sample deck (EMD-101 Week 1)*; it appends to the
 deck and validates every card before inserting anything.
 
+## AI card generation
+
+Teachers with `mod/flashdeck:generateai` get a *Generate cards (AI)*
+button on Manage cards. They paste source material (lecture notes, a
+reading, a vocabulary list), pick card types and a count; the server
+runs one chat completion against a **self-hosted inference server**
+and shows the proposal for review — every card rendered with its real
+template — before anything is saved. Imported cards are tagged (default
+`ai-generated`) so they stay identifiable.
+
+Nothing is hardcoded, at three levels:
+
+- **Connection** — provider dialect (Ollama `POST /api/chat` or
+  OpenAI-compatible/vLLM `POST /v1/chat/completions`), base URL, bearer
+  token, model, timeout, temperature and the per-request card cap are
+  all site admin settings (*Plugins → Activity modules → Flashcard
+  deck*). An empty URL disables the feature everywhere. The client also
+  accepts constructor overrides, which is how the tests run without
+  config.
+- **Prompt** — the system prompt is an admin setting whose default is a
+  translatable language string; the JSON format contract is built at
+  request time from the card-type registry: any type implementing
+  `get_ai_example()` is offered to the model with its own description
+  and schema example. New card types become generatable without
+  touching the generator; `imagelabel` opts out (it needs a file).
+- **Trust boundary** — model output is a proposal, never a write.
+  Responses are parsed defensively (think-blocks, code fences,
+  wrappers), every card is validated through its card type, rejects are
+  shown with reasons, and the teacher's selection goes through the same
+  atomic porter as every other bulk import. The privacy provider
+  declares the external server link (teacher source text is sent to
+  it).
+
 ## Import, export and reuse (Phase 5)
 
 All bulk I/O lives on *Manage cards*. Imports are **atomic**: every

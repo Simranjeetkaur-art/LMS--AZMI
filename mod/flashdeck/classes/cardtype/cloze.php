@@ -194,4 +194,15 @@ class cloze extends card_type {
         $plain = preg_replace('/\[\[(.+?)(\|.*?)?\]\]/s', '…', (string) ($content['text'] ?? ''));
         return shorten_text(trim($plain), 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidesccloze', 'mod_flashdeck'),
+            'content' => [
+                'text' => 'The powerhouse of the cell is the [[mitochondrion|mitochondria]].',
+                'casesensitive' => false,
+            ],
+        ];
+    }
 }

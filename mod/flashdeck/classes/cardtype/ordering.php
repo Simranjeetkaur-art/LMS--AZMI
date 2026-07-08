@@ -145,4 +145,15 @@ class ordering extends card_type {
         $content = self::decode($card);
         return shorten_text($content['prompt'] ?? '', 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidescordering', 'mod_flashdeck'),
+            'content' => [
+                'prompt' => 'Order the stages of mitosis',
+                'items' => ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'],
+            ],
+        ];
+    }
 }

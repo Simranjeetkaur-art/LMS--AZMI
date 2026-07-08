@@ -74,6 +74,18 @@ $capabilities = [
         ],
     ],
 
+    // Use the AI card generator (sends teacher-provided source text to
+    // the site-configured inference server).
+    'mod/flashdeck:generateai' => [
+        'riskbitmask' => RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+
     // View per-learner study analytics.
     'mod/flashdeck:viewreports' => [
         'captype' => 'read',

@@ -44,6 +44,9 @@
         {{/addbuttons}}
     </div>
     <div class="flashdeck-addbar">
+        {{#cangenerate}}
+        <a class="btn btn-secondary" href="{{generateurl}}">{{#str}} aigenerate, mod_flashdeck {{/str}}</a>
+        {{/cangenerate}}
         <a class="btn btn-outline-secondary" href="{{importurl}}">{{#str}} importcards, mod_flashdeck {{/str}}</a>
         <a class="btn btn-outline-secondary" href="{{exportjsonurl}}">{{#str}} exportjson, mod_flashdeck {{/str}}</a>
         <a class="btn btn-outline-secondary" href="{{exportcsvurl}}">{{#str}} exportcsv, mod_flashdeck {{/str}}</a>

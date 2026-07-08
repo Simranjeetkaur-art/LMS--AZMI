@@ -112,4 +112,15 @@ class basic extends card_type {
         $content = self::decode($card);
         return shorten_text(trim(html_to_text($content['front'] ?? '', 0)), 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidescbasic', 'mod_flashdeck'),
+            'content' => [
+                'front' => '<p>What does the suffix -itis mean?</p>', 'frontformat' => FORMAT_HTML,
+                'back' => '<p>Inflammation.</p>', 'backformat' => FORMAT_HTML,
+            ],
+        ];
+    }
 }

@@ -1,0 +1,81 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/generate_preview
+
+    Review screen for AI-proposed cards: each card renders with its real
+    card template (native details reveal shows the back), the teacher
+    unticks unwanted cards and confirms. Nothing is saved before that.
+
+    Example context (json):
+    {
+        "actionurl": "https://example.com/mod/flashdeck/generate.php?id=12",
+        "sesskey": "abc",
+        "payload": "[{\"cardtype\":\"basic\",\"tags\":null,\"content\":{}}]",
+        "previewcount": 1,
+        "previews": [
+            {"index": 0, "typename": "Basic (two-sided)", "tags": "week1",
+             "cardhtml": "<div class=\"flashdeck-face\">...</div>"}
+        ],
+        "hasrejected": false,
+        "rejectedcount": 0,
+        "rejected": [],
+        "cancelurl": "https://example.com/mod/flashdeck/edit.php?id=12"
+    }
+}}
+<div class="flashdeck-study flashdeck-generatepreview">
+    <p>{{#str}} aipreviewintro, mod_flashdeck {{/str}}</p>
+
+    <form method="post" action="{{actionurl}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="confirm">
+        <textarea name="payload" class="flashdeck-vh" aria-hidden="true" readonly>{{payload}}</textarea>
+
+        {{#previews}}
+        <div class="flashdeck-previewitem">
+            <label class="flashdeck-previewpick">
+                <input type="checkbox" name="include[]" value="{{index}}" checked>
+                <span class="flashdeck-previewtype">{{typename}}</span>
+                {{#tags}}<span class="flashdeck-previewtags">{{tags}}</span>{{/tags}}
+            </label>
+            <div class="flashdeck-stage">
+                <article class="flashdeck-card">
+                    <div class="flashdeck-cardinner">
+                        {{{cardhtml}}}
+                    </div>
+                </article>
+            </div>
+        </div>
+        {{/previews}}
+
+        {{#hasrejected}}
+        <div class="flashdeck-previewrejected">
+            <p>{{#str}} aipreviewrejected, mod_flashdeck, {{rejectedcount}} {{/str}}</p>
+            <ul>
+                {{#rejected}}
+                <li><strong>{{cardtype}}</strong>: {{problem}}</li>
+                {{/rejected}}
+            </ul>
+        </div>
+        {{/hasrejected}}
+
+        <div class="flashdeck-managelink">
+            <button type="submit" class="btn btn-primary">{{#str}} aiaddselected, mod_flashdeck {{/str}}</button>
+            <a class="btn btn-outline-secondary" href="{{cancelurl}}">{{#str}} cancel, core {{/str}}</a>
+        </div>
+    </form>
+</div>

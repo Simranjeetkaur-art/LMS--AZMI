@@ -163,4 +163,19 @@ class matching extends card_type {
         $content = self::decode($card);
         return shorten_text($content['prompt'] ?? '', 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidescmatching', 'mod_flashdeck'),
+            'content' => [
+                'prompt' => 'Match each prefix to its meaning',
+                'pairs' => [
+                    ['left' => 'brady-', 'right' => 'slow'],
+                    ['left' => 'tachy-', 'right' => 'fast'],
+                    ['left' => 'hyper-', 'right' => 'excessive'],
+                ],
+            ],
+        ];
+    }
 }

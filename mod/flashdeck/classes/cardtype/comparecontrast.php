@@ -164,4 +164,20 @@ class comparecontrast extends card_type {
         $content = self::decode($card);
         return shorten_text($content['prompt'] ?? '', 80);
     }
+
+    #[\Override]
+    public function get_ai_example(): ?array {
+        return [
+            'description' => get_string('aidesccomparecontrast', 'mod_flashdeck'),
+            'content' => [
+                'prompt' => 'Compare the Beveridge and Bismarck health-system models',
+                'columna' => 'Beveridge',
+                'columnb' => 'Bismarck',
+                'rows' => [
+                    ['aspect' => 'Funding', 'a' => 'General taxation', 'b' => 'Payroll social insurance'],
+                    ['aspect' => 'Provider ownership', 'a' => 'Largely public', 'b' => 'Mixed private/public'],
+                ],
+            ],
+        ];
+    }
 }

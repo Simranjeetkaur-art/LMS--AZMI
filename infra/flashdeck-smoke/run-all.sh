@@ -14,7 +14,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 fail=0
 for script in smoke1-skeleton.php smoke2-scheduler.php smoke3-cardtypes.php \
-              smoke4-gamification.php smoke5-porter-backup.php; do
+              smoke4-gamification.php smoke5-porter-backup.php smoke6-ai.php; do
   echo "=== ${script} ==="
   if ! php "${script}"; then
     fail=1
