@@ -92,7 +92,7 @@ class mod_flashdeck_mod_form extends moodleform_mod {
      *
      * @return string[] the group element names added
      */
-    protected function add_completion_rules() {
+    public function add_completion_rules() {
         $mform = $this->_form;
         $suffix = $this->get_suffix();
 

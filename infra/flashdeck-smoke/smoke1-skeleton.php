@@ -103,7 +103,8 @@ $check('mod_form class loads', class_exists('mod_flashdeck_mod_form'));
 // 8. Privacy provider metadata.
 $collection = new \core_privacy\local\metadata\collection('mod_flashdeck');
 $collection = \mod_flashdeck\privacy\provider::get_metadata($collection);
-$check('privacy metadata declares flashdeck_review', count($collection->get_collection()) === 1);
+$privacytables = array_map(static fn($item) => $item->get_name(), $collection->get_collection());
+$check('privacy metadata declares flashdeck_review', in_array('flashdeck_review', $privacytables, true));
 
 echo $fails ? "\nSMOKE TEST: {$fails} FAILURE(S)\n" : "\nSMOKE TEST: ALL PASSED\n";
 exit($fails ? 1 : 0);
