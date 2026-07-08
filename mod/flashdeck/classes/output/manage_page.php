@@ -90,6 +90,13 @@ class manage_page implements \renderable, \templatable {
             'cardcount' => $total,
             'addbuttons' => $addbuttons,
             'seedurl' => (new \moodle_url($baseurl, ['action' => 'seed']))->out(false),
+            'copyurl' => (new \moodle_url('/mod/flashdeck/edit.php',
+                ['id' => $this->cm->id, 'action' => 'copyfrom']))->out(false),
+            'importurl' => (new \moodle_url('/mod/flashdeck/import.php', ['id' => $this->cm->id]))->out(false),
+            'exportjsonurl' => (new \moodle_url('/mod/flashdeck/export.php',
+                ['id' => $this->cm->id, 'format' => 'json']))->out(false),
+            'exportcsvurl' => (new \moodle_url('/mod/flashdeck/export.php',
+                ['id' => $this->cm->id, 'format' => 'csv']))->out(false),
             'viewurl' => (new \moodle_url('/mod/flashdeck/view.php', ['id' => $this->cm->id]))->out(false),
         ];
     }

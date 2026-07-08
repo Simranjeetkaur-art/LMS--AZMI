@@ -42,6 +42,12 @@
         {{#addbuttons}}
         <a class="btn btn-primary" href="{{url}}">{{name}}</a>
         {{/addbuttons}}
+    </div>
+    <div class="flashdeck-addbar">
+        <a class="btn btn-outline-secondary" href="{{importurl}}">{{#str}} importcards, mod_flashdeck {{/str}}</a>
+        <a class="btn btn-outline-secondary" href="{{exportjsonurl}}">{{#str}} exportjson, mod_flashdeck {{/str}}</a>
+        <a class="btn btn-outline-secondary" href="{{exportcsvurl}}">{{#str}} exportcsv, mod_flashdeck {{/str}}</a>
+        <a class="btn btn-outline-secondary" href="{{copyurl}}">{{#str}} copycards, mod_flashdeck {{/str}}</a>
         <a class="btn btn-outline-secondary" href="{{seedurl}}">{{#str}} loadsampledeck, mod_flashdeck {{/str}}</a>
     </div>
 

@@ -123,6 +123,16 @@ Feature: Teachers author flashcard decks and students study them
     And I should see "tachy-"
     And ".flashdeck-matchselect" "css_element" should exist
 
+  Scenario: A teacher bulk-imports cards by pasting GIFT text
+    Given I am on the "Week 1 terminology" "flashdeck activity" page logged in as teacher1
+    When I follow "Manage cards"
+    And I follow "Import cards"
+    And I set the field "Format" to "GIFT (basic and cloze cards)"
+    And I set the field "Or paste content" to "What does the suffix -itis mean? {=inflammation}"
+    And I press "Import"
+    Then I should see "1 cards imported."
+    And I should see "What does the suffix -itis mean?"
+
   Scenario: A student can switch to browsing all cards without scheduling
     Given the following "mod_flashdeck > cards" exist:
       | flashdeck          | cardtype | front | back |

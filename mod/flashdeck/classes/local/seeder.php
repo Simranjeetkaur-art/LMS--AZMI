@@ -16,8 +16,6 @@
 
 namespace mod_flashdeck\local;
 
-use mod_flashdeck\cardtype\manager;
-
 /**
  * Loads the bundled sample deck into a flashdeck instance.
  *
@@ -43,50 +41,18 @@ class seeder {
      * @throws \moodle_exception if the sample file is missing or invalid
      */
     public static function seed(\stdClass $deck, int $userid): int {
-        global $CFG, $DB;
+        global $CFG;
 
         $filepath = $CFG->dirroot . self::SAMPLEFILE;
         if (!is_readable($filepath)) {
             throw new \moodle_exception('errsampledeck', 'mod_flashdeck', '', 'file not readable');
         }
 
-        $decoded = json_decode(file_get_contents($filepath), true);
-        if (!is_array($decoded) || empty($decoded['cards']) || !is_array($decoded['cards'])) {
-            throw new \moodle_exception('errsampledeck', 'mod_flashdeck', '', 'malformed sample file');
+        // Porter validates every card before anything is written.
+        try {
+            return porter::import_json($deck, file_get_contents($filepath), $userid);
+        } catch (\moodle_exception $e) {
+            throw new \moodle_exception('errsampledeck', 'mod_flashdeck', '', $e->getMessage());
         }
-
-        $position = (int) $DB->get_field_sql(
-            'SELECT COALESCE(MAX(position), 0) FROM {flashdeck_cards} WHERE deckid = ?', [$deck->id]);
-
-        $now = time();
-        $count = 0;
-        $records = [];
-        foreach ($decoded['cards'] as $carddef) {
-            $cardtype = $carddef['cardtype'] ?? '';
-            if (!manager::exists($cardtype)) {
-                throw new \moodle_exception('errsampledeck', 'mod_flashdeck', '', "unknown card type '{$cardtype}'");
-            }
-            $type = manager::get($cardtype);
-            $content = $carddef['content'] ?? [];
-            if ($problems = $type->validate_content($content)) {
-                throw new \moodle_exception('errsampledeck', 'mod_flashdeck', '', implode('; ', $problems));
-            }
-            $records[] = (object) [
-                'deckid' => $deck->id,
-                'cardtype' => $cardtype,
-                'position' => ++$position,
-                'tags' => $carddef['tags'] ?? null,
-                'content' => json_encode($content),
-                'usermodified' => $userid,
-                'timecreated' => $now,
-                'timemodified' => $now,
-            ];
-            $count++;
-        }
-
-        // All validated before anything is written, so a bad file adds nothing.
-        $DB->insert_records('flashdeck_cards', $records);
-
-        return $count;
     }
 }

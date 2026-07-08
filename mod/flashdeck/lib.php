@@ -43,8 +43,7 @@ function flashdeck_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:
             return true;
         case FEATURE_BACKUP_MOODLE2:
-            // Backup/restore arrives in Phase 5; not declared before it exists.
-            return null;
+            return true;
         case FEATURE_MOD_PURPOSE:
             return MOD_PURPOSE_CONTENT;
         default:
@@ -302,4 +301,60 @@ function flashdeck_update_grades(stdClass $deck, int $userid = 0, bool $nullifno
     } else {
         flashdeck_grade_item_update($deck);
     }
+}
+
+/**
+ * Add this module's options to the course reset form.
+ *
+ * @param MoodleQuickForm $mform the course reset form
+ */
+function flashdeck_reset_course_form_definition($mform): void {
+    $mform->addElement('header', 'flashdeckheader', get_string('modulenameplural', 'mod_flashdeck'));
+    $mform->addElement('advcheckbox', 'reset_flashdeck_progress',
+        get_string('resetprogress', 'mod_flashdeck'));
+}
+
+/**
+ * Default values for the course reset form.
+ *
+ * @param stdClass $course the course
+ * @return array option => default
+ */
+function flashdeck_reset_course_form_defaults($course): array {
+    return ['reset_flashdeck_progress' => 1];
+}
+
+/**
+ * Remove per-user study data during a course reset. Cards and deck
+ * settings survive: reset returns the course to a ready-to-teach state.
+ *
+ * @param stdClass $data the reset options
+ * @return array of status arrays
+ */
+function flashdeck_reset_userdata($data): array {
+    global $DB;
+
+    $status = [];
+    $componentstr = get_string('modulenameplural', 'mod_flashdeck');
+
+    if (!empty($data->reset_flashdeck_progress)) {
+        $decksql = 'SELECT id FROM {flashdeck} WHERE course = ?';
+        $DB->delete_records_select('flashdeck_review', "deckid IN ({$decksql})", [$data->courseid]);
+        $DB->delete_records_select('flashdeck_session', "deckid IN ({$decksql})", [$data->courseid]);
+
+        if (empty($data->reset_gradebook_grades)) {
+            // Grades are mastery-derived; wipe them along with the state.
+            foreach ($DB->get_records('flashdeck', ['course' => $data->courseid]) as $deck) {
+                flashdeck_grade_item_update($deck, 'reset');
+            }
+        }
+
+        $status[] = [
+            'component' => $componentstr,
+            'item' => get_string('resetprogressdone', 'mod_flashdeck'),
+            'error' => false,
+        ];
+    }
+
+    return $status;
 }

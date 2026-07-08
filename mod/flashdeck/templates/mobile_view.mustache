@@ -1,0 +1,70 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/mobile_view
+
+    Moodle App course-module view: description, progress counts and a
+    hand-off into the full browser study loop. Server-side values use
+    the <% %> delimiters; literal {{ }} expressions are left for the
+    app's Angular runtime.
+
+    Example context (json):
+    {
+        "cmid": 12,
+        "description": "<p>Week 1 vocabulary.</p>",
+        "duenow": 3,
+        "learning": 2,
+        "newremaining": 18,
+        "total": 16,
+        "mastery": 44,
+        "streak": 3,
+        "points": 210,
+        "viewurl": "https://example.com/mod/flashdeck/view.php?id=12"
+    }
+}}
+{{=<% %>=}}
+<div class="core-course-module-description"><%{description}%></div>
+<ion-list>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.reportmastery' | translate }}</ion-label>
+        <ion-badge slot="end"><%mastery%>%</ion-badge>
+    </ion-item>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.statduenow' | translate }}</ion-label>
+        <ion-badge slot="end"><%duenow%></ion-badge>
+    </ion-item>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.statlearning' | translate }}</ion-label>
+        <ion-badge slot="end"><%learning%></ion-badge>
+    </ion-item>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.statnewleft' | translate }}</ion-label>
+        <ion-badge slot="end"><%newremaining%></ion-badge>
+    </ion-item>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.statstreak' | translate }}</ion-label>
+        <ion-badge slot="end"><%streak%></ion-badge>
+    </ion-item>
+    <ion-item>
+        <ion-label>{{ 'plugin.mod_flashdeck.statpoints' | translate }}</ion-label>
+        <ion-badge slot="end"><%points%></ion-badge>
+    </ion-item>
+</ion-list>
+<ion-button expand="block" core-link href="<%viewurl%>" [showBrowserWarning]="false">
+    {{ 'plugin.mod_flashdeck.studymodelearn' | translate }}
+</ion-button>
+<%={{ }}=%>

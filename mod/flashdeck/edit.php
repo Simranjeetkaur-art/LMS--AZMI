@@ -93,6 +93,79 @@ if ($action === 'seed') {
         \core\output\notification::NOTIFY_SUCCESS);
 }
 
+if ($action === 'copyfrom') {
+    // Decks in courses where this user can manage cards, excluding this one.
+    $sources = [];
+    foreach (get_user_capability_course('mod/flashdeck:managecards', null, false, 'shortname') as $c) {
+        foreach (get_fast_modinfo($c->id)->get_instances_of('flashdeck') as $sourcecm) {
+            if ((int) $sourcecm->instance !== (int) $deck->id) {
+                $sources[$sourcecm->instance] = $c->shortname . ': ' . $sourcecm->get_formatted_name();
+            }
+        }
+    }
+
+    $copyform = new \mod_flashdeck\form\copy_form(
+        (new moodle_url($baseurl, ['action' => 'copyfrom']))->out(false), ['decks' => $sources]);
+    $copyform->set_data(['id' => $cm->id]);
+
+    if ($copyform->is_cancelled()) {
+        redirect($baseurl);
+    }
+    if (($data = $copyform->get_data()) && isset($sources[$data->sourcedeck])) {
+        $source = $DB->get_record('flashdeck', ['id' => $data->sourcedeck], '*', MUST_EXIST);
+        [, $sourcecm] = get_course_and_cm_from_instance($source, 'flashdeck');
+        $sourcecontext = context_module::instance($sourcecm->id);
+        require_capability('mod/flashdeck:managecards', $sourcecontext);
+
+        $params = ['deckid' => $source->id];
+        $tagsql = '';
+        if (trim($data->tagfilter ?? '') !== '') {
+            $tagsql = ' AND ' . $DB->sql_like('tags', ':tag', false);
+            $params['tag'] = '%' . $DB->sql_like_escape(trim($data->tagfilter)) . '%';
+        }
+        $sourcecards = $DB->get_records_select('flashdeck_cards', 'deckid = :deckid' . $tagsql,
+            $params, 'position ASC, id ASC');
+
+        $position = (int) $DB->get_field_sql(
+            'SELECT COALESCE(MAX(position), 0) FROM {flashdeck_cards} WHERE deckid = ?', [$deck->id]);
+        $fs = get_file_storage();
+        $now = time();
+        $count = 0;
+        foreach ($sourcecards as $sourcecard) {
+            $newcard = clone $sourcecard;
+            unset($newcard->id);
+            $newcard->deckid = $deck->id;
+            $newcard->position = ++$position;
+            $newcard->usermodified = $USER->id;
+            $newcard->timecreated = $now;
+            $newcard->timemodified = $now;
+            $newcard->id = $DB->insert_record('flashdeck_cards', $newcard);
+            // Bring card images along (itemid = card id).
+            foreach ($fs->get_area_files($sourcecontext->id, 'mod_flashdeck', 'cardimage',
+                    $sourcecard->id, 'itemid, filepath, filename', false) as $file) {
+                $fs->create_file_from_storedfile([
+                    'contextid' => $context->id,
+                    'itemid' => $newcard->id,
+                ], $file);
+            }
+            $count++;
+        }
+        redirect($baseurl, get_string('copydone', 'mod_flashdeck', $count), null,
+            \core\output\notification::NOTIFY_SUCCESS);
+    }
+
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('copycards', 'mod_flashdeck'), 3);
+    if (!$sources) {
+        echo $OUTPUT->notification(get_string('copynosources', 'mod_flashdeck'), 'info');
+        echo $OUTPUT->continue_button($baseurl);
+    } else {
+        $copyform->display();
+    }
+    echo $OUTPUT->footer();
+    die;
+}
+
 $cards = $DB->get_records('flashdeck_cards', ['deckid' => $deck->id], 'position ASC, id ASC');
 
 /** @var \mod_flashdeck\output\renderer $renderer */

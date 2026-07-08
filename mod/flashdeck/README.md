@@ -22,9 +22,7 @@ anatomy, genetics, or health-systems policy.
 | 2 | Scheduler interface, SM-2 + Leitner, AJAX study loop, four-button grading, resumable progress | **Done** |
 | 3 | Image/hotspot, cloze, matching, ordering, compare/contrast, Q&A card types; File API media | **Done** |
 | 4 | Gradebook, completion rules, streaks/points/badges, study modes, teacher report | **Done** |
-| 5 | CSV/JSON/GIFT import-export, tags & duplication, backup/restore, Behat breadth, mobile support | Planned |
-
-Backup/restore stays undeclared until Phase 5 implements it.
+| 5 | CSV/JSON/GIFT import-export, tags & duplication, backup/restore, Behat breadth, mobile support | **Done** |
 
 ## Grading, completion, gamification (Phase 4)
 
@@ -197,6 +195,84 @@ input to the server-side scheduler.
 deck (12 term-dissection + 4 basic cards). Teachers load it from
 *Manage cards → Load sample deck (EMD-101 Week 1)*; it appends to the
 deck and validates every card before inserting anything.
+
+## Import, export and reuse (Phase 5)
+
+All bulk I/O lives on *Manage cards*. Imports are **atomic**: every
+card is validated through its card type before anything is written, so
+a bad file imports nothing.
+
+### JSON — all card types, lossless round-trip
+
+The export format equals the import format (and the bundled sample
+deck):
+
+```json
+{"name": "Deck name", "cards": [
+  {"cardtype": "basic", "tags": "week1",
+   "content": {"front": "<p>Prompt</p>", "frontformat": 1,
+               "back": "<p>Answer</p>", "backformat": 1}}
+]}
+```
+
+`content` is exactly the card type's content JSON (see the card-type
+reference above). Card images are not embedded — re-attach them after
+importing imagelabel cards.
+
+### CSV — text-friendly types
+
+Columns: `cardtype,tags,f1,f2,f3,f4`. Per-type payload:
+
+| cardtype | f1 | f2 | f3 |
+| --- | --- | --- | --- |
+| basic | front | back | |
+| qanda | front | back | guidance |
+| cloze | text with `[[answer\|alt]]` | case-sensitive 0/1 | |
+| termdissection | term | definition | parts `text:role:meaning\|…` |
+| matching | prompt | pairs `left=right\|…` | |
+| ordering | prompt | steps `one\|two\|three` | |
+| comparecontrast | prompt | `columnA\|columnB` | rows `aspect;a;b\|…` |
+
+Keep the delimiter characters (`|`, `;`, `=`, `:`) out of these fields
+or use JSON. `imagelabel` has no CSV form (skipped on export).
+
+### GIFT — basic and cloze
+
+The classic plain-text question format the team already authors in:
+short answer (`{=answer =alternative}`) and multichoice (`{=right
+~wrong}`) become basic cards; true/false becomes a basic card; the
+missing-word format (`text {=word} more text`) becomes a cloze card
+with the blank in place. `::titles::`, comments, `[html]` prefixes and
+`#feedback` are stripped; essays/numerical/matching entries are
+skipped, never mangled.
+
+### Reuse
+
+- **Copy cards from another deck** (Manage cards): pulls cards from
+  any deck you can manage in any of your courses, with an optional tag
+  filter — so a "cardiology" pool can be lifted out of a bigger deck.
+  Card images are copied with their cards.
+- **Backup / restore / duplicate**: full moodle2 backup support. Cards
+  and settings always travel; review state and study-day aggregates
+  only when user data is included; card images are remapped correctly.
+- **Course reset** deletes per-user progress (schedules, streaks,
+  points, mastery grades) while keeping decks and cards — ready for
+  the next cohort.
+
+### Design note: shared card bank
+
+A site-wide card bank should be a small companion `local_` plugin (own
+tables, own capabilities, decks subscribe/copy from it) rather than
+more weight in the activity. The porter JSON format is the interchange
+contract it would use. Deliberately not built now — the copy-with-tags
+flow above covers the near-term reuse need.
+
+## Moodle App
+
+`db/mobile.php` registers a basic CoreCourseModuleDelegate view:
+description, live progress counts (due/learning/new, mastery, streak,
+points) and a hand-off into the browser study loop. A native in-app
+study loop is a future enhancement.
 
 ## Theming
 
