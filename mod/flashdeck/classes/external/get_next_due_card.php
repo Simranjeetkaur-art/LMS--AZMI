@@ -87,6 +87,10 @@ class get_next_due_card extends external_api {
                 'newremaining' => new external_value(PARAM_INT, 'New cards still allowed today'),
                 'total' => new external_value(PARAM_INT, 'Total cards in the deck'),
             ], 'Queue counts'),
+            'mastery' => new external_value(PARAM_INT, 'Mastery percentage (graduated / total)'),
+            'graduated' => new external_value(PARAM_INT, 'Cards graduated to review'),
+            'streak' => new external_value(PARAM_INT, 'Consecutive study days'),
+            'points' => new external_value(PARAM_INT, 'Total points earned in this deck'),
             'nextdue' => new external_value(PARAM_INT, 'Timestamp of the next scheduled review, 0 if none'),
             'nextduelabel' => new external_value(PARAM_TEXT, 'Formatted next review time, empty if none'),
         ]);

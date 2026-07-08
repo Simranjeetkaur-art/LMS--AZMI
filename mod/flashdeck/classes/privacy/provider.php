@@ -51,21 +51,32 @@ class provider implements
             'lastreviewed' => 'privacy:metadata:flashdeck_review:lastreviewed',
         ], 'privacy:metadata:flashdeck_review');
 
+        $collection->add_database_table('flashdeck_session', [
+            'userid' => 'privacy:metadata:flashdeck_session:userid',
+            'daystart' => 'privacy:metadata:flashdeck_session:daystart',
+            'reviews' => 'privacy:metadata:flashdeck_session:reviews',
+            'correct' => 'privacy:metadata:flashdeck_session:correct',
+            'points' => 'privacy:metadata:flashdeck_session:points',
+            'firstreview' => 'privacy:metadata:flashdeck_session:firstreview',
+            'lastreview' => 'privacy:metadata:flashdeck_session:lastreview',
+        ], 'privacy:metadata:flashdeck_session');
+
         return $collection;
     }
 
     #[\Override]
     public static function get_contexts_for_userid(int $userid): contextlist {
-        $sql = "SELECT ctx.id
-                  FROM {context} ctx
-                  JOIN {course_modules} cm ON cm.id = ctx.instanceid AND ctx.contextlevel = :modlevel
-                  JOIN {modules} m ON m.id = cm.module AND m.name = 'flashdeck'
-                  JOIN {flashdeck} f ON f.id = cm.instance
-                  JOIN {flashdeck_review} r ON r.deckid = f.id
-                 WHERE r.userid = :userid";
-
         $contextlist = new contextlist();
-        $contextlist->add_from_sql($sql, ['modlevel' => CONTEXT_MODULE, 'userid' => $userid]);
+        foreach (['flashdeck_review', 'flashdeck_session'] as $table) {
+            $sql = "SELECT ctx.id
+                      FROM {context} ctx
+                      JOIN {course_modules} cm ON cm.id = ctx.instanceid AND ctx.contextlevel = :modlevel
+                      JOIN {modules} m ON m.id = cm.module AND m.name = 'flashdeck'
+                      JOIN {flashdeck} f ON f.id = cm.instance
+                      JOIN {{$table}} r ON r.deckid = f.id
+                     WHERE r.userid = :userid";
+            $contextlist->add_from_sql($sql, ['modlevel' => CONTEXT_MODULE, 'userid' => $userid]);
+        }
 
         return $contextlist;
     }
@@ -77,14 +88,15 @@ class provider implements
             return;
         }
 
-        $sql = "SELECT r.userid
-                  FROM {course_modules} cm
-                  JOIN {modules} m ON m.id = cm.module AND m.name = 'flashdeck'
-                  JOIN {flashdeck} f ON f.id = cm.instance
-                  JOIN {flashdeck_review} r ON r.deckid = f.id
-                 WHERE cm.id = :cmid";
-
-        $userlist->add_from_sql('userid', $sql, ['cmid' => $context->instanceid]);
+        foreach (['flashdeck_review', 'flashdeck_session'] as $table) {
+            $sql = "SELECT r.userid
+                      FROM {course_modules} cm
+                      JOIN {modules} m ON m.id = cm.module AND m.name = 'flashdeck'
+                      JOIN {flashdeck} f ON f.id = cm.instance
+                      JOIN {{$table}} r ON r.deckid = f.id
+                     WHERE cm.id = :cmid";
+            $userlist->add_from_sql('userid', $sql, ['cmid' => $context->instanceid]);
+        }
     }
 
     #[\Override]
@@ -131,6 +143,26 @@ class provider implements
                     (object) ['reviews' => $reviews]
                 );
             }
+
+            $sessions = [];
+            $records = $DB->get_records('flashdeck_session',
+                ['deckid' => $deckid, 'userid' => $userid], 'daystart ASC');
+            foreach ($records as $session) {
+                $sessions[] = (object) [
+                    'day' => transform::datetime($session->daystart),
+                    'reviews' => $session->reviews,
+                    'correct' => $session->correct,
+                    'points' => $session->points,
+                    'firstreview' => transform::datetime($session->firstreview),
+                    'lastreview' => transform::datetime($session->lastreview),
+                ];
+            }
+            if ($sessions) {
+                writer::with_context($context)->export_data(
+                    [get_string('privacy:sessionspath', 'mod_flashdeck')],
+                    (object) ['sessions' => $sessions]
+                );
+            }
         }
     }
 
@@ -143,6 +175,7 @@ class provider implements
         }
         if ($deckid = self::deckid_from_context($context)) {
             $DB->delete_records('flashdeck_review', ['deckid' => $deckid]);
+            $DB->delete_records('flashdeck_session', ['deckid' => $deckid]);
         }
     }
 
@@ -157,6 +190,7 @@ class provider implements
             }
             if ($deckid = self::deckid_from_context($context)) {
                 $DB->delete_records('flashdeck_review', ['deckid' => $deckid, 'userid' => $userid]);
+                $DB->delete_records('flashdeck_session', ['deckid' => $deckid, 'userid' => $userid]);
             }
         }
     }
@@ -176,6 +210,7 @@ class provider implements
         [$insql, $params] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
         $params['deckid'] = $deckid;
         $DB->delete_records_select('flashdeck_review', "deckid = :deckid AND userid {$insql}", $params);
+        $DB->delete_records_select('flashdeck_session', "deckid = :deckid AND userid {$insql}", $params);
     }
 
     /**

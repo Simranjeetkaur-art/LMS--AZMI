@@ -38,9 +38,10 @@ function flashdeck_supports($feature) {
             return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
             return true;
+        case FEATURE_COMPLETION_HAS_RULES:
+            return true;
         case FEATURE_GRADE_HAS_GRADE:
-            // Mastery-based grading arrives in Phase 4.
-            return false;
+            return true;
         case FEATURE_BACKUP_MOODLE2:
             // Backup/restore arrives in Phase 5; not declared before it exists.
             return null;
@@ -66,6 +67,8 @@ function flashdeck_add_instance(stdClass $data, ?mod_flashdeck_mod_form $mform =
 
     $data->id = $DB->insert_record('flashdeck', $data);
 
+    flashdeck_grade_item_update($data);
+
     return $data->id;
 }
 
@@ -82,7 +85,14 @@ function flashdeck_update_instance(stdClass $data, ?mod_flashdeck_mod_form $mfor
     $data->id = $data->instance;
     $data->timemodified = time();
 
-    return $DB->update_record('flashdeck', $data);
+    $result = $DB->update_record('flashdeck', $data);
+
+    // Grade settings may have changed; rebuild the item and regrade.
+    $deck = $DB->get_record('flashdeck', ['id' => $data->id], '*', MUST_EXIST);
+    flashdeck_grade_item_update($deck);
+    flashdeck_update_grades($deck);
+
+    return $result;
 }
 
 /**
@@ -154,9 +164,142 @@ function flashdeck_delete_instance(int $id): bool {
     }
 
     // Dependent data first, then the instance itself.
+    $DB->delete_records('flashdeck_session', ['deckid' => $deck->id]);
     $DB->delete_records('flashdeck_review', ['deckid' => $deck->id]);
     $DB->delete_records('flashdeck_cards', ['deckid' => $deck->id]);
     $DB->delete_records('flashdeck', ['id' => $deck->id]);
 
+    flashdeck_grade_item_delete($deck);
+
     return true;
+}
+
+/**
+ * Provide course-module info, including custom completion rule values.
+ *
+ * @param stdClass $coursemodule the course module record
+ * @return cached_cm_info|false
+ */
+function flashdeck_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $fields = 'id, name, intro, introformat, completionstudied, completionmastery';
+    if (!$deck = $DB->get_record('flashdeck', ['id' => $coursemodule->instance], $fields)) {
+        return false;
+    }
+
+    $info = new cached_cm_info();
+    $info->name = $deck->name;
+    if ($coursemodule->showdescription) {
+        $info->content = format_module_intro('flashdeck', $deck, $coursemodule->id, false);
+    }
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $info->customdata['customcompletionrules']['completionstudied'] = $deck->completionstudied;
+        $info->customdata['customcompletionrules']['completionmastery'] = $deck->completionmastery;
+    }
+
+    return $info;
+}
+
+/**
+ * Compute mastery-based gradebook grades for one or all users.
+ *
+ * Mastery = graduated cards (review state 'review') / total cards; the
+ * raw grade is that fraction of the deck's maximum grade.
+ *
+ * @param stdClass $deck the flashdeck record
+ * @param int $userid a specific user, or 0 for all users with review data
+ * @return array userid => grade object with userid and rawgrade
+ */
+function flashdeck_get_user_grades(stdClass $deck, int $userid = 0): array {
+    global $DB;
+
+    $total = $DB->count_records('flashdeck_cards', ['deckid' => $deck->id]);
+    if (!$total || !$deck->grade) {
+        return [];
+    }
+
+    $params = ['deckid' => $deck->id];
+    $usersql = '';
+    if ($userid) {
+        $usersql = ' AND userid = :userid';
+        $params['userid'] = $userid;
+    }
+
+    $sql = "SELECT userid, COUNT(id) AS graduated
+              FROM {flashdeck_review}
+             WHERE deckid = :deckid AND state = 'review'{$usersql}
+          GROUP BY userid";
+
+    $grades = [];
+    foreach ($DB->get_records_sql($sql, $params) as $row) {
+        $grades[$row->userid] = (object) [
+            'userid' => $row->userid,
+            'rawgrade' => $deck->grade * min(1, $row->graduated / $total),
+        ];
+    }
+    return $grades;
+}
+
+/**
+ * Create, update or reset the gradebook item for a deck.
+ *
+ * @param stdClass $deck the flashdeck record (needs id, course, name, grade)
+ * @param mixed $grades grades to push, null for none, 'reset' to wipe
+ * @return int GRADE_UPDATE_OK or a failure code
+ */
+function flashdeck_grade_item_update(stdClass $deck, $grades = null): int {
+    global $CFG;
+    require_once($CFG->libdir . '/gradelib.php');
+
+    $params = ['itemname' => clean_param($deck->name, PARAM_NOTAGS)];
+    if (empty($deck->grade)) {
+        $params['gradetype'] = GRADE_TYPE_NONE;
+    } else {
+        $params['gradetype'] = GRADE_TYPE_VALUE;
+        $params['grademax'] = $deck->grade;
+        $params['grademin'] = 0;
+    }
+    if ($grades === 'reset') {
+        $params['reset'] = true;
+        $grades = null;
+    }
+
+    return grade_update('mod/flashdeck', $deck->course, 'mod', 'flashdeck', $deck->id, 0, $grades, $params);
+}
+
+/**
+ * Delete the gradebook item for a deck.
+ *
+ * @param stdClass $deck the flashdeck record
+ * @return int GRADE_UPDATE_OK or a failure code
+ */
+function flashdeck_grade_item_delete(stdClass $deck): int {
+    global $CFG;
+    require_once($CFG->libdir . '/gradelib.php');
+
+    return grade_update('mod/flashdeck', $deck->course, 'mod', 'flashdeck', $deck->id, 0, null,
+        ['deleted' => 1]);
+}
+
+/**
+ * Push current mastery grades to the gradebook.
+ *
+ * @param stdClass $deck the flashdeck record
+ * @param int $userid a specific user, or 0 for all
+ * @param bool $nullifnone insert a null grade when the user has none
+ */
+function flashdeck_update_grades(stdClass $deck, int $userid = 0, bool $nullifnone = true): void {
+    if (empty($deck->grade)) {
+        flashdeck_grade_item_update($deck);
+        return;
+    }
+    if ($grades = flashdeck_get_user_grades($deck, $userid)) {
+        flashdeck_grade_item_update($deck, $grades);
+    } else if ($userid && $nullifnone) {
+        $grade = (object) ['userid' => $userid, 'rawgrade' => null];
+        flashdeck_grade_item_update($deck, [$userid => $grade]);
+    } else {
+        flashdeck_grade_item_update($deck);
+    }
 }

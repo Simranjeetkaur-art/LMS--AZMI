@@ -13,6 +13,12 @@
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field"/>
         <FIELD NAME="scheduler" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="sm2" SEQUENCE="false" COMMENT="Spaced-repetition scheduler for this deck: sm2 or leitner"/>
         <FIELD NAME="newperday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="20" SEQUENCE="false" COMMENT="Maximum new cards introduced per learner per day"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Maximum gradebook points from deck mastery; 0 = no grade"/>
+        <FIELD NAME="completionstudied" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Completion rule: number of distinct cards to study; 0 = disabled"/>
+        <FIELD NAME="completionmastery" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Completion rule: mastery percentage to reach; 0 = disabled"/>
+        <FIELD NAME="modecram" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether the Cram study mode is available"/>
+        <FIELD NAME="modetest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether the Test study mode is available"/>
+        <FIELD NAME="modematch" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether the Match game is available"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -68,6 +74,27 @@
       <INDEXES>
         <INDEX NAME="cardid-userid" UNIQUE="true" FIELDS="cardid, userid" COMMENT="One scheduling row per learner per card"/>
         <INDEX NAME="deckid-userid-duedate" UNIQUE="false" FIELDS="deckid, userid, duedate" COMMENT="Fast lookup of due cards in a deck"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="flashdeck_session" COMMENT="Per-user per-day study aggregates powering streaks, points and analytics (privacy-sensitive)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="deckid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Owning flashdeck instance"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Learner this study day belongs to"/>
+        <FIELD NAME="daystart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Midnight (user timezone) of the study day"/>
+        <FIELD NAME="reviews" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Cards reviewed this day"/>
+        <FIELD NAME="correct" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Reviews graded Good or Easy this day"/>
+        <FIELD NAME="points" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Points earned this day"/>
+        <FIELD NAME="firstreview" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of the first review this day"/>
+        <FIELD NAME="lastreview" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of the last review this day"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="deckid" TYPE="foreign" FIELDS="deckid" REFTABLE="flashdeck" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="deckid-userid-daystart" UNIQUE="true" FIELDS="deckid, userid, daystart" COMMENT="One aggregate row per learner per deck per day"/>
       </INDEXES>
     </TABLE>
   </TABLES>

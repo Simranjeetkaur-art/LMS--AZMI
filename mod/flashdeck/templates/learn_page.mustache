@@ -69,6 +69,26 @@
         </div>
         {{/hasdissection}}
 
+        <div class="flashdeck-gamebar">
+            <div class="flashdeck-ringwrap">
+                <svg class="flashdeck-ring" viewBox="0 0 44 44" role="img"
+                     aria-label="{{#str}} masteryring, mod_flashdeck {{/str}}">
+                    <circle class="flashdeck-ringtrack" cx="22" cy="22" r="18" pathLength="100"></circle>
+                    <circle class="flashdeck-ringvalue" cx="22" cy="22" r="18" pathLength="100"
+                            stroke-dasharray="{{mastery}} 100" data-region="masteryring"></circle>
+                </svg>
+                <span class="flashdeck-ringlabel"><span data-region="masterytext">{{mastery}}</span>%</span>
+            </div>
+            <div class="flashdeck-gamestats">
+                <span class="flashdeck-stat">
+                    <strong data-region="streak">{{streak}}</strong> {{#str}} statstreak, mod_flashdeck {{/str}}
+                </span>
+                <span class="flashdeck-stat">
+                    <strong data-region="points">{{points}}</strong> {{#str}} statpoints, mod_flashdeck {{/str}}
+                </span>
+            </div>
+        </div>
+
         <p class="flashdeck-counts">
             <span class="flashdeck-stat">
                 <strong data-region="count-duenow">{{counts.duenow}}</strong> {{#str}} statduenow, mod_flashdeck {{/str}}
@@ -136,9 +156,15 @@
 
         <div class="flashdeck-managelink">
             <a class="btn btn-outline-secondary" href="{{browseurl}}">{{#str}} browsecards, mod_flashdeck {{/str}}</a>
+            {{#modelinks}}
+            <a class="btn btn-outline-secondary" href="{{url}}">{{name}}</a>
+            {{/modelinks}}
             {{#canmanage}}
             <a class="btn btn-outline-secondary" href="{{manageurl}}">{{#str}} managecards, mod_flashdeck {{/str}}</a>
             {{/canmanage}}
+            {{#canviewreports}}
+            <a class="btn btn-outline-secondary" href="{{reporturl}}">{{#str}} report, mod_flashdeck {{/str}}</a>
+            {{/canviewreports}}
         </div>
     {{/hascards}}
 </div>

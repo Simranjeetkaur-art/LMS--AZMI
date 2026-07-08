@@ -40,6 +40,12 @@ class api {
     /** @var int serve learning cards early by up to this many seconds when idle */
     const LEARN_AHEAD_SECS = 1200;
 
+    /** @var int points earned for any review (showing up counts) */
+    const POINTS_REVIEW = 5;
+
+    /** @var int extra points when the self-grade is Good or Easy */
+    const POINTS_CORRECT_BONUS = 5;
+
     /**
      * Apply a self-grade to a card for a user and persist the new state.
      *
@@ -99,7 +105,156 @@ class api {
         ]);
         $event->trigger();
 
+        self::record_session($deck, $userid, $grade, $now);
+        self::push_grade_and_completion($deck, $userid, $context);
+
         return $next;
+    }
+
+    /**
+     * Upsert today's per-user study aggregate (streaks, points, analytics).
+     *
+     * @param \stdClass $deck the flashdeck record
+     * @param int $userid the learner
+     * @param int $grade the self-grade just given
+     * @param int $now the review timestamp
+     */
+    protected static function record_session(\stdClass $deck, int $userid, int $grade, int $now): void {
+        global $DB;
+
+        $daystart = usergetmidnight($now);
+        $correct = ($grade >= scheduler::GRADE_GOOD) ? 1 : 0;
+        $points = self::POINTS_REVIEW + ($correct ? self::POINTS_CORRECT_BONUS : 0);
+
+        $conditions = ['deckid' => $deck->id, 'userid' => $userid, 'daystart' => $daystart];
+        if ($session = $DB->get_record('flashdeck_session', $conditions)) {
+            $session->reviews++;
+            $session->correct += $correct;
+            $session->points += $points;
+            $session->lastreview = $now;
+            $DB->update_record('flashdeck_session', $session);
+            return;
+        }
+
+        $session = (object) ($conditions + [
+            'reviews' => 1,
+            'correct' => $correct,
+            'points' => $points,
+            'firstreview' => $now,
+            'lastreview' => $now,
+        ]);
+        try {
+            $DB->insert_record('flashdeck_session', $session);
+        } catch (\dml_exception $e) {
+            // Lost a create race (unique index); fold into the winner.
+            $existing = $DB->get_record('flashdeck_session', $conditions, '*', MUST_EXIST);
+            $existing->reviews += 1;
+            $existing->correct += $correct;
+            $existing->points += $points;
+            $existing->lastreview = max($existing->lastreview, $now);
+            $DB->update_record('flashdeck_session', $existing);
+        }
+    }
+
+    /**
+     * Recompute the user's gradebook grade and completion state.
+     *
+     * @param \stdClass $deck the flashdeck record
+     * @param int $userid the learner
+     * @param \context_module $context module context
+     */
+    protected static function push_grade_and_completion(\stdClass $deck, int $userid,
+            \context_module $context): void {
+        global $CFG;
+
+        if (!empty($deck->grade)) {
+            require_once($CFG->dirroot . '/mod/flashdeck/lib.php');
+            flashdeck_update_grades($deck, $userid);
+        }
+
+        if (!empty($deck->completionstudied) || !empty($deck->completionmastery)) {
+            require_once($CFG->libdir . '/completionlib.php');
+            [$course, $cm] = get_course_and_cm_from_cmid($context->instanceid, 'flashdeck');
+            $completion = new \completion_info($course);
+            if ($completion->is_enabled($cm) == COMPLETION_TRACKING_AUTOMATIC) {
+                $completion->update_state($cm, COMPLETION_UNKNOWN, $userid);
+            }
+        }
+    }
+
+    /**
+     * Mastery: graduated cards as a fraction of the deck.
+     *
+     * @param \stdClass $deck the flashdeck record
+     * @param int $userid the learner
+     * @return array graduated count, total cards, integer percentage
+     */
+    public static function get_mastery(\stdClass $deck, int $userid): array {
+        global $DB;
+
+        $total = $DB->count_records('flashdeck_cards', ['deckid' => $deck->id]);
+        $graduated = $DB->count_records('flashdeck_review',
+            ['deckid' => $deck->id, 'userid' => $userid, 'state' => 'review']);
+        $percent = $total ? (int) round(100 * min(1, $graduated / $total)) : 0;
+
+        return [$graduated, $total, $percent];
+    }
+
+    /**
+     * Consecutive study days for this deck, counting back from today
+     * (a streak survives until a full day is missed).
+     *
+     * @param \stdClass $deck the flashdeck record
+     * @param int $userid the learner
+     * @param int|null $now timestamp, defaults to now
+     * @return int days
+     */
+    public static function get_streak(\stdClass $deck, int $userid, ?int $now = null): int {
+        global $DB;
+
+        $now = $now ?? time();
+        $days = $DB->get_fieldset_sql(
+            'SELECT daystart FROM {flashdeck_session}
+              WHERE deckid = :deckid AND userid = :userid ORDER BY daystart DESC',
+            ['deckid' => $deck->id, 'userid' => $userid]);
+        if (!$days) {
+            return 0;
+        }
+
+        // Start from today, or yesterday if today has not been studied yet.
+        $expected = usergetmidnight($now);
+        if ((int) $days[0] !== $expected) {
+            $expected = usergetmidnight($expected - 1);
+            if ((int) $days[0] !== $expected) {
+                return 0;
+            }
+        }
+
+        $streak = 0;
+        foreach ($days as $day) {
+            if ((int) $day === $expected) {
+                $streak++;
+                $expected = usergetmidnight($expected - 1);
+            } else if ((int) $day < $expected) {
+                break;
+            }
+        }
+        return $streak;
+    }
+
+    /**
+     * Total points earned in this deck.
+     *
+     * @param \stdClass $deck the flashdeck record
+     * @param int $userid the learner
+     * @return int
+     */
+    public static function get_points(\stdClass $deck, int $userid): int {
+        global $DB;
+        return (int) $DB->get_field_sql(
+            'SELECT COALESCE(SUM(points), 0) FROM {flashdeck_session}
+              WHERE deckid = :deckid AND userid = :userid',
+            ['deckid' => $deck->id, 'userid' => $userid]);
     }
 
     /**
@@ -248,6 +403,7 @@ class api {
         $now = $now ?? time();
         [$card, $review] = self::get_next_due($deck, $userid, $now);
         $counts = self::get_counts($deck, $userid, $now);
+        [$graduated, , $mastery] = self::get_mastery($deck, $userid);
 
         $payload = [
             'done' => $card === null,
@@ -257,6 +413,10 @@ class api {
                 'newremaining' => $counts['newremaining'],
                 'total' => $counts['total'],
             ],
+            'mastery' => $mastery,
+            'graduated' => $graduated,
+            'streak' => self::get_streak($deck, $userid, $now),
+            'points' => self::get_points($deck, $userid),
             'nextdue' => 0,
             'nextduelabel' => '',
         ];

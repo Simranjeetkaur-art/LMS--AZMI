@@ -21,10 +21,36 @@ anatomy, genetics, or health-systems policy.
 | 1 | Skeleton, schema, capabilities, Basic + Term-dissection card types, accessible flip UI, seed deck | **Done** |
 | 2 | Scheduler interface, SM-2 + Leitner, AJAX study loop, four-button grading, resumable progress | **Done** |
 | 3 | Image/hotspot, cloze, matching, ordering, compare/contrast, Q&A card types; File API media | **Done** |
-| 4 | Gradebook, completion rules, streaks/points/badges, study modes, teacher report | Planned |
+| 4 | Gradebook, completion rules, streaks/points/badges, study modes, teacher report | **Done** |
 | 5 | CSV/JSON/GIFT import-export, tags & duplication, backup/restore, Behat breadth, mobile support | Planned |
 
 Backup/restore stays undeclared until Phase 5 implements it.
+
+## Grading, completion, gamification (Phase 4)
+
+- **Gradebook.** Set *Maximum grade* above 0 and the deck reports
+  mastery (graduated cards ÷ total cards × max) to the gradebook,
+  recomputed server-side after every review. "Graduated" means the
+  card survived its learning steps — identical semantics under SM-2
+  and Leitner.
+- **Completion rules.** Besides *view*, two automatic rules: *studied
+  N cards* and *reached X% mastery*
+  (`classes/completion/custom_completion.php`). These are also the
+  honest hook for **Moodle Badges**: award badges on activity
+  completion via the core badge criteria UI — no invented numbers.
+- **Momentum.** A mastery ring, a day-streak counter (consecutive
+  study days per deck, alive until a full day is missed) and points
+  (5 per review + 5 when recalled) sit atop `flashdeck_session`, a
+  per-user per-day aggregate table covered by the privacy provider.
+- **Study modes** (toggled per deck): **Learn** (spaced repetition,
+  always on), **Cram** (all cards shuffled, no scheduling), **Test**
+  (one-pass self-quiz with an end score, client-side only), **Match**
+  (timed pairing game built from matching pairs, term↔definition and
+  short two-sided cards; needs ≥3 short pairs). None of the extra
+  modes touch the scheduler.
+- **Teacher report** (`report.php`, `mod/flashdeck:viewreports`):
+  per-learner cards studied, graduated, mastery, due backlog, lapses,
+  points and last activity.
 
 ## The study loop (Phase 2)
 

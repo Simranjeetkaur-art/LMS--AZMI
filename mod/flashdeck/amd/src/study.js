@@ -60,12 +60,16 @@ export const init = (rootId) => {
     const flipBtn = controls.querySelector(SELECTORS.FLIP);
     const prevBtn = controls.querySelector(SELECTORS.PREV);
     const nextBtn = controls.querySelector(SELECTORS.NEXT);
+    const mode = root.dataset.mode || 'browse';
+    const testBar = root.querySelector('[data-region="testbar"]');
+    const testSummary = root.querySelector('[data-region="testsummary"]');
     const strings = {
         answershown: root.dataset.strAnswershown,
         promptshown: root.dataset.strPromptshown,
     };
 
     let current = 0;
+    let testScore = 0;
 
     root.classList.add('flashdeck-js');
     controls.hidden = false;
@@ -113,16 +117,56 @@ export const init = (rootId) => {
         if (currentEl) {
             currentEl.textContent = String(index + 1);
         }
+        if (testBar) {
+            testBar.hidden = true;
+        }
     };
 
     /**
-     * Flip the current card and announce which face is showing.
+     * Flip the current card and announce which face is showing. In Test
+     * mode the reveal also brings up the right/wrong self-mark bar.
      */
     const flip = () => {
         const flipped = cards[current].classList.toggle('flashdeck-flipped');
         flipBtn.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+        if (testBar) {
+            testBar.hidden = !flipped;
+        }
         say(flipped ? strings.answershown : strings.promptshown);
     };
+
+    /**
+     * End of a Test run: show the honest, client-side score.
+     */
+    const finishTest = () => {
+        root.querySelector('[data-region="stage"]').hidden = true;
+        controls.hidden = true;
+        testBar.hidden = true;
+        testSummary.hidden = false;
+        testSummary.querySelector('[data-region="testscore"]').textContent =
+            testScore + ' / ' + cards.length;
+        testSummary.focus();
+    };
+
+    if (mode === 'test' && testBar && testSummary) {
+        // A test run is forward-only: flip, self-mark, move on.
+        prevBtn.hidden = true;
+        nextBtn.hidden = true;
+        const record = (ok) => {
+            testScore += ok ? 1 : 0;
+            if (current < cards.length - 1) {
+                show(current + 1);
+                say(strings.promptshown);
+            } else {
+                finishTest();
+            }
+        };
+        testBar.querySelector('[data-action="testright"]').addEventListener('click', () => record(true));
+        testBar.querySelector('[data-action="testwrong"]').addEventListener('click', () => record(false));
+        testSummary.querySelector('[data-action="testrestart"]').addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
 
     flipBtn.addEventListener('click', flip);
     prevBtn.addEventListener('click', () => {

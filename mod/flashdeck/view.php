@@ -43,6 +43,21 @@ require_capability('mod/flashdeck:view', $context);
 $mode = optional_param('mode', 'learn', PARAM_ALPHA);
 $canstudy = has_capability('mod/flashdeck:study', $context);
 
+// Only modes the deck has enabled are reachable; learn needs the study
+// capability (guests fall back to the read-only browser).
+$allowedmodes = ['learn', 'browse'];
+foreach (['cram', 'test', 'match'] as $extramode) {
+    if (!empty($deck->{'mode' . $extramode})) {
+        $allowedmodes[] = $extramode;
+    }
+}
+if (!in_array($mode, $allowedmodes, true)) {
+    $mode = 'learn';
+}
+if ($mode === 'learn' && !$canstudy) {
+    $mode = 'browse';
+}
+
 // No-JS fallback for the four-button grade: a plain form post, handled
 // through the same api the AJAX loop uses, then redirect (PRG).
 $grade = optional_param('grade', null, PARAM_INT);
@@ -72,8 +87,8 @@ $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
 $urlparams = ['id' => $cm->id];
-if ($mode === 'browse') {
-    $urlparams['mode'] = 'browse';
+if ($mode !== 'learn') {
+    $urlparams['mode'] = $mode;
 }
 $PAGE->set_url('/mod/flashdeck/view.php', $urlparams);
 $PAGE->set_title(format_string($course->shortname) . ': ' . format_string($deck->name));
@@ -84,14 +99,18 @@ $PAGE->set_activity_record($deck);
 $renderer = $PAGE->get_renderer('mod_flashdeck');
 
 echo $OUTPUT->header();
-if ($mode !== 'browse' && $canstudy) {
+if ($mode === 'learn') {
     // Learn mode: the spaced-repetition session (default).
     echo $renderer->render(new \mod_flashdeck\output\learn_page($deck, $cm, $context, $USER->id));
+} else if ($mode === 'match') {
+    // Match mode: the timed pairing game (practice only).
+    $cards = $DB->get_records('flashdeck_cards', ['deckid' => $deck->id], 'position ASC, id ASC');
+    echo $renderer->render(new \mod_flashdeck\output\match_page($deck, $cm, $cards));
 } else {
-    // Browse mode: the sequential card browser; also the read-only
-    // fallback for users without the study capability (e.g. guests).
+    // Browse (deck order), Cram or Test (shuffled); browse is also the
+    // read-only fallback for users without the study capability.
     $cards = $DB->get_records('flashdeck_cards', ['deckid' => $deck->id], 'position ASC, id ASC');
     $canmanage = has_capability('mod/flashdeck:managecards', $context);
-    echo $renderer->render(new \mod_flashdeck\output\study_page($deck, $cm, $cards, $context, $canmanage));
+    echo $renderer->render(new \mod_flashdeck\output\study_page($deck, $cm, $cards, $context, $canmanage, $mode));
 }
 echo $OUTPUT->footer();

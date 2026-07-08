@@ -389,6 +389,125 @@
     font-family: var(--flashdeck-serif);
 }
 
+/* ---------- Gamification: mastery ring, streak, points ---------- */
+.path-mod-flashdeck .flashdeck-gamebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.path-mod-flashdeck .flashdeck-ringwrap {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+}
+
+.path-mod-flashdeck .flashdeck-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.path-mod-flashdeck .flashdeck-ringtrack,
+.path-mod-flashdeck .flashdeck-ringvalue {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.path-mod-flashdeck .flashdeck-ringtrack {
+    stroke: rgba(127, 127, 127, 0.25);
+}
+
+.path-mod-flashdeck .flashdeck-ringvalue {
+    stroke: var(--flashdeck-accent);
+    transition: stroke-dasharray 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .path-mod-flashdeck .flashdeck-ringvalue {
+        transition: none;
+    }
+}
+
+.path-mod-flashdeck .flashdeck-ringlabel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.path-mod-flashdeck .flashdeck-gamestats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* ---------- Test mode ---------- */
+.path-mod-flashdeck .flashdeck-testbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+/* ---------- Match game ---------- */
+.path-mod-flashdeck .flashdeck-matchstatus {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.path-mod-flashdeck .flashdeck-matchgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.75rem;
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+.path-mod-flashdeck .flashdeck-tile {
+    min-height: 5rem;
+    padding: 0.75rem;
+    background: var(--flashdeck-surface);
+    color: var(--flashdeck-ink);
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+    font-family: var(--flashdeck-serif);
+    cursor: pointer;
+    transition: border-color 0.15s ease, opacity 0.3s ease;
+}
+
+.path-mod-flashdeck .flashdeck-tileselected {
+    border-color: var(--flashdeck-accent);
+    box-shadow: 0 0 0 2px var(--flashdeck-accent);
+}
+
+.path-mod-flashdeck .flashdeck-tilematched {
+    border-color: var(--flashdeck-correct);
+    opacity: 0.35;
+    cursor: default;
+}
+
+.path-mod-flashdeck .flashdeck-tilewrong {
+    border-color: var(--flashdeck-incorrect);
+    box-shadow: 0 0 0 2px var(--flashdeck-incorrect);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .path-mod-flashdeck .flashdeck-tile {
+        transition: none;
+    }
+}
+
 /* ---------- Progress, controls, hint ---------- */
 .path-mod-flashdeck .flashdeck-progress {
     text-align: center;

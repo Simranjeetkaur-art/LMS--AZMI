@@ -140,6 +140,17 @@ export const init = (rootId) => {
             }
         });
 
+        const ring = root.querySelector('[data-region="masteryring"]');
+        if (ring) {
+            ring.setAttribute('stroke-dasharray', data.mastery + ' 100');
+        }
+        ['masterytext', 'streak', 'points'].forEach((key) => {
+            const el = root.querySelector(`[data-region="${key}"]`);
+            if (el) {
+                el.textContent = String(data[key === 'masterytext' ? 'mastery' : key]);
+            }
+        });
+
         if (data.done) {
             cardArea.hidden = true;
             donePanel.hidden = false;

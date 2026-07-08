@@ -48,6 +48,9 @@ class study_page implements \renderable, \templatable {
     /** @var bool whether the viewer may manage cards */
     protected $canmanage;
 
+    /** @var string presentation mode: browse (deck order), cram or test (shuffled) */
+    protected $mode;
+
     /**
      * Constructor.
      *
@@ -56,23 +59,31 @@ class study_page implements \renderable, \templatable {
      * @param \stdClass[] $cards flashdeck_cards records in position order
      * @param \context_module $context module context
      * @param bool $canmanage whether the viewer may manage cards
+     * @param string $mode 'browse', 'cram' or 'test'
      */
     public function __construct(\stdClass $deck, \cm_info $cm, array $cards,
-            \context_module $context, bool $canmanage) {
+            \context_module $context, bool $canmanage, string $mode = 'browse') {
         $this->deck = $deck;
         $this->cm = $cm;
         $this->cards = $cards;
         $this->context = $context;
         $this->canmanage = $canmanage;
+        $this->mode = in_array($mode, ['browse', 'cram', 'test'], true) ? $mode : 'browse';
     }
 
     #[\Override]
     public function export_for_template(\renderer_base $output) {
+        $cards = array_values($this->cards);
+        if ($this->mode !== 'browse') {
+            // Cram and Test present the whole deck in a fresh random order.
+            shuffle($cards);
+        }
+
         $cardsout = [];
         $hasdissection = false;
         $index = 0;
 
-        foreach ($this->cards as $card) {
+        foreach ($cards as $card) {
             if (!manager::exists($card->cardtype)) {
                 debugging("Skipping card {$card->id}: unknown card type '{$card->cardtype}'", DEBUG_DEVELOPER);
                 continue;
@@ -101,6 +112,8 @@ class study_page implements \renderable, \templatable {
 
         return [
             'uniqid' => \html_writer::random_id('flashdeck'),
+            'mode' => $this->mode,
+            'istest' => $this->mode === 'test',
             'cmid' => $this->cm->id,
             'intro' => format_module_intro('flashdeck', $this->deck, $this->cm->id),
             'cards' => $cardsout,

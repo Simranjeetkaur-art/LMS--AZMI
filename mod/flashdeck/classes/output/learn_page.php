@@ -76,7 +76,20 @@ class learn_page implements \renderable, \templatable {
 
         $viewurl = new \moodle_url('/mod/flashdeck/view.php', ['id' => $this->cm->id]);
 
+        $modelinks = [];
+        foreach (['cram', 'test', 'match'] as $mode) {
+            if (!empty($this->deck->{'mode' . $mode})) {
+                $modelinks[] = [
+                    'url' => (new \moodle_url($viewurl, ['mode' => $mode]))->out(false),
+                    'name' => get_string('mode' . $mode, 'mod_flashdeck'),
+                ];
+            }
+        }
+
         return $payload + [
+            'modelinks' => $modelinks,
+            'canviewreports' => has_capability('mod/flashdeck:viewreports', $this->context),
+            'reporturl' => (new \moodle_url('/mod/flashdeck/report.php', ['id' => $this->cm->id]))->out(false),
             'uniqid' => \html_writer::random_id('flashdeck'),
             'cmid' => $this->cm->id,
             'flashdeckid' => $this->deck->id,

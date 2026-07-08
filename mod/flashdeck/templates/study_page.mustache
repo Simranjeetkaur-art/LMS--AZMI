@@ -43,7 +43,7 @@
         "manageurl": "https://example.com/mod/flashdeck/edit.php?id=12"
     }
 }}
-<div id="{{uniqid}}" class="flashdeck-study"
+<div id="{{uniqid}}" class="flashdeck-study" data-mode="{{mode}}"
      data-str-answershown="{{#str}} answershown, mod_flashdeck {{/str}}"
      data-str-promptshown="{{#str}} promptshown, mod_flashdeck {{/str}}">
 
@@ -90,6 +90,27 @@
                 {{#str}} nextcard, mod_flashdeck {{/str}}
             </button>
         </div>
+        {{#istest}}
+        <div class="flashdeck-testbar" data-region="testbar" hidden>
+            <span class="flashdeck-gradeprompt">{{#str}} testprompt, mod_flashdeck {{/str}}</span>
+            <button type="button" class="btn btn-outline-danger" data-action="testwrong">
+                {{#str}} testwrong, mod_flashdeck {{/str}}
+            </button>
+            <button type="button" class="btn btn-outline-success" data-action="testright">
+                {{#str}} testright, mod_flashdeck {{/str}}
+            </button>
+        </div>
+        <div class="flashdeck-done" data-region="testsummary" hidden tabindex="-1">
+            <h4 class="flashdeck-donetitle">{{#str}} testdone, mod_flashdeck {{/str}}</h4>
+            <p class="flashdeck-testscore">
+                <span class="flashdeck-vh">{{#str}} testscore, mod_flashdeck {{/str}}</span>
+                <strong data-region="testscore"></strong>
+            </p>
+            <button type="button" class="btn btn-primary" data-action="testrestart">
+                {{#str}} testrestart, mod_flashdeck {{/str}}
+            </button>
+        </div>
+        {{/istest}}
         <p class="flashdeck-hint" data-region="hint" hidden>{{#str}} keyboardhint, mod_flashdeck {{/str}}</p>
         <div class="flashdeck-vh" aria-live="polite" data-region="announce"></div>
     {{/hascards}}

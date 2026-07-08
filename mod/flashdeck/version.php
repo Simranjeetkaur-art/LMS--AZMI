@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_flashdeck';
-$plugin->version   = 2026070802;
+$plugin->version   = 2026070803;
 $plugin->requires  = 2024042200;      // Moodle 4.4.
 $plugin->supported = [404, 501];
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.3.0 (Phase 3)';
+$plugin->release   = '0.4.0 (Phase 4)';

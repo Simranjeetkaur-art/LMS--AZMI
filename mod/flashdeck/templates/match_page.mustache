@@ -1,0 +1,74 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_flashdeck/match_page
+
+    Timed pairing game. Click two tiles; a matched pair locks in. The
+    timer counts up and stops when the board is cleared. Practice only —
+    nothing is scheduled or persisted.
+
+    Example context (json):
+    {
+        "uniqid": "flashdeck-abc123",
+        "playable": true,
+        "paircount": 3,
+        "tiles": [
+            {"pairid": 0, "text": "brady-"},
+            {"pairid": 1, "text": "fast"},
+            {"pairid": 0, "text": "slow"},
+            {"pairid": 1, "text": "tachy-"}
+        ],
+        "learnurl": "https://example.com/mod/flashdeck/view.php?id=12"
+    }
+}}
+<div id="{{uniqid}}" class="flashdeck-study flashdeck-match">
+    {{^playable}}
+        <p class="flashdeck-empty">{{#str}} matchunavailable, mod_flashdeck {{/str}}</p>
+    {{/playable}}
+    {{#playable}}
+        <p class="flashdeck-matchstatus">
+            <span class="flashdeck-stat">
+                <strong data-region="matchtimer">0:00</strong>
+                <span class="flashdeck-vh">{{#str}} matchtimer, mod_flashdeck {{/str}}</span>
+            </span>
+            <span class="flashdeck-stat">
+                <strong data-region="matchcount">0</strong> / {{paircount}} {{#str}} matchpairs, mod_flashdeck {{/str}}
+            </span>
+        </p>
+        <div class="flashdeck-matchgrid" data-region="matchgrid">
+            {{#tiles}}
+            <button type="button" class="flashdeck-tile" data-pair="{{pairid}}">{{text}}</button>
+            {{/tiles}}
+        </div>
+        <div class="flashdeck-done" data-region="matchdone" hidden tabindex="-1">
+            <h4 class="flashdeck-donetitle">{{#str}} matchdone, mod_flashdeck {{/str}}</h4>
+            <p><strong data-region="matchfinaltime"></strong></p>
+            <button type="button" class="btn btn-primary" data-action="matchrestart">
+                {{#str}} matchagain, mod_flashdeck {{/str}}
+            </button>
+        </div>
+        <div class="flashdeck-vh" aria-live="polite" data-region="announce"></div>
+    {{/playable}}
+    <div class="flashdeck-managelink">
+        <a class="btn btn-outline-secondary" href="{{learnurl}}">{{#str}} studymodelearn, mod_flashdeck {{/str}}</a>
+    </div>
+</div>
+{{#js}}
+require(['mod_flashdeck/match'], function(match) {
+    match.init('{{uniqid}}');
+});
+{{/js}}

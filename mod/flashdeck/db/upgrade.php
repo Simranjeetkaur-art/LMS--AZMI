@@ -29,6 +29,48 @@
  * @return bool always true
  */
 function xmldb_flashdeck_upgrade(int $oldversion): bool {
-    // Phase 1 ships the full initial schema in install.xml; no steps yet.
+    global $DB;
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2026070803) {
+        // Phase 4: grading, completion rules and study-mode settings.
+        $table = new xmldb_table('flashdeck');
+        $fields = [
+            new xmldb_field('grade', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'newperday'),
+            new xmldb_field('completionstudied', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'grade'),
+            new xmldb_field('completionmastery', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0',
+                'completionstudied'),
+            new xmldb_field('modecram', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'completionmastery'),
+            new xmldb_field('modetest', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'modecram'),
+            new xmldb_field('modematch', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'modetest'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        // Phase 4: per-day study aggregates for streaks, points and analytics.
+        $table = new xmldb_table('flashdeck_session');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('deckid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('daystart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('reviews', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('correct', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('points', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('firstreview', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('lastreview', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('deckid', XMLDB_KEY_FOREIGN, ['deckid'], 'flashdeck', ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_index('deckid-userid-daystart', XMLDB_INDEX_UNIQUE, ['deckid', 'userid', 'daystart']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_mod_savepoint(true, 2026070803, 'flashdeck');
+    }
+
     return true;
 }
