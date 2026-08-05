@@ -42,6 +42,9 @@ class stub_backend implements ai_backend {
     /** @var array Prompts this backend was asked, for assertions. */
     public $prompts = [];
 
+    /** @var array Output ceilings requested, so callers can assert on them. */
+    public $budgets = [];
+
     /**
      * Constructor.
      *
@@ -66,10 +69,13 @@ class stub_backend implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array|null $schema JSON Schema.
+     * @param int|null $maxtokens Requested output ceiling.
      * @return string Generated text.
      */
-    public function generate(string $model, string $prompt, ?array $schema = null): string {
+    public function generate(string $model, string $prompt, ?array $schema = null,
+            ?int $maxtokens = null): string {
         $this->prompts[] = $prompt;
+        $this->budgets[] = $maxtokens;
         return json_encode(array_shift($this->responses) ?? []);
     }
 
@@ -79,10 +85,13 @@ class stub_backend implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array $schema JSON Schema.
+     * @param int|null $maxtokens Requested output ceiling.
      * @return array Decoded object.
      */
-    public function generate_json(string $model, string $prompt, array $schema): array {
+    public function generate_json(string $model, string $prompt, array $schema,
+            ?int $maxtokens = null): array {
         $this->prompts[] = $prompt;
+        $this->budgets[] = $maxtokens;
         return array_shift($this->responses) ?? [];
     }
 

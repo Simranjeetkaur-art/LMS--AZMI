@@ -56,6 +56,32 @@ class pipeline {
     /** @var fetcher The reference-fetching strategy. */
     protected $fetcher;
 
+    /** @var int Segments whose extraction call failed during this run. */
+    protected $extractionfailures = 0;
+
+    /** @var string|null The last extraction failure, surfaced on the check row. */
+    protected $lastextractionerror = null;
+
+    /**
+     * Output token ceiling for claim extraction.
+     *
+     * Deliberately much larger than the adjudicator's. Extraction emits one
+     * object per assertion, each repeating a full source sentence verbatim, so
+     * its output scales with the passage; a verdict is a fixed handful of short
+     * fields. Sharing one ceiling silently truncated extraction.
+     *
+     * @return int Tokens.
+     */
+    public static function atomise_budget(): int {
+        $configured = (int) get_config('local_contentchecker', 'numpredict_atomise');
+        if ($configured > 0) {
+            return $configured;
+        }
+        // Roughly four times the segment size in tokens, which cleared the
+        // longest segment this plugin produces with headroom to spare.
+        return 3000;
+    }
+
     /**
      * Constructor.
      *
@@ -143,6 +169,17 @@ class pipeline {
             $check->status = 'complete';
             $check->progress = 100;
             $check->numitems = count($items);
+
+            // A run that could not read some of its content finished, but it
+            // did not verify what it could not read. Say so on the record
+            // rather than letting it pass as a clean result.
+            if ($this->extractionfailures > 0) {
+                $check->errormsg = get_string('error:extractionpartial',
+                    'local_contentchecker', (object) [
+                        'count' => $this->extractionfailures,
+                        'reason' => (string) $this->lastextractionerror,
+                    ]);
+            }
             [$insql, $inparams] = $DB->get_in_or_equal(self::FLAGGED, SQL_PARAMS_NAMED, 'v');
             $check->numflagged = $DB->count_records_select('local_cchecker_suggestions',
                 "checkid = :checkid AND verdict {$insql}",
@@ -212,9 +249,22 @@ class pipeline {
                     . "PASSAGE:\n" . $segment;
 
                 try {
-                    $result = $this->client->generate_json($model, $prompt, self::claim_schema());
+                    // Extraction needs a far bigger output budget than a
+                    // verdict does: it emits one object per assertion and each
+                    // echoes a whole source sentence, so the response grows
+                    // with the passage. The shared 600-token ceiling truncated
+                    // a 650-character passage mid-string, json_decode failed,
+                    // and this catch swallowed it -- the run then finished with
+                    // zero claims and reported success.
+                    $result = $this->client->generate_json($model, $prompt,
+                        self::claim_schema(), self::atomise_budget());
                 } catch (\Throwable $e) {
-                    // One unreadable segment must not lose the rest of the run.
+                    // Still tolerated so one bad segment cannot lose the rest of
+                    // the run, but no longer silent: the count is reported on
+                    // the check so "found nothing" is distinguishable from
+                    // "could not read anything".
+                    $this->extractionfailures++;
+                    $this->lastextractionerror = $e->getMessage();
                     continue;
                 }
 

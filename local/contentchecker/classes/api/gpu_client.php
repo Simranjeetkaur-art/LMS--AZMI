@@ -70,6 +70,12 @@ class gpu_client implements ai_backend {
     /** @var int Attempts after the first. */
     protected $retries;
 
+    /** @var string|null Why the last generation stopped: 'stop', 'length', ... */
+    protected $lastdonereason = null;
+
+    /** @var int The output ceiling used on the last call, for error messages. */
+    protected $lastpredict = 0;
+
     /**
      * Build a client from plugin config.
      *
@@ -136,10 +142,12 @@ class gpu_client implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array|null $schema JSON Schema to constrain output; forces valid JSON.
+     * @param int|null $maxtokens Override the configured output ceiling.
      * @return string The generated text.
      */
-    public function generate(string $model, string $prompt, ?array $schema = null): string {
-        $payload = $this->build_payload($model, $prompt, $schema);
+    public function generate(string $model, string $prompt, ?array $schema = null,
+            ?int $maxtokens = null): string {
+        $payload = $this->build_payload($model, $prompt, $schema, $maxtokens);
 
         $last = null;
         for ($attempt = 0; $attempt <= $this->retries; $attempt++) {
@@ -169,9 +177,11 @@ class gpu_client implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array|null $schema JSON Schema.
+     * @param int|null $maxtokens Override the configured output ceiling.
      * @return array The request payload.
      */
-    protected function build_payload(string $model, string $prompt, ?array $schema): array {
+    protected function build_payload(string $model, string $prompt, ?array $schema,
+            ?int $maxtokens = null): array {
         $payload = [
             'model' => $model,
             'prompt' => $prompt,
@@ -181,7 +191,8 @@ class gpu_client implements ai_backend {
             'options' => [
                 'temperature' => 0,
                 'num_ctx' => (int) (get_config('local_contentchecker', 'numctx') ?: 8192),
-                'num_predict' => (int) (get_config('local_contentchecker', 'numpredict') ?: 600),
+                'num_predict' => $maxtokens
+                    ?: (int) (get_config('local_contentchecker', 'numpredict') ?: 600),
             ],
         ];
         if ($schema) {
@@ -226,6 +237,8 @@ class gpu_client implements ai_backend {
             }
             if (!empty($obj['done'])) {
                 $state['done'] = true;
+                // 'length' means the ceiling cut the output off mid-stream.
+                $state['donereason'] = $obj['done_reason'] ?? null;
                 return 0; // Returning less than $len aborts the transfer.
             }
         }
@@ -239,12 +252,24 @@ class gpu_client implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array $schema JSON Schema.
+     * @param int|null $maxtokens Override the configured output ceiling.
      * @return array Decoded object.
      */
-    public function generate_json(string $model, string $prompt, array $schema): array {
-        $text = $this->generate($model, $prompt, $schema);
+    public function generate_json(string $model, string $prompt, array $schema,
+            ?int $maxtokens = null): array {
+        $text = $this->generate($model, $prompt, $schema, $maxtokens);
         $decoded = json_decode($text, true);
+
         if (!is_array($decoded)) {
+            // Distinguish "the model hit its output ceiling" from "the model
+            // emitted nonsense". They look identical at the JSON layer -- both
+            // are just a decode failure -- but the fix is completely different,
+            // and the truncation case was previously reported as unparseable
+            // JSON while the real cause was a num_predict that was too low.
+            if ($this->lastdonereason === 'length') {
+                throw new \moodle_exception('error:aitruncated', 'local_contentchecker',
+                    '', $this->lastpredict);
+            }
             throw new \moodle_exception('error:aijson', 'local_contentchecker', '',
                 \core_text::substr($text, 0, 200));
         }
@@ -311,7 +336,10 @@ class gpu_client implements ai_backend {
      * @return string Concatenated response text.
      */
     protected function stream_generate(array $payload): string {
-        $state = ['text' => '', 'thinking' => '', 'done' => false, 'buffer' => ''];
+        $state = ['text' => '', 'thinking' => '', 'done' => false, 'buffer' => '',
+            'donereason' => null];
+        $this->lastdonereason = null;
+        $this->lastpredict = (int) ($payload['options']['num_predict'] ?? 0);
 
         $consume = function($ch, $chunk) use (&$state) {
             return $this->consume_chunk($chunk, $state);
@@ -333,6 +361,8 @@ class gpu_client implements ai_backend {
             throw new \moodle_exception('error:aihttp', 'local_contentchecker', '',
                 $info['http_code']);
         }
+
+        $this->lastdonereason = $state['donereason'];
 
         return $state['text'] !== '' ? $state['text'] : $state['thinking'];
     }

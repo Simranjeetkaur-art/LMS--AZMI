@@ -251,6 +251,96 @@ final class gpu_client_test extends \advanced_testcase {
     }
 
     /**
+     * A per-call ceiling overrides the configured one.
+     *
+     * Extraction emits one object per assertion, each echoing a full source
+     * sentence, so its output grows with the passage; a verdict is always
+     * short. One shared ceiling silently truncated extraction, so the override
+     * is what keeps both workable.
+     *
+     * @return void
+     */
+    public function test_per_call_token_ceiling_overrides_config(): void {
+        $this->resetAfterTest();
+        set_config('numpredict', 600, 'local_contentchecker');
+
+        $client = $this->client();
+
+        $default = $this->call($client, 'build_payload', ['m', 'p', null, null]);
+        $this->assertSame(600, $default['options']['num_predict']);
+
+        $raised = $this->call($client, 'build_payload', ['m', 'p', null, 3000]);
+        $this->assertSame(3000, $raised['options']['num_predict']);
+    }
+
+    /**
+     * Extraction asks for a much bigger budget than the shared default.
+     *
+     * @return void
+     */
+    public function test_extraction_budget_is_larger_than_default(): void {
+        $this->resetAfterTest();
+
+        unset_config('numpredict_atomise', 'local_contentchecker');
+        $budget = \local_contentchecker\local\pipeline::atomise_budget();
+
+        $this->assertGreaterThanOrEqual(3000, $budget);
+        $this->assertGreaterThan(
+            (int) (get_config('local_contentchecker', 'numpredict') ?: 600), $budget);
+
+        set_config('numpredict_atomise', 1234, 'local_contentchecker');
+        $this->assertSame(1234, \local_contentchecker\local\pipeline::atomise_budget());
+    }
+
+    /**
+     * Output cut off at the ceiling is reported as truncation, not as invalid
+     * JSON.
+     *
+     * Both look identical at the decode layer, but the fixes are opposite:
+     * raise the ceiling versus fix the prompt. Reporting truncation as bad JSON
+     * sent a real diagnosis down the wrong path.
+     *
+     * @return void
+     */
+    public function test_truncated_output_is_reported_as_truncation(): void {
+        $this->resetAfterTest();
+        $client = $this->client();
+
+        // Drive the accumulator with a terminal object carrying done_reason.
+        $state = ['text' => '', 'thinking' => '', 'done' => false, 'buffer' => '',
+            'donereason' => null];
+        $chunk = json_encode(['response' => '{"claims":[{"text":"cut off he'])
+            . "\n" . json_encode(['done' => true, 'done_reason' => 'length']) . "\n";
+
+        $this->call($client, 'consume_chunk', [$chunk, &$state]);
+
+        $this->assertTrue($state['done']);
+        $this->assertSame('length', $state['donereason'],
+            'done_reason must be captured; it is the only signal that the '
+            . 'output was cut off rather than merely malformed');
+    }
+
+    /**
+     * A normal completion records done_reason 'stop'.
+     *
+     * @return void
+     */
+    public function test_normal_completion_records_stop(): void {
+        $this->resetAfterTest();
+        $client = $this->client();
+
+        $state = ['text' => '', 'thinking' => '', 'done' => false, 'buffer' => '',
+            'donereason' => null];
+        $chunk = json_encode(['response' => 'ok']) . "\n"
+            . json_encode(['done' => true, 'done_reason' => 'stop']) . "\n";
+
+        $this->call($client, 'consume_chunk', [$chunk, &$state]);
+
+        $this->assertSame('stop', $state['donereason']);
+        $this->assertSame('ok', $state['text']);
+    }
+
+    /**
      * Cosine similarity behaves, since retrieval and duplicate collapsing both
      * rest on it.
      *

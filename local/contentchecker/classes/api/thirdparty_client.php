@@ -96,14 +96,17 @@ class thirdparty_client implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array|null $schema JSON Schema constraining the output shape.
+     * @param int|null $maxtokens Override the configured output ceiling.
      * @return string Generated text.
      */
-    public function generate(string $model, string $prompt, ?array $schema = null): string {
+    public function generate(string $model, string $prompt, ?array $schema = null,
+            ?int $maxtokens = null): string {
         $payload = [
             'model' => get_config('local_contentchecker', 'thirdparty_model') ?: $model,
             'messages' => [['role' => 'user', 'content' => $prompt]],
             'temperature' => 0,
-            'max_tokens' => (int) (get_config('local_contentchecker', 'numpredict') ?: 600),
+            'max_tokens' => $maxtokens
+                ?: (int) (get_config('local_contentchecker', 'numpredict') ?: 600),
         ];
         if ($schema) {
             $payload['response_format'] = [
@@ -132,10 +135,12 @@ class thirdparty_client implements ai_backend {
      * @param string $model Model name.
      * @param string $prompt The prompt.
      * @param array $schema JSON Schema.
+     * @param int|null $maxtokens Override the configured output ceiling.
      * @return array Decoded object.
      */
-    public function generate_json(string $model, string $prompt, array $schema): array {
-        $text = $this->generate($model, $prompt, $schema);
+    public function generate_json(string $model, string $prompt, array $schema,
+            ?int $maxtokens = null): array {
+        $text = $this->generate($model, $prompt, $schema, $maxtokens);
         $decoded = json_decode($text, true);
         if (!is_array($decoded)) {
             throw new \moodle_exception('error:aijson', 'local_contentchecker', '',

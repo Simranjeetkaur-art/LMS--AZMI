@@ -362,6 +362,8 @@ $string['event:checkcompleted'] = 'Content check completed';
 // Errors.
 $string['error:notconfigured'] = 'The content checker has no AI endpoint configured.';
 $string['error:aicall'] = 'The AI backend could not be reached: {$a}';
+$string['error:aitruncated'] = 'The AI backend hit its output limit of {$a} tokens and returned an incomplete response. Raise the extraction token ceiling in the plugin settings.';
+$string['error:extractionpartial'] = 'Finished, but {$a->count} passage(s) could not be read and were NOT checked: {$a->reason}';
 $string['error:aijson'] = 'The AI backend returned something that was not valid JSON: {$a}';
 $string['error:aihttp'] = 'The AI backend returned HTTP status {$a}.';
 $string['error:aiembedding'] = 'The AI backend returned no embedding.';
@@ -414,6 +416,8 @@ $string['setting:numctx'] = 'Context window';
 $string['setting:numctx_desc'] = 'Tokens of context per request. Leaving this unset lets the server allocate its own very large default, which can force models to evict each other from memory.';
 $string['setting:numpredict'] = 'Maximum generated tokens';
 $string['setting:numpredict_desc'] = 'A hard ceiling on output length. A JSON schema constrains the shape of a response but not its length, and an unbounded free-text field can run past the ceiling and return truncated, unparseable JSON.';
+$string['setting:numpredict_atomise'] = 'Maximum generated tokens (extraction)';
+$string['setting:numpredict_atomise_desc'] = 'A separate, larger ceiling for claim extraction and question generation. Those emit one object per assertion, each repeating a source sentence, so their output grows with the passage; a verdict is always short. Sharing the smaller ceiling truncated extraction mid-string, which surfaced only as unreadable JSON.';
 $string['setting:timeout'] = 'Request timeout (seconds)';
 $string['setting:timeout_desc'] = 'A request can sit behind a busy model returning nothing. Failing fast and retrying gets past the queue; a long timeout just blocks the run.';
 $string['setting:retries'] = 'Retries';

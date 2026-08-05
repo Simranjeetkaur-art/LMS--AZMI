@@ -131,6 +131,11 @@ if ($hassiteconfig) {
         get_string('setting:numpredict', 'local_contentchecker'),
         get_string('setting:numpredict_desc', 'local_contentchecker'), 600, PARAM_INT));
 
+    $settings->add(new admin_setting_configtext('local_contentchecker/numpredict_atomise',
+        get_string('setting:numpredict_atomise', 'local_contentchecker'),
+        get_string('setting:numpredict_atomise_desc', 'local_contentchecker'),
+        3000, PARAM_INT));
+
     $settings->add(new admin_setting_configtext('local_contentchecker/timeout',
         get_string('setting:timeout', 'local_contentchecker'),
         get_string('setting:timeout_desc', 'local_contentchecker'), 150, PARAM_INT));

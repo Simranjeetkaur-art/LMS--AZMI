@@ -118,8 +118,12 @@ class questions {
                 }
 
                 try {
+                    // Same reasoning as claim extraction: several question
+                    // objects with options and explanations easily exceed the
+                    // short-answer ceiling used for verdicts.
                     $result = $this->client->generate_json($model,
-                        $this->prompt($block, $perblock, $allowshort), self::schema());
+                        $this->prompt($block, $perblock, $allowshort), self::schema(),
+                        \local_contentchecker\local\pipeline::atomise_budget());
                 } catch (\Throwable $e) {
                     // A block the model chokes on should not lose the others.
                     continue;
