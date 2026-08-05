@@ -382,6 +382,104 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * Checking one activity must not mark its whole week -- or every other
+     * week -- as verified.
+     *
+     * Observed live: two single-activity checks turned all eleven weeks of a
+     * course green, because an activity-scoped run was stored with
+     * sectionnum -1 ("whole course") and the dashboard treated that as having
+     * covered everything.
+     *
+     * @return void
+     */
+    public function test_single_activity_check_does_not_certify_the_week(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course(['numsections' => 3]);
+        $page = $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'section' => 1,
+            'content' => '<p>' . str_repeat('Clinical prose. ', 30) . '</p>',
+            'contentformat' => FORMAT_HTML,
+        ]);
+
+        // An activity-scoped check that found nothing.
+        $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 1, 'cmid' => $page->cmid,
+            'jobid' => 0, 'runmode' => 'live', 'status' => 'complete',
+            'usermodified' => 2, 'numitems' => 1,
+            'timequeued' => time(), 'timefinished' => time(),
+        ]);
+
+        foreach (dashboard::for_course((int) $course->id) as $row) {
+            $this->assertSame(dashboard::NEVER, $row->status,
+                "week {$row->sectionnum} must stay unverified after an "
+                . 'activity-only check');
+        }
+
+        // A genuine week-level run does certify its own week, and only its own.
+        $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 1, 'cmid' => 0,
+            'jobid' => 0, 'runmode' => 'background', 'status' => 'complete',
+            'usermodified' => 2, 'numitems' => 0,
+            'timequeued' => time() + 1, 'timefinished' => time() + 1,
+        ]);
+
+        foreach (dashboard::for_course((int) $course->id) as $row) {
+            $expected = $row->sectionnum === 1 ? dashboard::OK : dashboard::NEVER;
+            $this->assertSame($expected, $row->status,
+                "week {$row->sectionnum} status after a week-level check of week 1");
+        }
+    }
+
+    /**
+     * A finding from an activity-only check still surfaces on its week, so a
+     * flagged problem is never hidden by the week lacking a full run.
+     *
+     * @return void
+     */
+    public function test_activity_check_finding_still_flags_the_week(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course(['numsections' => 3]);
+        $page = $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'section' => 2,
+            'content' => '<p>' . str_repeat('Clinical prose. ', 30) . '</p>',
+            'contentformat' => FORMAT_HTML,
+        ]);
+
+        $checkid = $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 2, 'cmid' => $page->cmid,
+            'jobid' => 0, 'runmode' => 'live', 'status' => 'complete',
+            'usermodified' => 2, 'numitems' => 1,
+            'timequeued' => time(), 'timefinished' => time(),
+        ]);
+        $DB->insert_record('local_cchecker_suggestions', (object) [
+            'checkid' => $checkid, 'cmid' => $page->cmid, 'itemtype' => 'page',
+            'itemname' => 'x', 'claim' => 'c', 'kind' => 'factual',
+            'verdict' => 'contradicted', 'topscore' => 0.9, 'quoteverbatim' => 0,
+            'confidence' => 0.5, 'decision' => 'pending', 'applied' => 0,
+            'timecreated' => time(),
+        ]);
+
+        foreach (dashboard::for_course((int) $course->id) as $row) {
+            if ($row->sectionnum === 2) {
+                $this->assertSame(dashboard::NEEDS_REVIEW, $row->status);
+                $this->assertSame(1, $row->pending);
+            } else {
+                $this->assertSame(dashboard::NEVER, $row->status);
+            }
+        }
+    }
+
+    /**
      * Queueing a whole-course job creates one check per populated week and an
      * adhoc task to run each, so cron makes progress in bounded steps.
      *

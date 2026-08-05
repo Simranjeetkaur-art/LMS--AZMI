@@ -90,11 +90,17 @@ class run_check extends external_api {
             if ((int) $cm->course !== $courseid) {
                 throw new \moodle_exception('error:cmnotincourse', 'local_contentchecker');
             }
+            // Record the activity's OWN week. Storing -1 here would mean "whole
+            // course", and the dashboard would then treat a check of one
+            // activity as having covered every week -- turning all ten weeks
+            // green because somebody verified a single page.
+            $sectionnum = (int) $DB->get_field('course_sections', 'section',
+                ['id' => $cm->section]);
         }
 
         $checkid = $DB->insert_record('local_cchecker_checks', (object) [
             'courseid' => $courseid,
-            'sectionnum' => $cmid ? -1 : $sectionnum,
+            'sectionnum' => $sectionnum,
             'cmid' => $cmid,
             'jobid' => 0,
             'runmode' => 'live',

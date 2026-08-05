@@ -110,8 +110,13 @@ class dashboard {
     public static function latest_check(int $courseid, int $sectionnum): ?\stdClass {
         global $DB;
 
+        // Only a check that covered the WHOLE week counts as having verified
+        // it, which means cmid = 0. A single-activity run still surfaces its
+        // findings through pending_count, but it cannot certify the twelve
+        // other activities it never looked at.
         $records = $DB->get_records_select('local_cchecker_checks',
-            'courseid = :courseid AND (sectionnum = :sectionnum OR sectionnum = -1)',
+            'courseid = :courseid AND cmid = 0
+                 AND (sectionnum = :sectionnum OR sectionnum = -1)',
             ['courseid' => $courseid, 'sectionnum' => $sectionnum],
             'timequeued DESC, id DESC', '*', 0, 1);
 
@@ -152,17 +157,22 @@ class dashboard {
      */
     protected static function status_for(?\stdClass $check, int $courseid,
             int $sectionnum): string {
+        if ($check && in_array($check->status, ['queued', 'running'], true)) {
+            return self::RUNNING;
+        }
+
+        // An outstanding finding outranks everything else, including the
+        // absence of a week-level check: a single-activity run that flagged
+        // something must not leave the week looking unexamined.
+        if (self::pending_count($courseid, $sectionnum) > 0) {
+            return self::NEEDS_REVIEW;
+        }
+
         if (!$check) {
             return self::NEVER;
         }
-        if (in_array($check->status, ['queued', 'running'], true)) {
-            return self::RUNNING;
-        }
         if ($check->status === 'failed') {
             return self::FAILED;
-        }
-        if (self::pending_count($courseid, $sectionnum) > 0) {
-            return self::NEEDS_REVIEW;
         }
 
         // Completed, nothing outstanding -- but if the run covered activities
