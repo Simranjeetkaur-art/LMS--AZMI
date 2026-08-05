@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details for local_contentchecker.
+ * Event observers for local_contentchecker.
  *
  * @package    local_contentchecker
  * @copyright  2026 Arizona Medical Sciences Institute
@@ -24,8 +24,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_contentchecker';
-$plugin->version   = 2026080502;
-$plugin->requires  = 2024100700; // Moodle 4.5+.
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '1.0.3-v1';
+$observers = [
+    [
+        // Otherwise a deleted course leaves its checks, suggestions and the
+        // verbatim course text inside them behind indefinitely.
+        'eventname' => '\core\event\course_deleted',
+        'callback' => '\local_contentchecker\observer::course_deleted',
+    ],
+    [
+        'eventname' => '\core\event\course_module_deleted',
+        'callback' => '\local_contentchecker\observer::course_module_deleted',
+    ],
+];

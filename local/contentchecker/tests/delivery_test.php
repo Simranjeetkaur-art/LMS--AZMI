@@ -382,6 +382,111 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * Deleting a course takes its content-checker data with it.
+     *
+     * Suggestions store verbatim course text, so orphaned rows are content
+     * outliving the course it came from.
+     *
+     * @return void
+     */
+    public function test_deleting_a_course_purges_plugin_data(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $page = $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'content' => '<p>' . str_repeat('Clinical prose. ', 30) . '</p>',
+            'contentformat' => FORMAT_HTML,
+        ]);
+
+        $checkid = $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 1, 'cmid' => 0, 'jobid' => 0,
+            'runmode' => 'live', 'status' => 'complete', 'usermodified' => 2,
+            'numitems' => 1, 'timequeued' => time(), 'timefinished' => time(),
+        ]);
+        $suggestionid = $DB->insert_record('local_cchecker_suggestions', (object) [
+            'checkid' => $checkid, 'cmid' => $page->cmid, 'itemtype' => 'page',
+            'itemname' => 'x', 'claim' => 'Confidential course text.',
+            'kind' => 'factual', 'verdict' => 'contradicted', 'topscore' => 0.9,
+            'quoteverbatim' => 0, 'confidence' => 0.5, 'decision' => 'pending',
+            'applied' => 0, 'timecreated' => time(),
+        ]);
+        $DB->insert_record('local_cchecker_evidence', (object) [
+            'suggestionid' => $suggestionid, 'title' => 't', 'url' => 'u',
+            'tier' => 3, 'score' => 0.8, 'snippet' => 's',
+        ]);
+        $DB->insert_record('local_cchecker_questions', (object) [
+            'courseid' => $course->id, 'cmid' => $page->cmid, 'blockref' => 'b',
+            'qtype' => 'truefalse', 'qtext' => 'q', 'options' => '[]',
+            'answer' => '[]', 'status' => 'draft', 'sortorder' => 0,
+            'generatedby' => 0, 'usermodified' => 2,
+            'timecreated' => time(), 'timemodified' => time(),
+        ]);
+
+        delete_course($course->id, false);
+
+        $this->assertSame(0, $DB->count_records('local_cchecker_checks',
+            ['courseid' => $course->id]));
+        $this->assertSame(0, $DB->count_records('local_cchecker_suggestions',
+            ['checkid' => $checkid]));
+        $this->assertSame(0, $DB->count_records('local_cchecker_evidence',
+            ['suggestionid' => $suggestionid]));
+        $this->assertSame(0, $DB->count_records('local_cchecker_questions',
+            ['courseid' => $course->id]));
+    }
+
+    /**
+     * Deleting one activity removes its findings without touching the course.
+     *
+     * @return void
+     */
+    public function test_deleting_an_activity_purges_its_findings(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $keep = $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'content' => '<p>' . str_repeat('Keep me. ', 40) . '</p>',
+            'contentformat' => FORMAT_HTML,
+        ]);
+        $doomed = $this->getDataGenerator()->create_module('page', [
+            'course' => $course->id,
+            'content' => '<p>' . str_repeat('Delete me. ', 40) . '</p>',
+            'contentformat' => FORMAT_HTML,
+        ]);
+
+        $checkid = $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 1, 'cmid' => 0, 'jobid' => 0,
+            'runmode' => 'live', 'status' => 'complete', 'usermodified' => 2,
+            'numitems' => 2, 'timequeued' => time(), 'timefinished' => time(),
+        ]);
+        foreach ([$keep->cmid, $doomed->cmid] as $cmid) {
+            $DB->insert_record('local_cchecker_suggestions', (object) [
+                'checkid' => $checkid, 'cmid' => $cmid, 'itemtype' => 'page',
+                'itemname' => 'x', 'claim' => 'c', 'kind' => 'factual',
+                'verdict' => 'contradicted', 'topscore' => 0.9, 'quoteverbatim' => 0,
+                'confidence' => 0.5, 'decision' => 'pending', 'applied' => 0,
+                'timecreated' => time(),
+            ]);
+        }
+
+        course_delete_module($doomed->cmid);
+
+        $this->assertSame(0, $DB->count_records('local_cchecker_suggestions',
+            ['cmid' => $doomed->cmid]));
+        $this->assertSame(1, $DB->count_records('local_cchecker_suggestions',
+            ['cmid' => $keep->cmid]), 'the surviving activity keeps its findings');
+    }
+
+    /**
      * Checking one activity must not mark its whole week -- or every other
      * week -- as verified.
      *
