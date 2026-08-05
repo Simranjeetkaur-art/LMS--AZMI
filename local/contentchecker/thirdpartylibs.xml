@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<libraries>
+    <library>
+        <location>thirdparty/mermaid</location>
+        <name>Mermaid</name>
+        <description>Renders text-defined diagrams in course content.</description>
+        <version>10</version>
+        <licence>MIT</licence>
+        <licenceversion></licenceversion>
+    </library>
+</libraries>

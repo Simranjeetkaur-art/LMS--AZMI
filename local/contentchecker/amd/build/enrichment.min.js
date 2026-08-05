@@ -49,7 +49,10 @@ const loadOnce = (url) => new Promise((resolve, reject) => {
     }
     const script = document.createElement('script');
     script.src = url;
-    script.type = 'module';
+    // Deliberately NOT type="module". The vendored Mermaid build is UMD and
+    // attaches window.mermaid; an ES module defines no global, so loading it
+    // as a module leaves window.mermaid undefined and the diagram silently
+    // stays as raw source.
     script.setAttribute('data-cct-lib', url);
     script.onload = () => resolve();
     script.onerror = () => reject(new Error('load failed'));
@@ -75,7 +78,14 @@ const init = (config) => {
         loadOnce(config.mermaid).then(() => {
             if (window.mermaid && typeof window.mermaid.run === 'function') {
                 diagrams.forEach((el) => el.classList.add('mermaid'));
-                window.mermaid.initialize({startOnLoad: false});
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    // Diagram source is model-generated and editor-edited, then
+                    // stored in course content. 'strict' keeps Mermaid from
+                    // rendering raw HTML or wiring click handlers out of it,
+                    // so a diagram cannot become a script-injection vector.
+                    securityLevel: 'strict'
+                });
                 window.mermaid.run({nodes: Array.from(diagrams)});
             }
             return null;
