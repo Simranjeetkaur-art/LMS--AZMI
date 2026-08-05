@@ -127,8 +127,28 @@
 
 .cct-mermaid {
     background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
     padding: 0.75rem;
+    /* Readable as source until Mermaid replaces it with an SVG. Contained so
+       an unrendered diagram cannot overlap the surrounding layout, which is
+       what an unstyled block did against a themed page. */
     white-space: pre-wrap;
+    overflow-x: auto;
+    max-width: 100%;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+/* Once rendered, the SVG governs sizing, not the preformatted-text rules. */
+.cct-mermaid[data-processed] {
+    background-color: transparent;
+    font-family: inherit;
+    white-space: normal;
+}
+
+.cct-mermaid svg {
+    height: auto;
+    max-width: 100%;
 }
 
 .cct-asset-caption {

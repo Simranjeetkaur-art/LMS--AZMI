@@ -73,24 +73,55 @@ const init = (config) => {
         loadOnce(config.modelviewer).catch(() => null);
     }
 
-    const diagrams = document.querySelectorAll('[data-cct-mermaid]');
-    if (diagrams.length && config.mermaid) {
-        loadOnce(config.mermaid).then(() => {
-            if (window.mermaid && typeof window.mermaid.run === 'function') {
-                diagrams.forEach((el) => el.classList.add('mermaid'));
-                window.mermaid.initialize({
-                    startOnLoad: false,
-                    // Diagram source is model-generated and editor-edited, then
-                    // stored in course content. 'strict' keeps Mermaid from
-                    // rendering raw HTML or wiring click handlers out of it,
-                    // so a diagram cannot become a script-injection vector.
-                    securityLevel: 'strict'
-                });
-                window.mermaid.run({nodes: Array.from(diagrams)});
-            }
-            return null;
-        }).catch(() => null);
+    const found = Array.from(document.querySelectorAll('[data-cct-mermaid]'));
+    if (!found.length || !config.mermaid) {
+        return;
     }
+
+    loadOnce(config.mermaid).then(() => {
+        if (!window.mermaid || typeof window.mermaid.run !== 'function') {
+            throw new Error('mermaid loaded but exposes no run(); is it an ESM build?');
+        }
+
+        // Mermaid replaces the node's innerHTML with an <svg>. A <pre> is the
+        // wrong host for that -- it is styled for preformatted TEXT, so the
+        // diagram either fails to lay out or stays looking like source. Swap
+        // any <pre> for a <div>, which is what Mermaid documents as its target.
+        // Existing content already stored as <pre> is normalised here rather
+        // than needing a content migration.
+        const targets = found.map((node) => {
+            if (node.tagName !== 'PRE') {
+                return node;
+            }
+            const div = document.createElement('div');
+            div.className = node.className;
+            div.setAttribute('data-cct-mermaid', '1');
+            // textContent, so the stored HTML entities come back as characters.
+            div.textContent = node.textContent;
+            node.parentNode.replaceChild(div, node);
+            return div;
+        });
+
+        targets.forEach((el) => el.classList.add('mermaid'));
+
+        window.mermaid.initialize({
+            startOnLoad: false,
+            // Diagram source is model-generated and editor-edited, then stored
+            // in course content. 'strict' keeps Mermaid from rendering raw HTML
+            // or wiring click handlers out of it, so a diagram cannot become a
+            // script-injection vector.
+            securityLevel: 'strict'
+        });
+
+        return window.mermaid.run({nodes: targets});
+    }).catch((error) => {
+        // Deliberately NOT silent. The readable source stays on the page either
+        // way, but swallowing this made a broken renderer indistinguishable
+        // from a working fallback and cost a diagnosis cycle.
+        if (window.console && window.console.warn) {
+            window.console.warn('local_contentchecker: diagram rendering failed', error);
+        }
+    });
 };
 
 return {init: init};

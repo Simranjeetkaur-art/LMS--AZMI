@@ -83,11 +83,14 @@ class enrichment {
                     ['class' => 'cct-asset cct-asset-image']);
 
             case 'mermaid':
-                // Kept as text in a <pre>, which degrades to a readable
-                // diagram definition if the renderer is unavailable.
+                // A div, not a pre: Mermaid replaces the host element's
+                // innerHTML with an <svg>, and a <pre> is styled for
+                // preformatted text so the diagram never lays out properly.
+                // CSS keeps the source readable until the renderer runs, so it
+                // still degrades gracefully when one is not configured.
                 return \html_writer::tag('figure',
-                    \html_writer::tag('pre', s((string) $asset->body),
-                        ['class' => 'cct-mermaid', 'data-cct-mermaid' => '1']) . $caption,
+                    \html_writer::div(s((string) $asset->body), 'cct-mermaid',
+                        ['data-cct-mermaid' => '1']) . $caption,
                     ['class' => 'cct-asset cct-asset-diagram']);
 
             case 'iframe':
