@@ -171,6 +171,47 @@ const renderConcept = (concept, positions, cfg, strings) => {
         });
     }
 
+    // --- a diagram drawn for this concept ---------------------------------
+    // Shown as editable source, not a black box: the editor reads exactly what
+    // will be drawn, and can correct it, before anything is stored.
+    if (concept.diagram) {
+        const h = document.createElement('h5');
+        h.className = 'h6 mt-3';
+        h.textContent = strings.diagram;
+        body.appendChild(h);
+
+        const src = document.createElement('textarea');
+        src.className = 'form-control cct-diagram-source';
+        src.rows = 7;
+        src.value = concept.diagram;
+        src.setAttribute('aria-label', strings.diagram);
+        body.appendChild(src);
+
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.className = 'btn btn-sm btn-success mt-2';
+        add.textContent = strings.insertdiagram;
+        add.addEventListener('click', () => {
+            add.disabled = true;
+            say(strings.inserting, 'info');
+            fetchMany([{
+                methodname: 'local_contentchecker_insert_diagram',
+                args: {
+                    cmid: cfg.cmid, source: src.value,
+                    title: concept.concept, position: place.value
+                }
+            }])[0].then((r) => {
+                add.disabled = false;
+                say(r.message, r.ok ? 'success' : 'danger');
+                return null;
+            }).catch((e) => {
+                add.disabled = false;
+                Notification.exception(e);
+            });
+        });
+        body.appendChild(add);
+    }
+
     // --- openly licensed images -------------------------------------------
     if (concept.images.length) {
         const h = document.createElement('h5');
@@ -241,7 +282,7 @@ const renderConcept = (concept, positions, cfg, strings) => {
         body.appendChild(grid);
     }
 
-    if (!concept.assets.length && !concept.images.length) {
+    if (!concept.assets.length && !concept.images.length && !concept.diagram) {
         const none = document.createElement('p');
         none.className = 'text-muted mb-0';
         none.textContent = strings.nocandidates + ' (' + concept.searchterms + ')';
@@ -269,7 +310,7 @@ const init = (cfg) => {
         'suggest:analysing', 'suggest:none', 'suggest:registered', 'suggest:images',
         'suggest:insert', 'suggest:inserting', 'suggest:placement',
         'suggest:nocandidates', 'suggest:found', 'suggest:broadened',
-        'suggest:restrictive',
+        'suggest:restrictive', 'suggest:diagram', 'suggest:insertdiagram',
         'suggest:media_model3d', 'suggest:media_diagram', 'suggest:media_image'
     ];
 
@@ -279,7 +320,8 @@ const init = (cfg) => {
             insert: v[4], inserting: v[5], placement: v[6],
             nocandidates: v[7], found: v[8],
             broadened: v[9], restrictive: v[10],
-            media_model3d: v[11], media_diagram: v[12], media_image: v[13]
+            diagram: v[11], insertdiagram: v[12],
+            media_model3d: v[13], media_diagram: v[14], media_image: v[15]
         };
 
         button.addEventListener('click', () => {

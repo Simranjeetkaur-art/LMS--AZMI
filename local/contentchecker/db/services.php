@@ -119,6 +119,14 @@ $functions = [
         'capabilities' => 'local/contentchecker:manage',
     ],
 
+    'local_contentchecker_insert_diagram' => [
+        'classname' => 'local_contentchecker\external\insert_diagram',
+        'description' => 'Insert a generated diagram into an activity.',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'local/contentchecker:manage',
+    ],
+
     'local_contentchecker_synthesize' => [
         'classname' => 'local_contentchecker\external\synthesize',
         'description' => 'Render a passage to speech using the self-hosted TTS voice.',

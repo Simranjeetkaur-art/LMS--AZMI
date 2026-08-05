@@ -77,6 +77,7 @@ class suggest_enrichment extends external_api {
                 'reason' => $concept->reason,
                 'searchterms' => $concept->searchterms,
                 'broadened' => !empty($concept->broadened),
+                'diagram' => (string) ($concept->diagram ?? ''),
                 'assets' => array_map(fn($a) => [
                     'id' => $a->id,
                     'name' => $a->name,
@@ -121,6 +122,8 @@ class suggest_enrichment extends external_api {
                 'searchterms' => new external_value(PARAM_TEXT, 'Terms used to search'),
                 'broadened' => new external_value(PARAM_BOOL,
                     'True when a looser query was needed, so relevance is weaker'),
+                'diagram' => new external_value(PARAM_RAW,
+                    'Generated Mermaid source for a diagram concept, or empty'),
                 'assets' => new external_multiple_structure(new external_single_structure([
                     'id' => new external_value(PARAM_INT, 'Registered asset id'),
                     'name' => new external_value(PARAM_TEXT, 'Asset name'),

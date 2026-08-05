@@ -133,7 +133,19 @@ class suggester {
 
         foreach ($concepts as $concept) {
             $concept->assets = $this->matching_assets($concept);
-            $concept->images = $this->matching_images($concept, $context);
+
+            if ($concept->mediatype === 'diagram') {
+                // A photo library indexes photographs of things that exist. It
+                // has nothing for "the four-part structure of a medical term",
+                // and searching anyway returned "Nikon D800 vs Canon 5D Mark III
+                // Battery" because both phrases contain "comparison". The right
+                // answer for an abstract relationship is to draw one.
+                $concept->diagram = $this->generate_diagram($concept);
+                $concept->images = [];
+            } else {
+                $concept->diagram = '';
+                $concept->images = $this->matching_images($concept, $context);
+            }
         }
 
         return $concepts;
@@ -327,6 +339,98 @@ class suggester {
     }
 
     /**
+     * Draw a diagram for a concept instead of searching for one.
+     *
+     * Mermaid is used because it is text: the editor can read what will be
+     * drawn before accepting it, it degrades to a legible definition if the
+     * renderer is unavailable, and it stays diffable in course content rather
+     * than becoming an opaque binary.
+     *
+     * @param \stdClass $concept The concept.
+     * @return string Mermaid source, or '' when nothing usable came back.
+     */
+    protected function generate_diagram(\stdClass $concept): string {
+        $model = get_config('local_contentchecker', 'model_questions') ?: 'qwen3.5:35b';
+
+        $schema = [
+            'type' => 'object',
+            'properties' => ['mermaid' => ['type' => 'string']],
+            'required' => ['mermaid'],
+        ];
+
+        $prompt = "Write a Mermaid diagram illustrating this concept from a "
+            . "medical course.\n\n"
+            . "CONCEPT: {$concept->concept}\n"
+            . "WHY IT HELPS: {$concept->reason}\n\n"
+            . "RULES:\n"
+            . "- Output ONLY Mermaid source in the `mermaid` field. No markdown "
+            . "fences, no prose.\n"
+            . "- Start with a diagram type: `graph LR`, `graph TD` or `flowchart TD`.\n"
+            . "- Node IDs must be ONE word with no spaces: write "
+            . "`CombiningVowel[Combining vowel]`, never `Combining Vowel[...]`. "
+            . "A space in an ID breaks the diagram.\n"
+            . "- Keep node labels under 6 words.\n"
+            . "- Use at most 10 nodes; a crowded diagram teaches nothing.\n"
+            . "- Do not invent facts beyond the concept described.\n";
+
+        try {
+            $result = $this->client->generate_json($model, $prompt, $schema,
+                pipeline::atomise_budget());
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        $source = trim((string) ($result['mermaid'] ?? ''));
+
+        // Models routinely wrap the answer in a code fence despite being told
+        // not to; stripping it is cheaper than a retry.
+        $source = preg_replace('/^```(?:mermaid)?\s*|\s*```$/m', '', $source);
+        $source = trim((string) $source);
+
+        // Anything that does not start with a diagram declaration will not
+        // render, and showing an editor broken source is worse than showing
+        // none.
+        if (!preg_match('/^(graph|flowchart|sequenceDiagram|classDiagram|mindmap)\b/i',
+                $source)) {
+            return '';
+        }
+
+        return $source;
+    }
+
+    /**
+     * Keep only images whose own title relates to the concept.
+     *
+     * Applied to broadened searches only. The narrow query already asked for
+     * exactly the concept, so its results need no second opinion; a broadened
+     * one asked for something looser and will happily return a holiday snap
+     * that shares one word.
+     *
+     * @param array $results image_result objects from a source.
+     * @param \stdClass $concept The concept being illustrated.
+     * @return array The subset worth showing.
+     */
+    protected function relevant_only(array $results, \stdClass $concept): array {
+        $wanted = self::keywords($concept->searchterms . ' ' . $concept->concept);
+        if (!$wanted) {
+            return $results;
+        }
+
+        $keep = [];
+        foreach ($results as $result) {
+            $haystack = \core_text::strtolower($result->title . ' ' . $result->attribution);
+            foreach (array_keys($wanted) as $word) {
+                if (strpos($haystack, $word) !== false) {
+                    $keep[] = $result;
+                    break;
+                }
+            }
+        }
+
+        return $keep;
+    }
+
+    /**
      * Progressively broader queries to try for one concept.
      *
      * @param \stdClass $concept The concept.
@@ -385,12 +489,19 @@ class suggester {
                 // A rate-limited image search must not lose the whole suggestion.
                 return [];
             }
-            if ($results) {
-                // Anything past the first rung matched a looser query than the
-                // concept, so the editor is told not to trust the relevance.
+            // A broader query buys recall at the cost of precision, so anything
+            // it returns has to earn its place: an image whose own title shares
+            // no distinctive word with the concept is not an illustration of
+            // it. Without this, "the four-part structure of a medical term"
+            // was offered "redneck medical terms".
+            $relevant = $i > 0
+                ? $this->relevant_only($results, $concept)
+                : $results;
+
+            if ($relevant) {
                 $concept->broadened = $i > 0;
                 return array_map(fn($r) => $r->to_array(),
-                    array_slice($results, 0, self::IMAGES_PER_CONCEPT));
+                    array_slice($relevant, 0, self::IMAGES_PER_CONCEPT));
             }
         }
 
