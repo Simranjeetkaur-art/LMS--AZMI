@@ -1,0 +1,205 @@
+/* Content checker styles.
+ *
+ * Colours are expressed with Bootstrap variables where possible so the plugin
+ * inherits whatever theme the site uses rather than fighting it.
+ */
+
+/* --- Read aloud --------------------------------------------------------- */
+
+.cct-readaloud-bar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.cct-readaloud-hint {
+    font-size: 0.85em;
+}
+
+/* The clickable affordance is deliberately subtle until hovered: every
+   sentence on the page carries it, and a visible box on each one would make
+   the content unreadable. */
+.cct-seg {
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.cct-seg:hover,
+.cct-seg:focus {
+    background-color: rgba(0, 123, 255, 0.08);
+    outline: none;
+}
+
+.cct-seg:focus-visible {
+    outline: 2px solid #007bff;
+}
+
+.cct-speaking {
+    background-color: rgba(255, 193, 7, 0.35);
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cct-seg,
+    .cct-speaking {
+        transition: none;
+    }
+}
+
+/* --- Diff review -------------------------------------------------------- */
+
+.cct-diff-pane {
+    font-size: 0.95em;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.cct-diff-current {
+    background-color: rgba(220, 53, 69, 0.06);
+}
+
+.cct-diff-suggested {
+    background-color: rgba(40, 167, 69, 0.06);
+}
+
+.cct-suggestion.cct-decided {
+    opacity: 0.72;
+}
+
+.cct-snippet {
+    max-height: 6em;
+    overflow: hidden;
+}
+
+.cct-evidence a {
+    font-weight: 600;
+}
+
+.cct-audit td {
+    font-size: 0.9em;
+    max-width: 24rem;
+    word-break: break-word;
+}
+
+/* --- Follow-up questions ------------------------------------------------ */
+
+.cct-questions {
+    border-left: 4px solid #17a2b8;
+}
+
+.cct-question-text {
+    margin-bottom: 0.5rem;
+}
+
+/* --- Enrichment --------------------------------------------------------- */
+
+.cct-asset {
+    margin: 1.25rem 0;
+}
+
+.cct-model {
+    display: block;
+    height: 420px;
+    max-width: 100%;
+    width: 100%;
+}
+
+.cct-embed {
+    aspect-ratio: 16 / 9;
+    border: 0;
+    max-width: 100%;
+    width: 100%;
+}
+
+.cct-mermaid {
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem;
+    white-space: pre-wrap;
+}
+
+.cct-asset-caption {
+    font-size: 0.9em;
+    margin-top: 0.5rem;
+}
+
+.cct-comparison caption {
+    caption-side: top;
+    font-weight: 600;
+}
+
+/* Wide comparison tables scroll rather than forcing the page to. */
+.cct-asset-table {
+    overflow-x: auto;
+}
+
+/* --- Image picker ------------------------------------------------------- */
+
+.cct-image-results {
+    display: grid;
+    gap: 0.75rem;
+    /* auto-fill keeps the tiles a usable size on a narrow screen instead of
+       squeezing a fixed column count. */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    margin-top: 0.75rem;
+}
+
+.cct-image-thumb {
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    display: block;
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+}
+
+.cct-image-thumb:hover,
+.cct-image-thumb:focus-visible {
+    border-color: #007bff;
+    outline: 2px solid #007bff;
+}
+
+.cct-image-thumb img {
+    aspect-ratio: 4 / 3;
+    display: block;
+    height: auto;
+    object-fit: cover;
+    width: 100%;
+}
+
+.cct-image-meta {
+    font-size: 0.78em;
+    line-height: 1.3;
+    margin-top: 0.25rem;
+    /* Attribution can be long; clamp it rather than letting one tile grow. */
+    max-height: 3.9em;
+    overflow: hidden;
+}
+
+.cct-image-origin {
+    font-size: 0.78em;
+}
+
+.cct-image-status:not(:empty) {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* --- Publish layouts ---------------------------------------------------- */
+
+.cct-preview {
+    background-color: rgba(0, 0, 0, 0.02);
+    min-height: 12rem;
+}
+
+.cct-layout-media img,
+.cct-layout-media model-viewer {
+    max-width: 100%;
+}
+
+.cct-callout-title {
+    margin-bottom: 0.35rem;
+}

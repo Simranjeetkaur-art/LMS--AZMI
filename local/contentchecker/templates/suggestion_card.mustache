@@ -1,0 +1,151 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_contentchecker/suggestion_card
+
+    One AI finding, shown as a side-by-side diff with its retrieved sources and
+    the Approve / Reject / Edit actions. Confidence is displayed for inspection
+    but is never used to order or filter anything.
+
+    Context variables required for this template:
+    * id - suggestion id
+    * itemname - the activity the claim came from
+    * claim - the atomic assertion judged
+    * verdictlabel, verdictclass, quorum
+    * currenttext, suggestedtext, hasdiff, applicable
+    * reasoning, confidence, quote, quoteverbatim
+    * evidence - array of { title, url, tier, score, snippet }
+    * decided, decisionlabel, applied, canapprove
+
+    Example context (json):
+    {
+        "id": 12,
+        "itemname": "Week 1 overview",
+        "claim": "The heart has four chambers.",
+        "verdictlabel": "Contradicted",
+        "verdictclass": "danger",
+        "quorum": "2/3 (contradicted, supported, contradicted)",
+        "currenttext": "The heart has three chambers.",
+        "suggestedtext": "The heart has four chambers.",
+        "hasdiff": true,
+        "applicable": true,
+        "reasoning": "The source states four chambers.",
+        "confidence": "0.91",
+        "quote": "The human heart has four chambers.",
+        "quoteverbatim": true,
+        "evidence": [{"title": "Heart", "url": "https://example.org", "tier": 3,
+                      "score": "0.812", "snippet": "The human heart has four chambers."}],
+        "decided": false,
+        "decisionlabel": "Pending",
+        "applied": false,
+        "canapprove": true
+    }
+}}
+<div class="card mb-3 cct-suggestion {{#decided}}cct-decided{{/decided}}"
+     data-cct-suggestion="{{id}}"
+     data-cct-state="{{decision}}">
+
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <span class="badge badge-{{verdictclass}} mr-2">{{verdictlabel}}</span>
+        <span class="cct-itemname flex-grow-1">{{itemname}}</span>
+        <small class="text-muted">
+            {{#str}}review:confidence, local_contentchecker{{/str}} {{confidence}}
+            {{#quorum}} &middot; {{quorum}}{{/quorum}}
+        </small>
+    </div>
+
+    <div class="card-body">
+        <p class="cct-claim"><strong>{{#str}}review:claim, local_contentchecker{{/str}}</strong>
+            {{claim}}</p>
+
+        {{#hasdiff}}
+            <div class="row cct-diff">
+                <div class="col-12 col-md-6">
+                    <h5 class="h6 text-muted">{{#str}}review:current, local_contentchecker{{/str}}</h5>
+                    <div class="cct-diff-pane cct-diff-current p-2 border rounded">{{currenttext}}</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <h5 class="h6 text-muted">{{#str}}review:suggested, local_contentchecker{{/str}}</h5>
+                    <div class="cct-diff-pane cct-diff-suggested p-2 border rounded"
+                         data-cct-suggested="1">{{suggestedtext}}</div>
+                </div>
+            </div>
+        {{/hasdiff}}
+
+        {{^applicable}}
+            <div class="alert alert-secondary mt-2 mb-0">
+                {{#str}}review:notapplicable, local_contentchecker{{/str}}
+            </div>
+        {{/applicable}}
+
+        {{#reasoning}}
+            <p class="cct-reasoning mt-3 mb-1">
+                <strong>{{#str}}review:reasoning, local_contentchecker{{/str}}</strong> {{reasoning}}
+            </p>
+        {{/reasoning}}
+
+        {{#quote}}
+            <blockquote class="cct-quote blockquote-footer">
+                {{quote}}
+                {{#quoteverbatim}}
+                    <span class="badge badge-success ml-1">{{#str}}review:verbatim, local_contentchecker{{/str}}</span>
+                {{/quoteverbatim}}
+                {{^quoteverbatim}}
+                    <span class="badge badge-danger ml-1">{{#str}}review:notverbatim, local_contentchecker{{/str}}</span>
+                {{/quoteverbatim}}
+            </blockquote>
+        {{/quote}}
+
+        {{#evidence.0}}
+            <h5 class="h6 mt-3">{{#str}}review:sources, local_contentchecker{{/str}}</h5>
+            <ul class="cct-evidence list-unstyled">
+                {{#evidence}}
+                    <li class="mb-2">
+                        <a href="{{url}}" target="_blank" rel="noopener noreferrer">{{title}}</a>
+                        <span class="badge badge-light">{{#str}}tier, local_contentchecker{{/str}} {{tier}}</span>
+                        <span class="text-muted small">{{score}}</span>
+                        <div class="text-muted small cct-snippet">{{snippet}}</div>
+                    </li>
+                {{/evidence}}
+            </ul>
+        {{/evidence.0}}
+    </div>
+
+    <div class="card-footer">
+        {{#canapprove}}
+            <textarea class="form-control mb-2" rows="1"
+                      data-cct-notes="1"
+                      aria-label="{{#str}}review:notes, local_contentchecker{{/str}}"
+                      placeholder="{{#str}}review:notes, local_contentchecker{{/str}}"></textarea>
+            {{#applicable}}
+                <button type="button" class="btn btn-sm btn-success" data-cct-approve="1">
+                    {{#str}}review:approve, local_contentchecker{{/str}}
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-cct-edit="1">
+                    {{#str}}review:edit, local_contentchecker{{/str}}
+                </button>
+            {{/applicable}}
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-cct-reject="1">
+                {{#str}}review:reject, local_contentchecker{{/str}}
+            </button>
+        {{/canapprove}}
+        <div class="cct-decision {{#decided}}alert {{#applied}}alert-success{{/applied}}{{^applied}}alert-secondary{{/applied}} mb-0 mt-2{{/decided}}"
+             data-cct-decision="1">
+            {{#decided}}{{decisionlabel}}{{/decided}}
+        </div>
+    </div>
+</div>

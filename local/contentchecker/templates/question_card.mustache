@@ -1,0 +1,99 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_contentchecker/question_card
+
+    One auto-generated follow-up question awaiting an editor's decision. The
+    answer key is shown, because an editor cannot approve a question without
+    seeing how it will be marked.
+
+    Context variables required for this template:
+    * id, cmid, blockref, qtype, qtypelabel, qtext
+    * options - array of { index, text, correct }
+    * hasoptions, explanation
+    * status, statuslabel, statusclass, isdraft
+
+    Example context (json):
+    {
+        "id": 7,
+        "cmid": 42,
+        "blockref": "b-1a2b3c",
+        "qtype": "multichoice",
+        "qtypelabel": "Multiple choice",
+        "qtext": "How many chambers does the heart have?",
+        "options": [{"index": 0, "text": "Four", "correct": true},
+                    {"index": 1, "text": "Three", "correct": false}],
+        "hasoptions": true,
+        "explanation": "The human heart has four chambers.",
+        "status": "draft",
+        "statuslabel": "Draft",
+        "statusclass": "secondary",
+        "isdraft": true
+    }
+}}
+<div class="card mb-3 cct-question-card" data-cct-question="{{id}}">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <span class="badge badge-light mr-2">{{qtypelabel}}</span>
+            <span class="badge badge-{{statusclass}}" data-cct-status="1">{{statuslabel}}</span>
+        </span>
+        <small class="text-muted">{{blockref}}</small>
+    </div>
+    <div class="card-body">
+        <label class="w-100">
+            <span class="sr-only">{{#str}}questions:text, local_contentchecker{{/str}}</span>
+            <textarea class="form-control mb-2" rows="2" data-cct-qtext="1">{{qtext}}</textarea>
+        </label>
+
+        {{#hasoptions}}
+            <ul class="list-unstyled cct-options">
+                {{#options}}
+                    <li class="mb-1">
+                        {{#correct}}
+                            <span class="badge badge-success">{{#str}}questions:correctanswer, local_contentchecker{{/str}}</span>
+                        {{/correct}}
+                        {{^correct}}
+                            <span class="badge badge-light">&nbsp;&nbsp;</span>
+                        {{/correct}}
+                        {{text}}
+                    </li>
+                {{/options}}
+            </ul>
+        {{/hasoptions}}
+
+        <label class="w-100">
+            <span class="text-muted small">{{#str}}questions:explanation, local_contentchecker{{/str}}</span>
+            <textarea class="form-control" rows="2" data-cct-explanation="1">{{explanation}}</textarea>
+        </label>
+    </div>
+    <div class="card-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-cct-save="1">
+            {{#str}}questions:save, local_contentchecker{{/str}}
+        </button>
+        {{#isdraft}}
+            <button type="button" class="btn btn-sm btn-success" data-cct-approve="1">
+                {{#str}}questions:approve, local_contentchecker{{/str}}
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-cct-reject="1">
+                {{#str}}questions:reject, local_contentchecker{{/str}}
+            </button>
+        {{/isdraft}}
+        <button type="button" class="btn btn-sm btn-outline-danger" data-cct-delete="1">
+            {{#str}}questions:delete, local_contentchecker{{/str}}
+        </button>
+    </div>
+</div>

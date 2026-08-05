@@ -1,0 +1,41 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_contentchecker/layout_medialeft
+
+    Media-left, text-right. The visual carries the anatomy or mechanism and the
+    prose explains it, so the two stay side by side on a wide screen and stack
+    with the media first on a narrow one.
+
+    Context variables required for this template:
+    * media - HTML for the image, video or 3D model
+    * body - HTML for the explanatory prose
+
+    Example context (json):
+    {
+        "media": "<img src='heart.png' alt='Heart'>",
+        "body": "<p>The heart has four chambers.</p>"
+    }
+}}
+<div class="cct-layout cct-layout-medialeft row">
+    <div class="col-12 col-md-5 cct-layout-media">
+        {{{media}}}
+    </div>
+    <div class="col-12 col-md-7 cct-layout-body">
+        {{{body}}}
+    </div>
+</div>

@@ -37,6 +37,7 @@ declare -A LINKS=(
   ["blocks/azmsi_dashboard"]="blocks/azmsi_dashboard"
   ["blocks/azmsi_rating"]="blocks/azmsi_rating"
   ["mod/flashdeck"]="mod/flashdeck"
+  ["local/contentchecker"]="local/contentchecker"
 )
 
 log()  { printf '  %s\n' "$*"; }
