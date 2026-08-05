@@ -101,6 +101,21 @@ class image_result {
     }
 
     /**
+     * Does this licence restrict commercial use or adaptation?
+     *
+     * NonCommercial and NoDerivatives are the two that bite an institution
+     * later: NC can forbid use in a course that is ever sold, ND forbids
+     * adapting the image at all. Both are easy to miss in a licence code like
+     * "by-nc-nd-2.0", so it is surfaced as a plain flag.
+     *
+     * @return bool True when the licence needs a second look.
+     */
+    public function is_restrictive(): bool {
+        $parts = preg_split('/[-\s]+/', strtolower($this->license)) ?: [];
+        return in_array('nc', $parts, true) || in_array('nd', $parts, true);
+    }
+
+    /**
      * Shape sent to the picker.
      *
      * @return array Plain array for the web service.
@@ -119,6 +134,7 @@ class image_result {
             'landingurl' => $this->landingurl,
             'width' => $this->width,
             'height' => $this->height,
+            'restrictive' => $this->is_restrictive(),
         ];
     }
 }

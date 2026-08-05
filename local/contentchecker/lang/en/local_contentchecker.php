@@ -86,6 +86,26 @@ $string['decision:approved'] = 'Approved';
 $string['decision:rejected'] = 'Rejected';
 $string['decision:edited'] = 'Edited and approved';
 
+// Content-aware enrichment suggestions.
+$string['suggest:heading'] = 'Suggested illustrations';
+$string['suggest:intro'] = 'Reads this activity first, then proposes 3D models, diagrams and openly licensed images that match what it actually teaches. Nothing is added until you choose it.';
+$string['suggest:button'] = 'Analyse this content and suggest visuals';
+$string['suggest:analysing'] = 'Reading the content and looking for matches...';
+$string['suggest:found'] = '{$a} concept(s) worth illustrating.';
+$string['suggest:none'] = 'Nothing in this activity clearly needs a visual.';
+$string['suggest:registered'] = 'Registered 3D models and diagrams';
+$string['suggest:images'] = 'Openly licensed images';
+$string['suggest:insert'] = 'Insert';
+$string['suggest:inserting'] = 'Inserting...';
+$string['suggest:placement'] = 'Place it';
+$string['suggest:nocandidates'] = 'Nothing matched yet. Register a model, or search images directly, using these terms:';
+$string['suggest:broadened'] = 'No images matched "{$a}" exactly, so these come from a broader search. Check they are actually relevant before using one.';
+$string['suggest:restrictive'] = 'Restricted licence';
+$string['suggest:media_model3d'] = '3D model';
+$string['suggest:media_diagram'] = 'Diagram';
+$string['suggest:media_image'] = 'Image';
+$string['error:suggestfailed'] = 'The content could not be analysed: {$a}';
+
 // Activity drill-down.
 $string['activity:inthisweek'] = 'Activities in this week';
 $string['activity:name'] = 'Activity';

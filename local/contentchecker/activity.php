@@ -68,6 +68,11 @@ if ($canrun) {
 if ($canapprove) {
     $PAGE->requires->js_call_amd('local_contentchecker/diff_review', 'init');
 }
+if ($canrun) {
+    $PAGE->requires->js_call_amd('local_contentchecker/enrich_suggest', 'init', [[
+        'cmid' => $cmid,
+    ]]);
+}
 
 $items = content_source::for_cm($cmid);
 
@@ -142,6 +147,22 @@ if (!$items) {
         \core\output\notification::NOTIFY_INFO);
 } else {
     echo $renderer->activity_content($items);
+}
+
+// --- content-aware illustration suggestions --------------------------------
+if ($canrun && $items) {
+    echo $OUTPUT->heading(get_string('suggest:heading', 'local_contentchecker'), 3);
+    echo html_writer::tag('p', get_string('suggest:intro', 'local_contentchecker'),
+        ['class' => 'text-muted']);
+    echo html_writer::div(
+        html_writer::tag('button',
+            get_string('suggest:button', 'local_contentchecker'), [
+                'type' => 'button',
+                'class' => 'btn btn-primary',
+                'data-cct-suggest' => '1',
+            ]),
+        'mb-3');
+    echo html_writer::div('', 'cct-suggestions', ['data-cct-suggestions' => '1']);
 }
 
 // --- its findings ---------------------------------------------------------

@@ -103,6 +103,22 @@ $functions = [
         'capabilities' => 'local/contentchecker:manage',
     ],
 
+    'local_contentchecker_suggest_enrichment' => [
+        'classname' => 'local_contentchecker\external\suggest_enrichment',
+        'description' => 'Analyse an activity and propose illustrations for it.',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'local/contentchecker:manage',
+    ],
+
+    'local_contentchecker_insert_asset' => [
+        'classname' => 'local_contentchecker\external\insert_asset',
+        'description' => 'Insert a registered 3D model or diagram into an activity.',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'local/contentchecker:manage',
+    ],
+
     'local_contentchecker_synthesize' => [
         'classname' => 'local_contentchecker\external\synthesize',
         'description' => 'Render a passage to speech using the self-hosted TTS voice.',
