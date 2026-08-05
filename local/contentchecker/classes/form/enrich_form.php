@@ -79,6 +79,13 @@ class enrich_form extends \moodleform {
         $mform->addElement('select', 'kind',
             get_string('enrich:kind', 'local_contentchecker'), $kinds);
 
+        // Without this the element always landed at the very bottom of the
+        // page, which is rarely where it belongs.
+        $mform->addElement('select', 'position',
+            get_string('enrich:position', 'local_contentchecker'),
+            enrichment::positions());
+        $mform->addHelpButton('position', 'enrich:position', 'local_contentchecker');
+
         // --- Registered asset ---------------------------------------------
         $assets = [];
         foreach (enrichment::assets() as $asset) {

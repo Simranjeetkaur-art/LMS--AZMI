@@ -2,9 +2,9 @@ name,assettype,viewer,url,posterurl,licence,attribution,description
 Anatomical figure – écorché,model3d,iframe,,,CC0,"""Anatomical figure – écorché"" by Virtual Museums of Małopolska (Sketchfab) — CC0 public domain",EMD-101 Wk 2 · Anatomical Terminology
 Splanchnology (viscera atlas),model3d,iframe,,,CC BY-SA 4.0,"""Splanchnology"" by Z-Anatomy (Sketchfab) — CC BY-SA 4.0",EMD-101 Wk 3 · Body Systems Terminology
 Prostate Cancer Cells,model3d,iframe,,,CC BY 4.0,"""Prostate Cancer Cells"" by XR Life Science (Sketchfab) — CC BY 4.0","EMD-101 Wk 4 · Pathology Terminology (-oma, -plasia)"
-COX-1 with ibuprofen (PDB 1EQG),model3d,iframe,https://www.rcsb.org/3d-view/1EQG,,CC0,RCSB PDB entry 1EQG — ovine COX-1 complexed with ibuprofen. PDB data are CC0.,"EMD-101 Wk 5 · Pharmacology Language (drug–target). NOTE: structure is OVINE COX-1, not human."
+COX-1 with ibuprofen (PDB 1EQG),model3d,iframe,https://molstar.org/viewer/?pdb=1EQG,,CC0,RCSB PDB entry 1EQG — ovine COX-1 complexed with ibuprofen. PDB data are CC0.,"EMD-101 Wk 5 · Pharmacology Language (drug–target). NOTE: structure is OVINE COX-1, not human."
 Components of blood,model3d,iframe,,,CC BY 4.0,"""Components of blood"" by arloopa (Sketchfab) — CC BY 4.0",EMD-101 Wk 6 · Lab Medicine (CBC)
-Human deoxyhaemoglobin (PDB 4HHB),model3d,iframe,https://www.rcsb.org/3d-view/4HHB,,CC0,RCSB PDB entry 4HHB — human deoxyhaemoglobin at 1.74 Å. PDB data are CC0.,EMD-101 Wk 6 · Lab Medicine (Hb / HbA1c)
+Human deoxyhaemoglobin (PDB 4HHB),model3d,iframe,https://molstar.org/viewer/?pdb=4HHB,,CC0,RCSB PDB entry 4HHB — human deoxyhaemoglobin at 1.74 Å. PDB data are CC0.,EMD-101 Wk 6 · Lab Medicine (Hb / HbA1c)
 VHF Skull Point Cloud (CT-derived),model3d,iframe,,,CC BY 4.0,"""VHF Skull Point Cloud"" by Terrie Simmons-Ehrhardt (Sketchfab) — CC BY 4.0",EMD-101 Wk 7 · Diagnostic Imaging Terminology
 Anatomical figure – écorché (Body Regions lab),model3d,iframe,,,CC0,"""Anatomical figure – écorché"" by Virtual Museums of Małopolska — CC0 public domain",EMD-102 Wk 1 · Virtual Anatomy Lab: Body Regions (already live)
 Animal cell 2.0 – annotated (English),model3d,iframe,,,CC BY 4.0,"""Animal cell 2.0 – annotated"" by montanna (Sketchfab) — CC BY 4.0",EMD-102 Wk 2 · Virtual Lab: Cell Exploration
@@ -32,12 +32,12 @@ Realistic Human Lungs,model3d,iframe,,,CC BY 4.0,"""Realistic Human Lungs"" by n
 Human Cell,model3d,iframe,,,CC BY 4.0,"""Human Cell"" by markdragan (Sketchfab) — CC BY 4.0",EMD-103 Wk 1 · Cell Structure Explorer
 Cell membrane,model3d,iframe,,,CC BY 4.0,"""Cell membrane"" by Lukas Ded (Sketchfab) — CC BY 4.0",EMD-103 Wk 2 · Membrane Transport Sim (already live)
 Mitochondria,model3d,iframe,,,CC BY 4.0,"""Mitochondria"" by brianj.seely (Sketchfab) — CC BY 4.0",EMD-103 Wk 3 · ATP Production Sim
-Mitochondrial ATP synthase (PDB 5ARA),model3d,iframe,https://www.rcsb.org/3d-view/5ARA,,CC0,"RCSB PDB entry 5ARA — mitochondrial ATP synthase, state 1a. PDB data are CC0.","EMD-103 Wk 3 · Oxidative phosphorylation. NOTE: structure is BOVINE, not human."
+Mitochondrial ATP synthase (PDB 5ARA),model3d,iframe,https://molstar.org/viewer/?pdb=5ARA,,CC0,"RCSB PDB entry 5ARA — mitochondrial ATP synthase, state 1a. PDB data are CC0.","EMD-103 Wk 3 · Oxidative phosphorylation. NOTE: structure is BOVINE, not human."
 DNA,model3d,iframe,,,CC BY 4.0,"""DNA"" by Holoxica (Sketchfab) — CC BY 4.0",EMD-103 Wk 4 · DNA Modeling Activity (already live)
-B-DNA dodecamer (PDB 1BNA),model3d,iframe,https://www.rcsb.org/3d-view/1BNA,,CC0,"RCSB PDB entry 1BNA — B-DNA dodecamer, conformation and dynamics. PDB data are CC0.",EMD-103 Wk 4 · Watson–Crick structure
-Human 80S ribosome (PDB 4V6X),model3d,iframe,https://www.rcsb.org/3d-view/4V6X,,CC0,RCSB PDB entry 4V6X — structure of the human 80S ribosome. PDB data are CC0.,EMD-103 Wk 5 · Protein Synthesis Sim
+B-DNA dodecamer (PDB 1BNA),model3d,iframe,https://molstar.org/viewer/?pdb=1BNA,,CC0,"RCSB PDB entry 1BNA — B-DNA dodecamer, conformation and dynamics. PDB data are CC0.",EMD-103 Wk 4 · Watson–Crick structure
+Human 80S ribosome (PDB 4V6X),model3d,iframe,https://molstar.org/viewer/?pdb=4V6X,,CC0,RCSB PDB entry 4V6X — structure of the human 80S ribosome. PDB data are CC0.,EMD-103 Wk 5 · Protein Synthesis Sim
 Human male chromosomes,model3d,iframe,,,CC BY 4.0,"""Human male chromosomes"" by yanosen (Sketchfab) — CC BY 4.0",EMD-103 Wk 6–7 · Karyotype / inheritance
 Chromosome X,model3d,iframe,,,CC BY 4.0,"""Chromosome X"" by LucasPresoto (Sketchfab) — CC BY 4.0",EMD-103 Wk 7 · Chromosomal disorders
-Nucleosome core particle (PDB 1KX5),model3d,iframe,https://www.rcsb.org/3d-view/1KX5,,CC0,RCSB PDB entry 1KX5 — nucleosome core particle NCP147. PDB data are CC0.,EMD-103 Wk 8 · Genomics / chromatin
-p53 tumour suppressor with DNA (PDB 1TUP),model3d,iframe,https://www.rcsb.org/3d-view/1TUP,,CC0,RCSB PDB entry 1TUP — tumour suppressor p53 complexed with DNA. PDB data are CC0.,EMD-103 Wk 9 · Cancer Genetics
-"CRISPR-Cas9, catalytically active (PDB 5F9R)",model3d,iframe,https://www.rcsb.org/3d-view/5F9R,,CC0,RCSB PDB entry 5F9R — catalytically active Streptococcus pyogenes Cas9. PDB data are CC0.,EMD-103 Wk 10 · CRISPR Technology
+Nucleosome core particle (PDB 1KX5),model3d,iframe,https://molstar.org/viewer/?pdb=1KX5,,CC0,RCSB PDB entry 1KX5 — nucleosome core particle NCP147. PDB data are CC0.,EMD-103 Wk 8 · Genomics / chromatin
+p53 tumour suppressor with DNA (PDB 1TUP),model3d,iframe,https://molstar.org/viewer/?pdb=1TUP,,CC0,RCSB PDB entry 1TUP — tumour suppressor p53 complexed with DNA. PDB data are CC0.,EMD-103 Wk 9 · Cancer Genetics
+"CRISPR-Cas9, catalytically active (PDB 5F9R)",model3d,iframe,https://molstar.org/viewer/?pdb=5F9R,,CC0,RCSB PDB entry 5F9R — catalytically active Streptococcus pyogenes Cas9. PDB data are CC0.,EMD-103 Wk 10 · CRISPR Technology

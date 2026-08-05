@@ -124,17 +124,52 @@ if (!$assets) {
                 ['action' => 'delete', 'id' => $row->id, 'sesskey' => sesskey()]),
                 get_string('delete'), ['class' => 'btn btn-sm btn-link text-danger']);
 
-        echo html_writer::start_div('card mb-3');
+        echo html_writer::start_div('card mb-2');
         echo html_writer::div(
             html_writer::span(s($row->name), 'font-weight-bold mr-2') .
             html_writer::span(get_string('asset:type:' . $row->assettype,
                 'local_contentchecker'), 'badge badge-light mr-2') .
+            ($row->licence ? html_writer::span(s($row->licence),
+                'badge badge-info mr-2') : '') .
             ($row->enabled ? '' : html_writer::span(
-                get_string('asset:disabled', 'local_contentchecker'),
-                'badge badge-secondary mr-2')) .
+                get_string('asset:pendingurl', 'local_contentchecker'),
+                'badge badge-warning mr-2')) .
             $actions,
             'card-header d-flex justify-content-between align-items-center flex-wrap');
-        echo html_writer::div(enrichment::render_asset($row), 'card-body');
+
+        // Metadata only, with the preview behind a toggle. Rendering every
+        // asset live meant one page load pulling a dozen external 3D viewers
+        // at once, which is slow, heavy on the learner's browser, and tells
+        // every one of those hosts that this page was opened.
+        $body = '';
+        if (trim((string) $row->description) !== '') {
+            $body .= html_writer::tag('p', s($row->description), ['class' => 'mb-1']);
+        }
+        if (trim((string) $row->url) !== '') {
+            $body .= html_writer::tag('p',
+                html_writer::link($row->url, shorten_text(s($row->url), 90),
+                    ['target' => '_blank', 'rel' => 'noopener noreferrer']),
+                ['class' => 'small text-muted mb-1']);
+        } else {
+            $body .= html_writer::tag('p',
+                get_string('asset:needsurl', 'local_contentchecker'),
+                ['class' => 'small text-warning mb-1']);
+        }
+        if (trim((string) $row->attribution) !== '') {
+            $body .= html_writer::tag('p', s($row->attribution),
+                ['class' => 'small text-muted mb-1']);
+        }
+
+        if ($row->enabled) {
+            $body .= html_writer::start_tag('details', ['class' => 'mt-2']);
+            $body .= html_writer::tag('summary',
+                get_string('asset:preview', 'local_contentchecker'),
+                ['class' => 'btn btn-sm btn-outline-secondary']);
+            $body .= enrichment::render_asset($row);
+            $body .= html_writer::end_tag('details');
+        }
+
+        echo html_writer::div($body, 'card-body py-2');
         echo html_writer::end_div();
     }
 }

@@ -98,9 +98,13 @@ class enrichment {
                         'loading' => 'lazy',
                         'class' => 'cct-embed',
                         'allowfullscreen' => 'allowfullscreen',
+                        // A 3D viewer needs WebGL, fullscreen and, for AR-capable
+                        // models, spatial tracking. Without these the frame loads
+                        // but the model will not render or go fullscreen.
+                        'allow' => 'fullscreen; xr-spatial-tracking; accelerometer; gyroscope',
                         // An embedded third-party viewer gets no ambient
                         // authority over the Moodle page around it.
-                        'sandbox' => 'allow-scripts allow-same-origin',
+                        'sandbox' => 'allow-scripts allow-same-origin allow-popups',
                     ]) . $caption,
                     ['class' => 'cct-asset cct-asset-embed']);
 
@@ -198,6 +202,76 @@ class enrichment {
     }
 
     /**
+     * Where an editor may drop an inserted element.
+     *
+     * @param int $cmid Course module id, for listing that activity's headings.
+     * @return array position key => label.
+     */
+    public static function positions(int $cmid = 0): array {
+        $positions = [
+            'end' => get_string('enrich:pos:end', 'local_contentchecker'),
+            'start' => get_string('enrich:pos:start', 'local_contentchecker'),
+        ];
+
+        if (!$cmid) {
+            return $positions;
+        }
+
+        // Offering the activity's own headings is what turns "it went
+        // somewhere in the page" into a decision the editor made.
+        foreach (content_source::for_cm($cmid) as $item) {
+            foreach (blocks::split($item->html) as $block) {
+                if ($block->title === '') {
+                    continue;
+                }
+                $positions['after:' . $block->ref] = get_string('enrich:pos:after',
+                    'local_contentchecker', shorten_text($block->title, 60));
+            }
+        }
+
+        return $positions;
+    }
+
+    /**
+     * Put the fragment where the editor asked for it.
+     *
+     * @param string $html The activity's existing content.
+     * @param string $fragment What to insert.
+     * @param string $position end|start|after:<blockref>.
+     * @return string The new content.
+     */
+    protected static function place(string $html, string $fragment, string $position): string {
+        if ($position === 'start') {
+            return $fragment . "\n" . $html;
+        }
+
+        if (str_starts_with($position, 'after:')) {
+            $ref = substr($position, strlen('after:'));
+
+            // Insert immediately before the NEXT heading, which is the end of
+            // the chosen section rather than the start of the following one.
+            $blocks = blocks::split($html);
+            $found = false;
+            foreach ($blocks as $block) {
+                if ($found && $block->html !== '') {
+                    $at = strpos($html, $block->html);
+                    if ($at !== false) {
+                        return substr($html, 0, $at) . $fragment . "\n" . substr($html, $at);
+                    }
+                    break;
+                }
+                if ($block->ref === $ref) {
+                    $found = true;
+                }
+            }
+            // The chosen heading was the last one, so the end of the page IS
+            // the end of that section.
+        }
+
+        return $html . "\n" . $fragment;
+    }
+
+    /**
      * Append a fragment to an activity's stored content and save it.
      *
      * The activity's own format is preserved: the fragment is HTML appended to
@@ -209,7 +283,7 @@ class enrichment {
      * @return bool True when something was written.
      */
     public static function insert_into_cm(int $cmid, string $fragment,
-            ?int $recordid = null): bool {
+            ?int $recordid = null, string $position = 'end'): bool {
         global $DB;
 
         $items = content_source::for_cm($cmid);
@@ -234,7 +308,7 @@ class enrichment {
         }
 
         $before = (string) $record->{$target->field};
-        $record->{$target->field} = $before . "\n" . $fragment;
+        $record->{$target->field} = self::place($before, $fragment, $position);
         if (isset($record->timemodified)) {
             $record->timemodified = time();
         }

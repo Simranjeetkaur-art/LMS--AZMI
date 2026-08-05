@@ -83,7 +83,8 @@ if ($form->is_cancelled()) {
 
     $preview = $fragment;
 
-    if (enrichment::insert_into_cm($cmid, $fragment, $recordid)) {
+    $position = $data->position ?? 'end';
+    if (enrichment::insert_into_cm($cmid, $fragment, $recordid, $position)) {
         redirect($url, get_string('enrich:inserted', 'local_contentchecker'), null,
             \core\output\notification::NOTIFY_SUCCESS);
     }

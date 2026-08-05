@@ -170,6 +170,16 @@ $string['enrich:kind'] = 'What to insert';
 $string['enrich:kind:asset'] = 'A registered 3D model or diagram';
 $string['enrich:kind:table'] = 'A comparison table';
 $string['enrich:asset'] = 'Asset';
+$string['enrich:position'] = 'Place it';
+$string['enrich:position_help'] = 'Where the element goes in the activity\'s content.
+
+"At the end" appends it after everything. "At the start" puts it first. Choosing a heading places it at the end of that section, immediately before the next heading -- which is usually where an illustration belongs.';
+$string['enrich:pos:end'] = 'At the end of the content';
+$string['enrich:pos:start'] = 'At the start of the content';
+$string['enrich:pos:after'] = 'At the end of the section "{$a}"';
+$string['asset:pendingurl'] = 'Awaiting URL';
+$string['asset:needsurl'] = 'No URL yet, so this cannot be inserted. Add the model URL to make it available.';
+$string['asset:preview'] = 'Show preview';
 $string['enrich:noassets'] = 'No assets are registered yet. An administrator can add them under Enrichment assets.';
 $string['enrich:tablecaption'] = 'Table caption';
 $string['enrich:tablecsv'] = 'Table content';

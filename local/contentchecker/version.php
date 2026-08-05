@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_contentchecker';
-$plugin->version   = 2026080504;
+$plugin->version   = 2026080505;
 $plugin->requires  = 2024100700; // Moodle 4.5+.
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '1.1.1-v1';
+$plugin->release   = '1.1.2-v1';

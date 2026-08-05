@@ -107,10 +107,22 @@
 }
 
 .cct-embed {
-    aspect-ratio: 16 / 9;
-    border: 0;
+    /* A 3D viewer needs real height to be usable; 16:9 leaves the model a
+       letterbox strip on a narrow screen. */
+    aspect-ratio: 4 / 3;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
     max-width: 100%;
+    min-height: 420px;
     width: 100%;
+}
+
+/* The admin list keeps previews collapsed, so a page of assets does not pull
+   a dozen external viewers at once. */
+.cct-asset-embed details > summary {
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 0.5rem;
 }
 
 .cct-mermaid {
