@@ -57,8 +57,16 @@ $PAGE->navbar->add(get_string('coursedashboard', 'local_contentchecker'),
 $PAGE->navbar->add(get_string('review:heading', 'local_contentchecker'));
 
 $canapprove = has_capability('local/contentchecker:approve', $context);
+$canrun = has_capability('local/contentchecker:manage', $context);
+
 if ($canapprove) {
     $PAGE->requires->js_call_amd('local_contentchecker/diff_review', 'init');
+}
+if ($canrun) {
+    // Powers the per-activity Verify buttons in the list below.
+    $PAGE->requires->js_call_amd('local_contentchecker/verification_dashboard', 'init', [[
+        'courseid' => (int) $course->id,
+    ]]);
 }
 
 // Findings for this week come from whichever activities the week actually
@@ -110,8 +118,20 @@ if ($cmids) {
 
 $renderer = $PAGE->get_renderer('local_contentchecker');
 
+$sectionname = course_get_format($course)->get_section_name($sectionnum);
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('review:heading', 'local_contentchecker'));
+echo $OUTPUT->heading(format_string($sectionname));
+
+// --- the week's activities -------------------------------------------------
+echo $OUTPUT->heading(get_string('activity:inthisweek', 'local_contentchecker'), 3);
+echo $renderer->activity_list($course, $sectionnum,
+    \local_contentchecker\local\dashboard::activities_for_section(
+        (int) $course->id, $sectionnum),
+    $canrun);
+
+// --- findings across the whole week ----------------------------------------
+echo $OUTPUT->heading(get_string('review:heading', 'local_contentchecker'), 3);
 
 $toggle = new moodle_url($url, ['showall' => $showall ? 0 : 1]);
 echo html_writer::div(

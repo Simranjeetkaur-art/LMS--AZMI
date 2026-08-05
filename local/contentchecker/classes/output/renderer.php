@@ -114,8 +114,17 @@ class renderer extends \plugin_renderer_base {
                 get_string('dashboard:publish', 'local_contentchecker'),
                 ['class' => 'btn btn-sm btn-link']);
 
+            // The week name is the way into its activities, which is what an
+            // editor actually wants to browse.
+            $weeklink = \html_writer::link(
+                new \moodle_url('/local/contentchecker/week.php', [
+                    'courseid' => $course->id,
+                    'sectionnum' => $section->sectionnum,
+                ]),
+                s($section->name));
+
             $row = new \html_table_row([
-                s($section->name),
+                $weeklink,
                 $section->numitems,
                 $this->status_badge($section->status)
                     . \html_writer::span('', 'ml-1 small', ['data-cct-progress' => '1']),
@@ -244,6 +253,115 @@ class renderer extends \plugin_renderer_base {
             'applied' => (bool) $suggestion->applied,
             'canapprove' => $canapprove && $suggestion->decision === 'pending',
         ];
+    }
+
+    /**
+     * The activities in one week, each linking to its own content.
+     *
+     * @param \stdClass $course The course.
+     * @param int $sectionnum The week.
+     * @param array $activities Rows from dashboard::activities_for_section().
+     * @param bool $canrun Whether the viewer may start checks.
+     * @return string HTML.
+     */
+    public function activity_list(\stdClass $course, int $sectionnum, array $activities,
+            bool $canrun): string {
+        if (!$activities) {
+            return $this->output->notification(
+                get_string('activity:none', 'local_contentchecker'),
+                \core\output\notification::NOTIFY_INFO);
+        }
+
+        $table = new \html_table();
+        $table->head = [
+            get_string('activity:name', 'local_contentchecker'),
+            get_string('activity:kind', 'local_contentchecker'),
+            get_string('activity:size', 'local_contentchecker'),
+            get_string('dashboard:status', 'local_contentchecker'),
+            get_string('activity:claims', 'local_contentchecker'),
+            get_string('dashboard:pending', 'local_contentchecker'),
+            get_string('dashboard:actions', 'local_contentchecker'),
+        ];
+        $table->attributes['class'] = 'table generaltable cct-activities';
+
+        foreach ($activities as $activity) {
+            $actions = [];
+
+            if ($canrun) {
+                // Checks one activity, which is fast enough to wait for --
+                // unlike a whole week.
+                $actions[] = \html_writer::tag('button',
+                    get_string('activity:verify', 'local_contentchecker'), [
+                        'type' => 'button',
+                        'class' => 'btn btn-sm btn-secondary',
+                        'data-cct-verify' => '1',
+                        'data-cct-section' => $sectionnum,
+                        'data-cct-cmid' => $activity->cmid,
+                    ]);
+            }
+
+            $actions[] = \html_writer::link(
+                new \moodle_url('/mod/' . $activity->modname . '/view.php',
+                    ['id' => $activity->cmid]),
+                get_string('activity:open', 'local_contentchecker'),
+                ['class' => 'btn btn-sm btn-link', 'target' => '_blank',
+                 'rel' => 'noopener']);
+
+            $row = new \html_table_row([
+                \html_writer::link(
+                    new \moodle_url('/local/contentchecker/activity.php',
+                        ['cmid' => $activity->cmid]),
+                    s($activity->name)),
+                get_string('kind:' . $activity->kind, 'local_contentchecker'),
+                get_string('activity:chars', 'local_contentchecker', $activity->chars),
+                $this->status_badge($activity->status)
+                    . \html_writer::span('', 'ml-1 small', ['data-cct-progress' => '1']),
+                $activity->claims ?: '-',
+                $activity->pending ?: '-',
+                implode(' ', $actions),
+            ]);
+            $row->attributes['data-cct-row'] = $activity->cmid;
+            $table->data[] = $row;
+        }
+
+        return \html_writer::table($table);
+    }
+
+    /**
+     * One activity's stored content, rendered as a learner would see it.
+     *
+     * @param array $items content_source items for the activity.
+     * @return string HTML.
+     */
+    public function activity_content(array $items): string {
+        $out = '';
+
+        foreach ($items as $item) {
+            $context = \context_module::instance($item->cmid);
+
+            if (count($items) > 1) {
+                $out .= $this->output->heading(s($item->name), 4);
+            }
+
+            // Rewriting @@PLUGINFILE@@ is what makes inserted images actually
+            // appear; without it they render as broken links.
+            $html = $item->html;
+            try {
+                $area = \local_contentchecker\local\content_source::file_area($item);
+                $html = file_rewrite_pluginfile_urls($html, 'pluginfile.php',
+                    $area['contextid'], $area['component'], $area['filearea'],
+                    $area['itemid']);
+            } catch (\Throwable $e) {
+                // A content type with no file area of its own still renders.
+                $html = $item->html;
+            }
+
+            $out .= \html_writer::div(
+                format_text($html, FORMAT_HTML, ['context' => $context, 'noclean' => true]),
+                'cct-activity-content border rounded p-3 mb-3');
+        }
+
+        return $out;
     }
 
     /**

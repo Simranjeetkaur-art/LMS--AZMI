@@ -97,6 +97,98 @@ class dashboard {
     }
 
     /**
+     * The activities in one week, with each one's own check state.
+     *
+     * Grouped by course module rather than by content item, because a book or
+     * a quiz yields several items from a single activity and an editor thinks
+     * in activities, not in database rows.
+     *
+     * @param int $courseid Course id.
+     * @param int $sectionnum Section number.
+     * @return array List of activity rows.
+     */
+    public static function activities_for_section(int $courseid, int $sectionnum): array {
+        global $DB;
+
+        $byactivity = [];
+        foreach (content_source::for_section($courseid, $sectionnum) as $item) {
+            if (!isset($byactivity[$item->cmid])) {
+                $byactivity[$item->cmid] = (object) [
+                    'cmid' => $item->cmid,
+                    'modname' => $item->modname,
+                    'kind' => $item->kind,
+                    'name' => $item->name,
+                    'parts' => 0,
+                    'chars' => 0,
+                ];
+            }
+            $byactivity[$item->cmid]->parts++;
+            $byactivity[$item->cmid]->chars += \core_text::strlen($item->text);
+        }
+
+        if (!$byactivity) {
+            return [];
+        }
+
+        [$insql, $params] = $DB->get_in_or_equal(array_keys($byactivity),
+            SQL_PARAMS_NAMED, 'cm');
+
+        // One query for every activity, grouped finely enough that the flagged
+        // and pending totals can be summed in PHP. Doing it with CASE WHEN in
+        // SQL would need the verdict placeholders twice in one statement, and
+        // Moodle's DML requires each named parameter to appear exactly once.
+        $rows = $DB->get_records_sql(
+            "SELECT s.cmid || '-' || s.verdict || '-' || s.decision AS uniqkey,
+                    s.cmid, s.verdict, s.decision, COUNT(s.id) AS n
+               FROM {local_cchecker_suggestions} s
+              WHERE s.cmid {$insql}
+           GROUP BY s.cmid, s.verdict, s.decision", $params);
+
+        foreach ($byactivity as $row) {
+            $row->claims = 0;
+            $row->flagged = 0;
+            $row->pending = 0;
+        }
+
+        foreach ($rows as $r) {
+            $activity = $byactivity[$r->cmid] ?? null;
+            if (!$activity) {
+                continue;
+            }
+            $n = (int) $r->n;
+            $activity->claims += $n;
+            if (in_array($r->verdict, pipeline::FLAGGED, true)) {
+                $activity->flagged += $n;
+                if ($r->decision === 'pending') {
+                    $activity->pending += $n;
+                }
+            }
+        }
+
+        foreach ($byactivity as $row) {
+            $row->status = self::activity_status($row);
+        }
+
+        return array_values($byactivity);
+    }
+
+    /**
+     * The badge state for a single activity.
+     *
+     * @param \stdClass $row An activity row.
+     * @return string One of the class constants.
+     */
+    protected static function activity_status(\stdClass $row): string {
+        if ($row->pending > 0) {
+            return self::NEEDS_REVIEW;
+        }
+        if ($row->claims > 0) {
+            return self::OK;
+        }
+        return self::NEVER;
+    }
+
+    /**
      * The most recent check covering a section.
      *
      * A whole-course run (sectionnum -1) counts as having covered every

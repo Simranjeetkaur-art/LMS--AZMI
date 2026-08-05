@@ -86,6 +86,26 @@ $string['decision:approved'] = 'Approved';
 $string['decision:rejected'] = 'Rejected';
 $string['decision:edited'] = 'Edited and approved';
 
+// Activity drill-down.
+$string['activity:inthisweek'] = 'Activities in this week';
+$string['activity:name'] = 'Activity';
+$string['activity:kind'] = 'Type';
+$string['activity:size'] = 'Content';
+$string['activity:chars'] = '{$a} characters';
+$string['activity:claims'] = 'Claims checked';
+$string['activity:verify'] = 'Verify this activity';
+$string['activity:open'] = 'Open in course';
+$string['activity:backtoweek'] = 'Back to the week';
+$string['activity:content'] = 'Content';
+$string['activity:nocontent'] = 'This activity has no prose long enough to check.';
+$string['activity:none'] = 'This week has no activities whose content can be checked.';
+
+$string['kind:reading'] = 'Reading';
+$string['kind:video'] = 'Video';
+$string['kind:assignment'] = 'Assignment';
+$string['kind:discussion'] = 'Discussion';
+$string['kind:quiz'] = 'Quiz';
+
 // Diff review.
 $string['review:heading'] = 'Review findings';
 $string['review:none'] = 'Nothing is awaiting review for this week.';
