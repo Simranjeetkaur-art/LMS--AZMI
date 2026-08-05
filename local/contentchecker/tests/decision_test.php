@@ -300,6 +300,62 @@ final class decision_test extends \advanced_testcase {
     }
 
     /**
+     * A claim the model classified as real content is kept even when it also
+     * marked it uncheckable.
+     *
+     * Observed live: qwen3.5:latest returned six claims, every one
+     * `kind: factual` AND `checkable: false`. Honouring that contradiction
+     * discarded all six, the run finished with no findings, and the week showed
+     * "Verified OK" over content nothing had read.
+     *
+     * @return void
+     */
+    public function test_contradictory_checkable_flag_does_not_discard_content(): void {
+        $method = new \ReflectionMethod(pipeline::class, 'is_checkable');
+
+        // The exact shape that caused the silent pass.
+        $this->assertTrue($method->invoke(null,
+            ['kind' => 'factual', 'checkable' => false, 'text' => 'The heart has four chambers.']));
+        $this->assertTrue($method->invoke(null,
+            ['kind' => 'definitional', 'checkable' => false, 'text' => 'Systole is contraction.']));
+        $this->assertTrue($method->invoke(null,
+            ['kind' => 'procedural', 'checkable' => false, 'text' => 'Auscultate at the apex.']));
+
+        // Course framing is still correctly skipped.
+        $this->assertFalse($method->invoke(null,
+            ['kind' => 'pedagogical', 'checkable' => false, 'text' => 'Welcome to week 1.']));
+        $this->assertFalse($method->invoke(null,
+            ['kind' => 'pedagogical', 'checkable' => true, 'text' => 'By the end you will...']));
+
+        // A missing kind defaults to checkable rather than silently dropping.
+        $this->assertTrue($method->invoke(null, ['text' => 'Something factual.']));
+    }
+
+    /**
+     * A completed run that extracted nothing from real content reports
+     * "empty", not "ok", so it cannot certify unread material.
+     *
+     * @return void
+     */
+    public function test_empty_extraction_is_not_reported_as_ok(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $checkid = $DB->insert_record('local_cchecker_checks', (object) [
+            'courseid' => $course->id, 'sectionnum' => 1, 'cmid' => 0, 'jobid' => 0,
+            'runmode' => 'live', 'status' => 'complete', 'usermodified' => 2,
+            'numitems' => 4, 'timequeued' => time(), 'timefinished' => time(),
+        ]);
+
+        $result = pipeline::result_for($checkid);
+        $this->assertSame('empty', $result['status'],
+            'a run over 4 items that produced no claims must not read as ok');
+    }
+
+    /**
      * A check with nothing flagged reports ok, which is what turns the week's
      * badge green.
      *

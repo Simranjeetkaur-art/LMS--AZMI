@@ -67,7 +67,7 @@ class generate_questions extends external_api {
         require_capability('local/contentchecker:manage',
             \context_course::instance($course->id));
 
-        if (!get_config('local_contentchecker', 'questions_enabled')) {
+        if (!\local_contentchecker\local\settings::enabled('questions_enabled')) {
             throw new \moodle_exception('error:questionsdisabled', 'local_contentchecker');
         }
 

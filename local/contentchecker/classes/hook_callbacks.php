@@ -21,6 +21,7 @@ use local_contentchecker\api\tts_client;
 use local_contentchecker\local\blocks;
 use local_contentchecker\local\content_source;
 use local_contentchecker\local\questions;
+use local_contentchecker\local\settings;
 
 /**
  * Attaches the learner-facing features to content pages.
@@ -101,7 +102,7 @@ class hook_callbacks {
     protected static function load_read_aloud(\cm_info $cm): void {
         global $PAGE;
 
-        if (!get_config('local_contentchecker', 'readaloud_enabled')) {
+        if (!settings::enabled('readaloud_enabled')) {
             return;
         }
 
@@ -123,7 +124,7 @@ class hook_callbacks {
     protected static function load_questions(\cm_info $cm): void {
         global $PAGE;
 
-        if (!get_config('local_contentchecker', 'questions_enabled')) {
+        if (!settings::enabled('questions_enabled')) {
             return;
         }
 

@@ -68,6 +68,7 @@ $string['status:ok'] = 'Verified OK';
 $string['status:needsreview'] = 'Needs review';
 $string['status:failed'] = 'Check failed';
 $string['status:running'] = 'Checking';
+$string['status:empty'] = 'Nothing extracted';
 
 // Verdicts.
 $string['verdict:supported'] = 'Supported';

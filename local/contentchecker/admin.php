@@ -22,7 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__ . '/../../config.php');
+// This plugin is symlinked into the Moodle tree, so __DIR__ resolves to the
+// real path outside it and the conventional relative require misses config.php
+// entirely. Fall back the same way the other AZMSI plugins do.
+require(is_file(__DIR__ . '/../../../config.php')
+    ? __DIR__ . '/../../../config.php'
+    : (getenv('MOODLE_ROOT')
+        ? rtrim(getenv('MOODLE_ROOT'), '/') . '/config.php'
+        : '/var/www/moodle/config.php'));
 require_once($CFG->libdir . '/adminlib.php');
 
 use local_contentchecker\local\dashboard;

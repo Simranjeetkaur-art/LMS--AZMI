@@ -44,6 +44,7 @@ class renderer extends \plugin_renderer_base {
             dashboard::NEEDS_REVIEW => ['warning', 'status:needsreview'],
             dashboard::FAILED => ['danger', 'status:failed'],
             dashboard::RUNNING => ['info', 'status:running'],
+            dashboard::EMPTY_RESULT => ['warning', 'status:empty'],
         ];
         [$colour, $key] = $map[$status] ?? $map[dashboard::NEVER];
 

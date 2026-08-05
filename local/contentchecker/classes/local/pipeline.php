@@ -184,14 +184,30 @@ class pipeline {
 
         foreach ($items as $item) {
             foreach ($this->segments($item->text) as $segment) {
+                // The `checkable` instruction is spelled out at this length for a
+                // measured reason. The terser wording that preceded it made
+                // qwen3.5:latest -- the DEFAULT atomiser -- classify claims as
+                // `kind: factual` and then mark every one `checkable: false`.
+                // Every claim was therefore discarded, the run completed with
+                // zero findings, and the week went green: a "Verified OK" badge
+                // on content nothing had actually read. qwen3.5:35b got it right
+                // on the same prompt, so testing only the large model hid it.
                 $prompt = "You are preparing university medical course content for fact-checking.\n"
                     . "Split the passage into atomic, independently verifiable claims. "
                     . "One assertion each.\n"
                     . "Rewrite `text` to stand alone without the surrounding passage.\n"
                     . "Set `source_sentence` to the sentence from the passage the claim came "
-                    . "from, copied VERBATIM, character for character. Never paraphrase it.\n"
-                    . "Set `checkable` false for pedagogical framing, learning objectives, "
-                    . "welcomes, headings and navigation text.\n"
+                    . "from, copied VERBATIM, character for character. Never paraphrase it.\n\n"
+                    . "`kind` classifies the claim:\n"
+                    . "  factual      - a statement of fact about the world (MOST claims)\n"
+                    . "  definitional - states what a term means\n"
+                    . "  procedural   - describes how something is done\n"
+                    . "  pedagogical  - course admin: welcomes, learning objectives,\n"
+                    . "                 headings, navigation. NOT medical content.\n\n"
+                    . "`checkable` MUST be true for factual, definitional and procedural\n"
+                    . "claims, because those can be checked against a reference. Set it\n"
+                    . "false ONLY for pedagogical claims. Anatomy, physiology and clinical\n"
+                    . "statements are ALWAYS checkable=true.\n"
                     . "Do NOT add information that is not in the passage.\n\n"
                     . "PASSAGE:\n" . $segment;
 
@@ -203,7 +219,7 @@ class pipeline {
                 }
 
                 foreach (($result['claims'] ?? []) as $claim) {
-                    if (empty($claim['checkable']) || empty($claim['text'])) {
+                    if (empty($claim['text']) || !self::is_checkable($claim)) {
                         continue;
                     }
                     // Same anti-hallucination gate as the supporting quote: if
@@ -217,6 +233,34 @@ class pipeline {
             }
         }
         return $claims;
+    }
+
+    /**
+     * Should this claim be sent for adjudication?
+     *
+     * Deliberately does NOT gate on `checkable` alone. A model that classifies
+     * a claim as factual, definitional or procedural and then marks it
+     * uncheckable has contradicted itself, and honouring that contradiction
+     * throws away real medical content. The observed cost of getting this wrong
+     * is asymmetric: dropping a genuine claim yields a green "Verified OK" on
+     * unchecked material, whereas keeping a borderline one costs a little GPU
+     * time and shows the reviewer one extra row.
+     *
+     * `kind` is therefore the gate, and `checkable` is honoured only when the
+     * two agree.
+     *
+     * @param array $claim A claim from the atomiser.
+     * @return bool True when it should be adjudicated.
+     */
+    protected static function is_checkable(array $claim): bool {
+        $kind = $claim['kind'] ?? 'factual';
+
+        // Course framing is genuinely not checkable against a medical source.
+        if ($kind === 'pedagogical') {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -543,8 +587,20 @@ class pipeline {
               WHERE s.checkid = :checkid",
             ['checkid' => $checkid]);
 
+        // A completed run that extracted nothing at all from real content is an
+        // anomaly, not a clean bill of health -- it is what a broken atomiser
+        // prompt or a silently empty model response looks like. Reporting it as
+        // "ok" would put a green badge on unread material, so it gets its own
+        // state and the reviewer is told to look.
+        $anyclaims = $DB->record_exists('local_cchecker_suggestions',
+            ['checkid' => $checkid]);
+        $status = $issues ? 'needs_review' : 'ok';
+        if (!$issues && !$anyclaims && (int) $check->numitems > 0) {
+            $status = 'empty';
+        }
+
         return [
-            'status' => $issues ? 'needs_review' : 'ok',
+            'status' => $status,
             'issues' => $issues,
             'sources_checked' => array_values(array_map(fn($s) => [
                 'title' => $s->title,

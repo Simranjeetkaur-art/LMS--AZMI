@@ -42,11 +42,9 @@ class source_registry {
      * @return bool The effective setting.
      */
     public static function setting_enabled(string $name, bool $default = true): bool {
-        $value = get_config('local_contentchecker', $name);
-        if ($value === false || $value === null || $value === '') {
-            return $default;
-        }
-        return (bool) $value;
+        // Delegates so there is exactly one implementation of the
+        // unset-means-default rule.
+        return \local_contentchecker\local\settings::enabled($name, $default);
     }
 
     /**

@@ -76,7 +76,7 @@ class synthesize extends external_api {
         if (!$cm->uservisible) {
             throw new \moodle_exception('error:nopermissiontoread', 'local_contentchecker');
         }
-        if (!get_config('local_contentchecker', 'readaloud_enabled')) {
+        if (!\local_contentchecker\local\settings::enabled('readaloud_enabled')) {
             throw new \moodle_exception('error:readalouddisabled', 'local_contentchecker');
         }
 

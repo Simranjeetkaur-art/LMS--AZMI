@@ -48,6 +48,16 @@ class dashboard {
     const RUNNING = 'running';
 
     /**
+     * Checked, but nothing was extracted from content that clearly has some.
+     *
+     * Distinct from OK on purpose: it is what a broken extraction prompt looks
+     * like, and showing it as green would certify unread material.
+     *
+     * @var string
+     */
+    const EMPTY_RESULT = 'empty';
+
+    /**
      * Per-section status for one course.
      *
      * @param int $courseid Course id.
@@ -151,8 +161,20 @@ class dashboard {
         if ($check->status === 'failed') {
             return self::FAILED;
         }
-        return self::pending_count($courseid, $sectionnum) > 0
-            ? self::NEEDS_REVIEW : self::OK;
+        if (self::pending_count($courseid, $sectionnum) > 0) {
+            return self::NEEDS_REVIEW;
+        }
+
+        // Completed, nothing outstanding -- but if the run covered activities
+        // and produced no claims whatsoever, it verified nothing and must not
+        // read as green.
+        global $DB;
+        if ((int) $check->numitems > 0
+                && !$DB->record_exists('local_cchecker_suggestions', ['checkid' => $check->id])) {
+            return self::EMPTY_RESULT;
+        }
+
+        return self::OK;
     }
 
     /**
