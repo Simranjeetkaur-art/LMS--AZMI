@@ -1,0 +1,130 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_emdverify/overview
+
+    Per-week verification status for a course.
+
+    Context variables required for this template:
+    * coursename - Course full name
+    * weeks - Array of week rows
+    * canrun - Whether the viewer may queue runs
+    * corpusstatus - Human readable corpus size
+    * tier3only - Whether the corpus is open-reference only
+    * accuracy - Agreement rows
+
+    Example context (json):
+    {
+        "coursename": "Human Anatomy I",
+        "corpusstatus": "6 sources - 66 passages embedded",
+        "tier3only": true,
+        "tierwarning": "Open reference material only.",
+        "hasweeks": true,
+        "weeks": [
+            {"sectionnum": 1, "name": "Week 1", "hasrun": true, "numclaims": 242,
+             "numflagged": 7, "clean": false, "running": false, "failed": false,
+             "lastverified": "31/07/26, 10:15", "ledgerurl": "#"}
+        ],
+        "hasaccuracy": false,
+        "accuracy": []
+    }
+}}
+<div class="local-emdverify-overview">
+
+    <h2>{{#str}} ledger, local_emdverify {{/str}}</h2>
+
+    {{#tier3only}}
+        <div class="alert alert-warning" role="alert">{{tierwarning}}</div>
+    {{/tier3only}}
+
+    <p class="text-muted small">{{corpusstatus}}</p>
+
+    {{#hasaccuracy}}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h3 class="h5">{{#str}} accuracy, local_emdverify {{/str}}</h3>
+                <p class="text-muted small">{{#str}} accuracydesc, local_emdverify {{/str}}</p>
+                <ul class="list-unstyled mb-0">
+                    {{#accuracy}}
+                        <li>{{verdict}}: <strong>{{agree}}/{{total}}</strong> ({{pct}}%)</li>
+                    {{/accuracy}}
+                </ul>
+            </div>
+        </div>
+    {{/hasaccuracy}}
+
+    {{#hasweeks}}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">{{#str}} week, local_emdverify, # {{/str}}</th>
+                    <th scope="col">{{#str}} claim, local_emdverify {{/str}}</th>
+                    <th scope="col">{{#str}} filterflagged, local_emdverify {{/str}}</th>
+                    <th scope="col">{{#str}} lastverified, local_emdverify, - {{/str}}</th>
+                    <th scope="col"><span class="sr-only">{{#str}} actions {{/str}}</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#weeks}}
+                    <tr>
+                        <th scope="row" class="font-weight-normal">{{name}}</th>
+                        <td>
+                            {{#hasrun}}{{numclaims}}{{/hasrun}}
+                            {{^hasrun}}<span class="text-muted">&mdash;</span>{{/hasrun}}
+                        </td>
+                        <td>
+                            {{#running}}
+                                <span class="badge badge-info">{{progress}}%</span>
+                            {{/running}}
+                            {{#failed}}
+                                <span class="badge badge-danger">
+                                    {{#str}} error {{/str}}
+                                </span>
+                            {{/failed}}
+                            {{^running}}{{^failed}}
+                                {{#clean}}
+                                    <span class="badge badge-success">0</span>
+                                {{/clean}}
+                                {{^clean}}
+                                    {{#hasrun}}
+                                        <span class="badge badge-warning">{{numflagged}}</span>
+                                    {{/hasrun}}
+                                    {{^hasrun}}
+                                        <span class="text-muted">
+                                            {{#str}} runnever, local_emdverify {{/str}}
+                                        </span>
+                                    {{/hasrun}}
+                                {{/clean}}
+                            {{/failed}}{{/running}}
+                        </td>
+                        <td class="text-muted small">{{lastverified}}</td>
+                        <td class="text-right">
+                            <a class="btn btn-sm btn-outline-primary" href="{{ledgerurl}}">
+                                {{#hasrun}}{{#str}} ledger, local_emdverify {{/str}}{{/hasrun}}
+                                {{^hasrun}}{{#str}} queuerun, local_emdverify {{/str}}{{/hasrun}}
+                            </a>
+                        </td>
+                    </tr>
+                {{/weeks}}
+            </tbody>
+        </table>
+    {{/hasweeks}}
+
+    {{^hasweeks}}
+        <p class="text-muted">{{#str}} noclaims, local_emdverify {{/str}}</p>
+    {{/hasweeks}}
+</div>

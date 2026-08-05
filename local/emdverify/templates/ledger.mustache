@@ -1,0 +1,211 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_emdverify/ledger
+
+    The verification ledger for one week.
+
+    Context variables required for this template:
+    * weekname - Section name
+    * claims - Array of claim rows with evidence
+    * canrun - Whether the viewer may queue a run
+    * canadjudicate - Whether the viewer may sign off
+    * running - Whether a run is in flight
+
+    Example context (json):
+    {
+        "weekname": "Week 1",
+        "backurl": "#",
+        "queueurl": "#",
+        "canrun": true,
+        "canadjudicate": true,
+        "hasrun": true,
+        "complete": true,
+        "running": false,
+        "failed": false,
+        "runid": 1,
+        "progress": 100,
+        "summary": "242 claims - 7 need attention - 0 reviewed",
+        "tier3only": true,
+        "tierwarning": "Open reference material only.",
+        "hasclaims": true,
+        "filters": [{"label": "Needs attention", "url": "#", "active": true}],
+        "claims": [
+            {"id": 1, "text": "The anatomical position has the feet together.",
+             "pagename": "Lecture 1", "pageurl": "#", "verdict": "contested",
+             "verdictlabel": "Contested", "flagged": true, "contested": true,
+             "quorum": "1/3 (supported, contradicted, supported)", "topscore": "0.892",
+             "hasquote": false, "quoteverbatim": false, "confidence": "1.00",
+             "reasoning": "One source says slightly apart.", "hascorrection": false,
+             "hasevidence": true, "reviewed": false,
+             "evidence": [{"title": "Standard anatomical position", "url": "#",
+                           "tier": 3, "score": "0.892", "snippet": "feet together (or slightly separated)"}]}
+        ]
+    }
+}}
+<div class="local-emdverify-ledger" data-region="emdverify-ledger" data-runid="{{runid}}">
+
+    <p><a href="{{backurl}}">&laquo; {{#str}} courseoverview, local_emdverify {{/str}}</a></p>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+        <h2 class="mb-0">{{weekname}}</h2>
+        {{#canrun}}
+            <a class="btn btn-primary" href="{{queueurl}}">
+                {{#hasrun}}{{#str}} requeuerun, local_emdverify {{/str}}{{/hasrun}}
+                {{^hasrun}}{{#str}} queuerun, local_emdverify {{/str}}{{/hasrun}}
+            </a>
+        {{/canrun}}
+    </div>
+
+    {{#tier3only}}
+        <div class="alert alert-warning" role="alert">{{tierwarning}}</div>
+    {{/tier3only}}
+
+    {{#running}}
+        <div class="alert alert-info" role="status" data-region="emdverify-progress">
+            {{#str}} runrunning, local_emdverify, {{progress}} {{/str}}
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{progress}}%"
+                     aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+    {{/running}}
+
+    {{#failed}}
+        <div class="alert alert-danger" role="alert">
+            {{#str}} runfailed, local_emdverify, {{errormsg}} {{/str}}
+        </div>
+    {{/failed}}
+
+    {{^hasrun}}
+        <p class="text-muted">{{#str}} runnever, local_emdverify {{/str}}</p>
+    {{/hasrun}}
+
+    {{#complete}}
+        <p class="text-muted">{{summary}}</p>
+
+        <ul class="nav nav-pills mb-3">
+            {{#filters}}
+                <li class="nav-item">
+                    <a class="nav-link {{#active}}active{{/active}}" href="{{url}}">{{label}}</a>
+                </li>
+            {{/filters}}
+        </ul>
+
+        {{^hasclaims}}
+            <p class="text-muted">{{#str}} noclaims, local_emdverify {{/str}}</p>
+        {{/hasclaims}}
+
+        {{#claims}}
+            <div class="card mb-3 {{#flagged}}border-warning{{/flagged}}"
+                 data-region="emdverify-claim" data-claimid="{{id}}">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+                        <p class="mb-1 font-weight-bold">{{text}}</p>
+                        <span class="badge badge-{{#flagged}}warning{{/flagged}}{{^flagged}}light{{/flagged}} ml-2">
+                            {{verdictlabel}}
+                        </span>
+                    </div>
+
+                    <p class="small text-muted mb-2">
+                        <a href="{{pageurl}}">{{pagename}}</a>
+                        &middot; {{#str}} quorum, local_emdverify {{/str}}: {{quorum}}
+                        &middot; {{topscore}}
+                    </p>
+
+                    {{#contested}}
+                        <p class="small text-muted font-italic">
+                            {{#str}} verdict:contested_help, local_emdverify {{/str}}
+                        </p>
+                    {{/contested}}
+
+                    {{#reasoning}}
+                        <p class="mb-2">{{reasoning}}</p>
+                    {{/reasoning}}
+
+                    {{#hasquote}}
+                        <blockquote class="blockquote small border-left pl-3">
+                            {{quote}}
+                            {{^quoteverbatim}}
+                                <footer class="text-danger small">
+                                    {{#str}} quotenotverbatim, local_emdverify {{/str}}
+                                </footer>
+                            {{/quoteverbatim}}
+                        </blockquote>
+                    {{/hasquote}}
+
+                    {{#hascorrection}}
+                        <p class="small">
+                            <strong>{{#str}} suggestedcorrection, local_emdverify {{/str}}:</strong>
+                            {{correction}}
+                        </p>
+                    {{/hascorrection}}
+
+                    {{#hasevidence}}
+                        <details class="mb-2">
+                            <summary class="small">{{#str}} sources, local_emdverify {{/str}}</summary>
+                            <ul class="list-unstyled small mt-2 mb-0">
+                                {{#evidence}}
+                                    <li class="mb-2">
+                                        <a href="{{url}}" target="_blank" rel="noopener">{{title}}</a>
+                                        <span class="text-muted">
+                                            ({{#str}} sourcetier, local_emdverify {{/str}} {{tier}}, {{score}})
+                                        </span>
+                                        <div class="text-muted">{{snippet}}</div>
+                                    </li>
+                                {{/evidence}}
+                            </ul>
+                        </details>
+                    {{/hasevidence}}
+
+                    <p class="small text-muted mb-2">
+                        {{#str}} modelconfidence, local_emdverify, {{confidence}} {{/str}}
+                    </p>
+
+                    {{#canadjudicate}}
+                        <div class="btn-group btn-group-sm" role="group"
+                             aria-label="{{#str}} reviewprompt, local_emdverify {{/str}}">
+                            <button type="button"
+                                    class="btn btn-outline-success {{#reviewed}}{{/reviewed}}"
+                                    data-action="emdverify-review" data-decision="agree">
+                                {{#str}} review:agree, local_emdverify {{/str}}
+                            </button>
+                            <button type="button" class="btn btn-outline-danger"
+                                    data-action="emdverify-review" data-decision="disagree">
+                                {{#str}} review:disagree, local_emdverify {{/str}}
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary"
+                                    data-action="emdverify-review" data-decision="unsure">
+                                {{#str}} review:unsure, local_emdverify {{/str}}
+                            </button>
+                        </div>
+                        <span class="small ml-2" data-region="emdverify-reviewstate">
+                            {{#reviewed}}{{decision}}{{/reviewed}}
+                        </span>
+                    {{/canadjudicate}}
+
+                </div>
+            </div>
+        {{/claims}}
+    {{/complete}}
+</div>
+{{#js}}
+require(['local_emdverify/ledger'], function(Ledger) {
+    Ledger.init();
+});
+{{/js}}
