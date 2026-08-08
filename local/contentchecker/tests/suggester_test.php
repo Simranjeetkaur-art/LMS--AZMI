@@ -210,6 +210,56 @@ final class suggester_test extends \advanced_testcase {
     }
 
     /**
+     * Generated diagram source is cleaned and sanity-checked.
+     *
+     * Each rule here comes from a diagram that looked wrong on a real page:
+     * hardcoded fills fought the site theme, nested subgraphs sprawled past
+     * the token ceiling and returned nothing at all, and a two-node graph
+     * collapsed a Greek-versus-Latin contrast into one mislabelled arrow.
+     *
+     * @return void
+     */
+    public function test_generated_diagram_is_cleaned(): void {
+        $this->resetAfterTest();
+
+        $clean = function(array $mermaid) {
+            $stub = new stub_backend([['mermaid' => implode("\n", $mermaid)]]);
+            $method = new \ReflectionMethod(suggester::class, 'generate_diagram');
+            return $method->invoke(new suggester($stub), (object) [
+                'concept' => 'c', 'reason' => 'r',
+            ], 'passage text');
+        };
+
+        // Colour directives are stripped; the diagram itself survives.
+        $out = $clean([
+            'graph LR',
+            '  Kidney[Kidney] --> Latin[Latin: ren]',
+            '  Kidney --> Greek[Greek: nephr]',
+            'style Kidney fill:#f9f,stroke:#333',
+            'classDef big font-size:20px',
+        ]);
+        $this->assertStringNotContainsString('style', $out);
+        $this->assertStringNotContainsString('classDef', $out);
+        $this->assertStringContainsString('Greek: nephr', $out);
+
+        // A code fence around the answer is removed rather than retried.
+        $fenced = $clean([
+            '```mermaid',
+            'graph TD',
+            '  A[One] --> B[Two]',
+            '  B --> C[Three]',
+            '```',
+        ]);
+        $this->assertStringStartsWith('graph TD', $fenced);
+
+        // Prose instead of a diagram is refused.
+        $this->assertSame('', $clean(['Here is a diagram of the kidney.']));
+
+        // A single arrow is a collapsed concept, not an illustration.
+        $this->assertSame('', $clean(['graph LR', '  A[One] --> B[Two]']));
+    }
+
+    /**
      * A disabled asset is never proposed, so an entry still waiting for its
      * URL cannot be offered as insertable.
      *

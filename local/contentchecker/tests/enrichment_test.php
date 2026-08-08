@@ -204,8 +204,11 @@ final class enrichment_test extends \advanced_testcase {
 
         $this->assertStringContainsString('data-cct-mermaid', $html);
         $this->assertStringContainsString('Systole', $html);
-        // Kept as text, so it reads as a diagram definition if unrendered.
-        $this->assertStringContainsString('<pre', $html);
+        // A div, not a pre: Mermaid swaps the host element's innerHTML for an
+        // SVG, and a pre is styled for preformatted text so the diagram never
+        // lays out. CSS keeps the source readable until the renderer runs.
+        $this->assertStringContainsString('<div class="cct-mermaid"', $html);
+        $this->assertStringNotContainsString('<pre', $html);
     }
 
     /**

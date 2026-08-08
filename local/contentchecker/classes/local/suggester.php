@@ -47,6 +47,18 @@ class suggester {
     const IMAGES_PER_CONCEPT = 6;
 
     /**
+     * Output ceiling for one generated diagram.
+     *
+     * Larger than it sounds necessary because the diagram is returned inside a
+     * JSON string, so every newline and quote costs escape characters. Measured:
+     * an unconstrained model produced 1661 characters of nested subgraphs and
+     * truncated at 3000 tokens, which surfaced as no diagram at all.
+     *
+     * @var int
+     */
+    const DIAGRAM_BUDGET = 4000;
+
+    /**
      * Minimum overlapping words before a registered asset is offered.
      *
      * One shared word is noise. Measured: a concept about "the four-part
@@ -140,7 +152,7 @@ class suggester {
                 // and searching anyway returned "Nikon D800 vs Canon 5D Mark III
                 // Battery" because both phrases contain "comparison". The right
                 // answer for an abstract relationship is to draw one.
-                $concept->diagram = $this->generate_diagram($concept);
+                $concept->diagram = $this->generate_diagram($concept, $text);
                 $concept->images = [];
             } else {
                 $concept->diagram = '';
@@ -347,9 +359,11 @@ class suggester {
      * than becoming an opaque binary.
      *
      * @param \stdClass $concept The concept.
+     * @param string $text The activity's prose, so the diagram can use the
+     *      passage's own terms and examples instead of generic placeholders.
      * @return string Mermaid source, or '' when nothing usable came back.
      */
-    protected function generate_diagram(\stdClass $concept): string {
+    protected function generate_diagram(\stdClass $concept, string $text): string {
         $model = get_config('local_contentchecker', 'model_questions') ?: 'qwen3.5:35b';
 
         $schema = [
@@ -358,25 +372,52 @@ class suggester {
             'required' => ['mermaid'],
         ];
 
-        $prompt = "Write a Mermaid diagram illustrating this concept from a "
-            . "medical course.\n\n"
+        $prompt = "Draw a Mermaid diagram for a medical course.\n\n"
             . "CONCEPT: {$concept->concept}\n"
-            . "WHY IT HELPS: {$concept->reason}\n\n"
+            . "WHY A VISUAL HELPS: {$concept->reason}\n\n"
+            . "Use the PASSAGE below as your source. The diagram must show the "
+            . "CONCEPT using the passage's own terms and examples -- the actual "
+            . "words, roots, drugs, structures or values it names. A diagram of "
+            . "abstract category labels teaches nothing.\n\n"
             . "RULES:\n"
             . "- Output ONLY Mermaid source in the `mermaid` field. No markdown "
             . "fences, no prose.\n"
-            . "- Start with a diagram type: `graph LR`, `graph TD` or `flowchart TD`.\n"
-            . "- Node IDs must be ONE word with no spaces: write "
-            . "`CombiningVowel[Combining vowel]`, never `Combining Vowel[...]`. "
-            . "A space in an ID breaks the diagram.\n"
-            . "- Keep node labels under 6 words.\n"
-            . "- Use at most 10 nodes; a crowded diagram teaches nothing.\n"
-            . "- Do not invent facts beyond the concept described.\n";
+            . "- Start with `graph LR` for comparisons and contrasts, or "
+            . "`graph TD` for hierarchies and sequences.\n"
+            . "- FLAT graph only. Never use `subgraph`. A teaching diagram that "
+            . "needs nesting is doing too much.\n"
+            . "- Between 4 and 8 nodes. Show ONE relationship clearly. If the "
+            . "passage gives many examples, pick the two or three it stresses "
+            . "most and leave the rest out.\n"
+            . "- Node IDs must be ONE word, no spaces, and MEANINGFUL: write "
+            . "`Latin[\"Latin: ren\"]`, never `A[...]` or `B[...]`.\n"
+            . "- Put the real content in the LABELS. For a contrast between two "
+            . "things, name both and give a concrete example of each.\n"
+            . "- Labels under 8 words. At most 10 nodes.\n"
+            . "- NEVER emit `style`, `classDef`, `linkStyle` or any colour or "
+            . "fill directive. The page supplies its own theme and hardcoded "
+            . "colours clash with it.\n"
+            . "- Invent nothing that is not in the passage. Copy the terms "
+            . "EXACTLY as the passage pairs them; do not swap which language, "
+            . "drug or structure a term belongs to.\n\n"
+            . "Worked example. For a passage stating that the kidney is Latin "
+            . "`ren` (giving renal) and Greek `nephr` (giving nephritis), a "
+            . "good diagram is:\n"
+            . "graph LR\n"
+            . "  Kidney[\"Kidney\"] --> Latin[\"Latin: ren\"]\n"
+            . "  Kidney --> Greek[\"Greek: nephr\"]\n"
+            . "  Latin --> Renal[\"renal failure\"]\n"
+            . "  Greek --> Nephritis[\"nephritis, nephrectomy\"]\n"
+            . "Note how each branch keeps its own examples and nothing is "
+            . "swapped between them.\n\n"
+            . "PASSAGE:\n" . \core_text::substr($text, 0, 2000);
 
         try {
             $result = $this->client->generate_json($model, $prompt, $schema,
-                pipeline::atomise_budget());
+                self::DIAGRAM_BUDGET);
         } catch (\Throwable $e) {
+            // Silent by design here: one concept without a diagram still leaves
+            // the other five usable, and the card simply shows no diagram.
             return '';
         }
 
@@ -387,11 +428,31 @@ class suggester {
         $source = preg_replace('/^```(?:mermaid)?\s*|\s*```$/m', '', $source);
         $source = trim((string) $source);
 
+        // Colour directives arrive anyway. Stripping them here rather than
+        // relying on the prompt means a themed page never gets fought by
+        // hardcoded pinks and blues.
+        $lines = [];
+        foreach (preg_split('/\R/', $source) as $line) {
+            if (preg_match('/^\s*(style|classDef|linkStyle)\s/i', $line)) {
+                continue;
+            }
+            $lines[] = rtrim($line);
+        }
+        $source = trim(implode("\n", $lines));
+
         // Anything that does not start with a diagram declaration will not
         // render, and showing an editor broken source is worse than showing
         // none.
         if (!preg_match('/^(graph|flowchart|sequenceDiagram|classDiagram|mindmap)\b/i',
                 $source)) {
+            return '';
+        }
+
+        // Two nodes joined by one arrow is not worth an editor's attention and
+        // is usually a sign the model collapsed the concept rather than
+        // illustrating it. Observed: a Greek-versus-Latin contrast reduced to a
+        // single arrow, with both ends mislabelled.
+        if (substr_count($source, '-->') + substr_count($source, '---') < 2) {
             return '';
         }
 
